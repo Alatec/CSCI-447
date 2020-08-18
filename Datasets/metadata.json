@@ -1,0 +1,7 @@
+{
+    "abalone":{
+        "path":"Datasets/abalone.data",
+        "names":["sex","length","diamter","height","whole","shucked","viscera","shell","rings"],
+        "class":["rings"]
+    }
+}
