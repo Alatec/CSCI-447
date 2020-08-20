@@ -1,50 +1,50 @@
 {
     "breastCancer": {
         "dataPath": "breast-cancer-wisconsin.data",
-        "attributes": ["Sample code number", "Clump Thickness", "Uniformity of Cell Size", "Uniformity of Cell Shape",
-                      "Marginal Adhesion", "Single Epithelial Cell Size", "Bare Nuclei", "Bland Chromatin", "Normal Nucleoli", "Mitoses", "Class"],
-        "class": "Class",
-        "continuous": ["Clump Thickness", "Uniformity of Cell Size", "Uniformity of Cell Shape",
-                      "Marginal Adhesion", "Single Epithelial Cell Size", "Bare Nuclei", "Bland Chromatin", "Normal Nucleoli", "Mitoses", "Class"],
-        "discrete": ["Sample code number"]
+        "attributes": ["sampleCodeNumber", "clumpThickness", "uniformityOfCellSize", "uniformityOfCellShape",
+                      "marginalAdhesion", "singleEpithelialCellSize", "bareNuclei", "blandChromatin", "normalNucleoli", "mitoses", "class"],
+        "class": "class",
+        "continuous": ["clumpThickness", "uniformityOfCellSize", "uniformityOfCellShape",
+                      "marginalAdhesion", "singleEpithelialCellSize", "bareNuclei", "blandChromatin", "normalNucleoli", "mitoses", "class"],
+        "discrete": ["sampleCodeNumber"]
     },
     "glass": {
         "dataPath": "glass.data",
-        "attributes": ["Id number", "RI", "Na", "Mg", "Al", "Si", "K", "Ca", "Ba", "Fe", "Type of glass"],
-        "class": "Type of glass",
+        "attributes": ["idNumber", "RI", "Na", "Mg", "Al", "Si", "K", "Ca", "Ba", "Fe", "typeOfGlass"],
+        "class": "typeOfGlass",
         "continuous": ["RI", "Na", "Mg", "Al", "Si", "K", "Ca", "Ba", "Fe"],
-        "discrete": ["Id number", "Type of glass"]
+        "discrete": ["idNumber", "typeOfGlass"]
     },
     "iris": {
         "dataPath": "iris.data",
-        "attributes": ["sepal length", "sepal width", "petal length", "petal width", "class"],
+        "attributes": ["sepalLength", "sepalWidth", "petalLength", "petalWidth", "class"],
         "class": "class",
-        "continuous": ["sepal length", "sepal width", "petal length", "petal width"],
+        "continuous": ["sepalLength", "sepalWidth", "petalLength", "petalWidth"],
         "discrete": ["class"]
     },
     "soybeanSmall": {
         "dataPath": "soybean-small.data",
-        "attributes": ["date", "plant-stand", "precip", "temp", "temp", "hail", "crop-hist", "area-damaged", "severity", "seed-tmt",
-        "germination", "plant-growth", "leaves", "leafspots-halo", "leafspots-marg", "leafspot-size", "leaf-shread", "leaf-malf", "leaf-mild"
-        "stem", "lodging", "stem-cankers", "canker-lesion", "fruiting-bodies", "external decay", "mycelium", "int-discolor", "sclerotia", "fruit-pods",
-        "fruit spots", "seed", "mold-growth", "seed-discolor", "seed-size", "shriveling", "roots"],
+        "attributes": ["date", "plantStand", "precip", "temp", "temp", "hail", "cropHist", "areaDamaged", "severity", "seed-tmt",
+        "germination", "plantGrowth", "leaves", "leafspotsHalo", "leafspotsMarg", "leafspotSize", "leafShread", "leafMalf", "leafMild"
+        "stem", "lodging", "stemCankers", "cankerLesion", "fruitingBodies", "externalDecay", "mycelium", "intDiscolor", "sclerotia", "fruitPods",
+        "fruitSpots", "seed", "moldGrowth", "seedDiscolor", "seedSize", "shriveling", "roots"],
         "class": "roots",
         "continuous": [],
-        "discrete": ["date", "plant-stand", "precip", "temp", "temp", "hail", "crop-hist", "area-damaged", "severity", "seed-tmt",
-        "germination", "plant-growth", "leaves", "leafspots-halo", "leafspots-marg", "leafspot-size", "leaf-shread", "leaf-malf", "leaf-mild"
-        "stem", "lodging", "stem-cankers", "canker-lesion", "fruiting-bodies", "external decay", "mycelium", "int-discolor", "sclerotia", "fruit-pods",
-        "fruit spots", "seed", "mold-growth", "seed-discolor", "seed-size", "shriveling", "roots"]
+        "discrete": ["date", "plantStand", "precip", "temp", "temp", "hail", "cropHist", "areaDamaged", "severity", "seed-tmt",
+        "germination", "plantGrowth", "leaves", "leafspotsHalo", "leafspotsMarg", "leafspotSize", "leafShread", "leafMalf", "leafMild"
+        "stem", "lodging", "stemCankers", "cankerLesion", "fruitingBodies", "externalDecay", "mycelium", "intDiscolor", "sclerotia", "fruitPods",
+        "fruitSpots", "seed", "moldGrowth", "seedDiscolor", "seedSize", "shriveling", "roots"]
     },
     "vote": {
         "dataPath": "house-votes-84.data",
-        "attributes": ["Class Name", "handicapped-infants", "water-project-cost-sharing", "adoption-of-the-budget-resolution", "physician-fee-freeze"
-        "el-salvador-aid", "religious-groups-in-school", "anti-satellite-test-ban", "aid-to-nicaraguan-contras", "mx-missile", "immigration",
-        "synfuels-corporation-cutback", "education-spending", "superfund-right-to-sue", "crime", "duty-free-exports", "export-administration-act-south-africa"],
-        "class": "Class Name",
+        "attributes": ["className", "handicappedInfants", "waterProjectCostSharing", "adoptionOfTheBudgetResolution", "physicianFeeFreeze"
+        "elSalvadorAid", "religiousGroupsInSchool", "antiSatelliteTestBan", "aidToNicaraguanContras", "mxMissile", "immigration",
+        "synfuelsCorporationCutback", "educationSpending", "superfundRightToSue", "crime", "dutyFreeExports", "exportAdministrationActSouthAfrica"],
+        "class": "className",
         "continuous": [],
-        "discrete": ["Class Name", "handicapped-infants", "water-project-cost-sharing", "adoption-of-the-budget-resolution", "physician-fee-freeze"
-        "el-salvador-aid", "religious-groups-in-school", "anti-satellite-test-ban", "aid-to-nicaraguan-contras", "mx-missile", "immigration",
-        "synfuels-corporation-cutback", "education-spending", "superfund-right-to-sue", "crime", "duty-free-exports", "export-administration-act-south-africa"]
+        "discrete": ["className", "handicappedInfants", "waterProjectCostSharing", "adoptionOfTheBudgetResolution", "physicianFeeFreeze"
+        "elSalvadorAid", "religiousGroupsInSchool", "antiSatelliteTestBan", "aidToNicaraguanContras", "mxMissile", "immigration",
+        "synfuelsCorporationCutback", "educationSpending", "superfundRightToSue", "crime", "dutyFreeExports", "exportAdministrationActSouthAfrica"]
     }
 
 }
