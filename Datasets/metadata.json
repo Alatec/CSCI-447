@@ -1,7 +1,50 @@
 {
-    "abalone":{
-        "path":"Datasets/abalone.data",
-        "names":["sex","length","diamter","height","whole","shucked","viscera","shell","rings"],
-        "class":["rings"]
+    "breastCancer": {
+        "dataPath": "breast-cancer-wisconsin.data",
+        "attributes": ["Sample code number", "Clump Thickness", "Uniformity of Cell Size", "Uniformity of Cell Shape",
+                      "Marginal Adhesion", "Single Epithelial Cell Size", "Bare Nuclei", "Bland Chromatin", "Normal Nucleoli", "Mitoses", "Class"],
+        "class": "Class",
+        "continuous": ["Clump Thickness", "Uniformity of Cell Size", "Uniformity of Cell Shape",
+                      "Marginal Adhesion", "Single Epithelial Cell Size", "Bare Nuclei", "Bland Chromatin", "Normal Nucleoli", "Mitoses", "Class"],
+        "discrete": ["Sample code number"]
+    },
+    "glass": {
+        "dataPath": "glass.data",
+        "attributes": ["Id number", "RI", "Na", "Mg", "Al", "Si", "K", "Ca", "Ba", "Fe", "Type of glass"],
+        "class": "Type of glass",
+        "continuous": ["RI", "Na", "Mg", "Al", "Si", "K", "Ca", "Ba", "Fe"],
+        "discrete": ["Id number", "Type of glass"]
+    },
+    "iris": {
+        "dataPath": "iris.data",
+        "attributes": ["sepal length", "sepal width", "petal length", "petal width", "class"],
+        "class": "class",
+        "continuous": ["sepal length", "sepal width", "petal length", "petal width"],
+        "discrete": ["class"]
+    },
+    "soybeanSmall": {
+        "dataPath": "soybean-small.data",
+        "attributes": ["date", "plant-stand", "precip", "temp", "temp", "hail", "crop-hist", "area-damaged", "severity", "seed-tmt",
+        "germination", "plant-growth", "leaves", "leafspots-halo", "leafspots-marg", "leafspot-size", "leaf-shread", "leaf-malf", "leaf-mild"
+        "stem", "lodging", "stem-cankers", "canker-lesion", "fruiting-bodies", "external decay", "mycelium", "int-discolor", "sclerotia", "fruit-pods",
+        "fruit spots", "seed", "mold-growth", "seed-discolor", "seed-size", "shriveling", "roots"],
+        "class": "roots",
+        "continuous": [],
+        "discrete": ["date", "plant-stand", "precip", "temp", "temp", "hail", "crop-hist", "area-damaged", "severity", "seed-tmt",
+        "germination", "plant-growth", "leaves", "leafspots-halo", "leafspots-marg", "leafspot-size", "leaf-shread", "leaf-malf", "leaf-mild"
+        "stem", "lodging", "stem-cankers", "canker-lesion", "fruiting-bodies", "external decay", "mycelium", "int-discolor", "sclerotia", "fruit-pods",
+        "fruit spots", "seed", "mold-growth", "seed-discolor", "seed-size", "shriveling", "roots"]
+    },
+    "vote": {
+        "dataPath": "house-votes-84.data",
+        "attributes": ["Class Name", "handicapped-infants", "water-project-cost-sharing", "adoption-of-the-budget-resolution", "physician-fee-freeze"
+        "el-salvador-aid", "religious-groups-in-school", "anti-satellite-test-ban", "aid-to-nicaraguan-contras", "mx-missile", "immigration",
+        "synfuels-corporation-cutback", "education-spending", "superfund-right-to-sue", "crime", "duty-free-exports", "export-administration-act-south-africa"],
+        "class": "Class Name",
+        "continuous": [],
+        "discrete": ["Class Name", "handicapped-infants", "water-project-cost-sharing", "adoption-of-the-budget-resolution", "physician-fee-freeze"
+        "el-salvador-aid", "religious-groups-in-school", "anti-satellite-test-ban", "aid-to-nicaraguan-contras", "mx-missile", "immigration",
+        "synfuels-corporation-cutback", "education-spending", "superfund-right-to-sue", "crime", "duty-free-exports", "export-administration-act-south-africa"]
     }
+
 }
