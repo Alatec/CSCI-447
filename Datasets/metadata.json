@@ -6,7 +6,8 @@
         "class": "class",
         "continuous": ["clumpThickness", "uniformityOfCellSize", "uniformityOfCellShape",
                       "marginalAdhesion", "singleEpithelialCellSize", "bareNuclei", "blandChromatin", "normalNucleoli", "mitoses", "class"],
-        "discrete": ["sampleCodeNumber"]
+        "discrete": ["sampleCodeNumber"],
+        "NAValues":["?"]
     },
     "glass": {
         "dataPath": "glass.data",
