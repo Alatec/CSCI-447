@@ -6,7 +6,8 @@
         "class": "class",
         "continuous": ["clumpThickness", "uniformityOfCellSize", "uniformityOfCellShape",
                       "marginalAdhesion", "singleEpithelialCellSize", "bareNuclei", "blandChromatin", "normalNucleoli", "mitoses", "class"],
-        "discrete": ["sampleCodeNumber"]
+        "discrete": ["sampleCodeNumber"],
+        "NAValues":["?"]
     },
     "glass": {
         "dataPath": "glass.data",
@@ -25,24 +26,24 @@
     "soybeanSmall": {
         "dataPath": "soybean-small.data",
         "attributes": ["date", "plantStand", "precip", "temp", "temp", "hail", "cropHist", "areaDamaged", "severity", "seed-tmt",
-        "germination", "plantGrowth", "leaves", "leafspotsHalo", "leafspotsMarg", "leafspotSize", "leafShread", "leafMalf", "leafMild"
+        "germination", "plantGrowth", "leaves", "leafspotsHalo", "leafspotsMarg", "leafspotSize", "leafShread", "leafMalf", "leafMild",
         "stem", "lodging", "stemCankers", "cankerLesion", "fruitingBodies", "externalDecay", "mycelium", "intDiscolor", "sclerotia", "fruitPods",
         "fruitSpots", "seed", "moldGrowth", "seedDiscolor", "seedSize", "shriveling", "roots"],
         "class": "roots",
         "continuous": [],
         "discrete": ["date", "plantStand", "precip", "temp", "temp", "hail", "cropHist", "areaDamaged", "severity", "seed-tmt",
-        "germination", "plantGrowth", "leaves", "leafspotsHalo", "leafspotsMarg", "leafspotSize", "leafShread", "leafMalf", "leafMild"
+        "germination", "plantGrowth", "leaves", "leafspotsHalo", "leafspotsMarg", "leafspotSize", "leafShread", "leafMalf", "leafMild",
         "stem", "lodging", "stemCankers", "cankerLesion", "fruitingBodies", "externalDecay", "mycelium", "intDiscolor", "sclerotia", "fruitPods",
         "fruitSpots", "seed", "moldGrowth", "seedDiscolor", "seedSize", "shriveling", "roots"]
     },
     "vote": {
         "dataPath": "house-votes-84.data",
-        "attributes": ["className", "handicappedInfants", "waterProjectCostSharing", "adoptionOfTheBudgetResolution", "physicianFeeFreeze"
+        "attributes": ["className", "handicappedInfants", "waterProjectCostSharing", "adoptionOfTheBudgetResolution", "physicianFeeFreeze",
         "elSalvadorAid", "religiousGroupsInSchool", "antiSatelliteTestBan", "aidToNicaraguanContras", "mxMissile", "immigration",
         "synfuelsCorporationCutback", "educationSpending", "superfundRightToSue", "crime", "dutyFreeExports", "exportAdministrationActSouthAfrica"],
         "class": "className",
         "continuous": [],
-        "discrete": ["className", "handicappedInfants", "waterProjectCostSharing", "adoptionOfTheBudgetResolution", "physicianFeeFreeze"
+        "discrete": ["className", "handicappedInfants", "waterProjectCostSharing", "adoptionOfTheBudgetResolution", "physicianFeeFreeze",
         "elSalvadorAid", "religiousGroupsInSchool", "antiSatelliteTestBan", "aidToNicaraguanContras", "mxMissile", "immigration",
         "synfuelsCorporationCutback", "educationSpending", "superfundRightToSue", "crime", "dutyFreeExports", "exportAdministrationActSouthAfrica"]
     }
