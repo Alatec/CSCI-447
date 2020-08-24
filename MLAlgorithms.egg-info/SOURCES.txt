@@ -1,6 +1,0 @@
-README.md
-setup.py
-MLAlgorithms.egg-info/PKG-INFO
-MLAlgorithms.egg-info/SOURCES.txt
-MLAlgorithms.egg-info/dependency_links.txt
-MLAlgorithms.egg-info/top_level.txt

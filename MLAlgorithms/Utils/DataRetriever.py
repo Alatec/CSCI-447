@@ -9,9 +9,9 @@ class DataRetriever():
         self.menu = []
         self.mostRecentJSON = None
 
-        self.buildDataMenu()
+        self._buildDataMenu()
 
-    def buildDataMenu(self):
+    def _buildDataMenu(self):
 
         with open(self.metaDataPath) as f:
             self.data = json.load(f)
@@ -37,12 +37,9 @@ class DataRetriever():
         header = self.mostRecentJSON["attributes"]
         naValues = self.mostRecentJSON["NAValues"]
 
-
-        print(self.dataSetPath + "/" + dataPath)
         dataSet = pd.read_csv(self.dataSetPath + "/" + dataPath, names=header, na_values=naValues)
         print(dataSet.head())
 
-        print(type(dataSet))
 
         return dataSet
 

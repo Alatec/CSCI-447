@@ -19,7 +19,7 @@ class TestDataRetriever(unittest.TestCase):
     ## Tests to ensure that we can grab an item from the JSON menu
     def test_data_retrieval(self):
         dataRetriever = DataRetriever("../Datasets/metadata.json")
-        #self.assertEqual(dataRetriever.retrieveData("breastCancer"), pd.DataFrame() , "Should return a dataframe")
+        self.assertEqual(dataRetriever.retrieveData("breastCancer"), pd.DataFrame() , "Should return a dataframe")
         self.assertEqual(dataRetriever.retrieveData("dogDiseases"), None, "Should return null since no data exist")
 
 
