@@ -4,3 +4,7 @@ MLAlgorithms.egg-info/PKG-INFO
 MLAlgorithms.egg-info/SOURCES.txt
 MLAlgorithms.egg-info/dependency_links.txt
 MLAlgorithms.egg-info/top_level.txt
+mlAlgorithms.egg-info/PKG-INFO
+mlAlgorithms.egg-info/SOURCES.txt
+mlAlgorithms.egg-info/dependency_links.txt
+mlAlgorithms.egg-info/top_level.txt
