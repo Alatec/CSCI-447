@@ -4,6 +4,10 @@ import unittest
 
 class TestDataRetriever(unittest.TestCase):
 
+    def test_creation(self):
+        dataRetriever = DataRetriever("bad path")
+        self.assertEqual(dataRetriever, None, "Should return None when a bad path is entered")
+
     ## Tests to check if the entered string returns valid JSON dataset menu
     def test_menu(self):
         dataRetriever = DataRetriever("../Datasets/metadata.json")
