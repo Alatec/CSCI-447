@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 # Add the Root directory to the import path. May cause linters to complain about finding classes
 import sys
-sys.path.append('..')
+sys.path.append('../..')
 
 from Errors.UtilError import *
 
