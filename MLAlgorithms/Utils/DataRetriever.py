@@ -42,6 +42,6 @@ class DataRetriever():
         naValues = jsonData["NAValues"]
 
         dataSet = pd.read_csv(self.dataSetPath + "/" + dataPath, names=header, na_values=naValues)
-        print(dataSet.head())
+
         return dataSet
 
