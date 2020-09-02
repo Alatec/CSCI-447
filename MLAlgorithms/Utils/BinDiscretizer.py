@@ -6,17 +6,17 @@ import matplotlib.pyplot as plt
 # import sys
 # sys.path.append('../..')
 
-from Errors.UtilError import *
+from MLAlgorithms.Errors.UtilError import *
 
 class BinDiscretizer:
     
-    def __init__(self,  train_data, bins='auto', multi=False):
+    def __init__(self,  train_data, bins=8):
 
         """Intended to separate continuous data into discrete bins
 
         Args:
             train_data (numpy array): the data to be discritized
-            bins ([int, str]): Method used to bin. See numpy.histogram_bin_edges
+            bins (int): Number of bins to use
         """
 
         self.bins = bins
@@ -35,13 +35,13 @@ class BinDiscretizer:
         """Will generate fixed width bins for an input dataset
 
         Args:
-            bins ([int, str], optional): if int, will generate that number of bins. If str, will use algorithm from numpy.histogram_bin_edges Defaults to 'auto'.
+            bins (int, optional): Number of bins to generate
         """
         if self.multi:
             raise SingleMultiError(self.multi)
         if bins is not None:
             self.bins = bins
-        self.bin_edges = np.histogram_bin_edges(self.train_data, bins=self.bins)
+        self.bin_edges = self._calculate_bins(self.train_data, bins=self.bins)
         self.trained = True
 
     def fit(self, data):
@@ -53,7 +53,7 @@ class BinDiscretizer:
         if self.multi:
             raise SingleMultiError(self.multi)
         if self.trained:
-            return np.digitize(data, bins=self.bin_edges)
+            return self._digitize_from_bins(data, self.bin_edges)
         else:
             # This as not been trained
             raise UntrainedUtilityError("BinDiscritzer")
@@ -88,7 +88,7 @@ class BinDiscretizer:
 
         for i, col in enumerate(columns):
             self.discritizers[col] = {}
-            self.discritizers[col]["bin_edges"] = np.histogram_bin_edges(self.train_data[col], bins=self.bins[i])
+            self.discritizers[col]["bin_edges"] = self._calculate_bins(self.train_data[col], bins=self.bins[i])
 
         self.trained = True
 
@@ -96,7 +96,7 @@ class BinDiscretizer:
         """Returns the bins that each data point would be in based off of the training set
 
         Args:
-            data (numpy array): data to be fitted
+            data (DataFrame): data to be fitted
         """
         if not self.multi:
             raise SingleMultiError(self.multi)
@@ -108,4 +108,37 @@ class BinDiscretizer:
             
     def _fit_apply(self, data):
         #This is only it's own function in case we need more control
-        return np.digitize(data, bins=self.discritizers[data.name]["bin_edges"])
+        return self._digitize_from_bins(data, self.discritizers[data.name]["bin_edges"])
+
+    def _calculate_bins(self, data, bins):
+        data_range = [data.min(), data.max()]
+        edges = np.linspace(*data_range, num=(bins+1))
+
+        return edges[1:]
+
+    def _digitize_from_bins(self, data, bin_edges):
+        # sorted_data = np.sort(data)
+        digitized_data = np.zeros_like(data)
+
+        left_edge = data.min()
+        last_edge = len(bin_edges) - 1
+        for i, edge in enumerate(bin_edges):
+            indices = None
+            if i == last_edge:
+                indices = np.where(data>=left_edge)
+                indices = np.asarray(indices, dtype=np.int64).flatten()
+                if len(indices):
+                    digitized_data[indices[0]:] = i
+            else:
+                indices = np.where((data>=left_edge)&(data<edge))
+                indices = np.asarray(indices, dtype=np.int64).flatten()
+                # print(indices)
+                if len(indices):
+                    digitized_data[indices] = i
+
+            left_edge = edge
+            
+        return digitized_data
+            
+            
+
