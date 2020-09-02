@@ -2,13 +2,13 @@
 
  - You can use the hashtag symbol to link an issue here.
  <br>
-
 ### How did you Solve the Issue(s)?
-<br>
 
+<br>
 ### What Files were Affected?
  - file_example.py
+ 
 <br>
-
 ### What Tests(if any) were Added?
+
 <br>
