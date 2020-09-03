@@ -1,8 +1,9 @@
 from MLAlgorithms.Utils.DataRetriever import DataRetriever
 from MLAlgorithms.Utils.BinDiscretizer import BinDiscretizer
 import pandas as pd
+import numpy as np
 import unittest
-import os
+import os 
 
 class TestBinDiscretizer(unittest.TestCase):
 
@@ -26,10 +27,23 @@ class TestBinDiscretizer(unittest.TestCase):
        
 
     ## Tests to check if the entered string returns valid JSON dataset menu
-    def test_menu(self):
+    def test_calc_bins(self):
+        #Initialization
         dataRetriever = DataRetriever("../Datasets/metadata.json")
-        self.assertEqual(dataRetriever.getDataMenu(), ["breastCancer", "glass", "iris", "soybeanSmall", "vote"]
-                         , "should return list of data sets")
+        breastCancer = dataRetriever.retrieveData("breastCancer")
+        continousAttributes = ["clumpThickness", "uniformityOfCellSize", "uniformityOfCellShape",
+                      "marginalAdhesion", "singleEpithelialCellSize", "bareNuclei", "blandChromatin", "normalNucleoli", "mitoses", "class"]
+
+        bd = BinDiscretizer(breastCancer["clumpThickness"], bins=8)
+        fitted_data = bd.train_fit()
+        
+        numpy_bins = np.histogram_bin_edges(breastCancer["clumpThickness"], bins=8)
+        
+        self.assertEqual(np.allclose(bd.bin_edges, numpy_bins[1:]),True, "Should produce the same bins as np.histogram")
+        
+        numpy_digitize = np.digitize(breastCancer["clumpThickness"], numpy_bins)
+
+        self.assertEqual(np.allclose(numpy_digitize, fitted_data), True, "Should produce the same results as np.digitize")
 
     ## Tests to check if a given object is there
     def test_existence(self):

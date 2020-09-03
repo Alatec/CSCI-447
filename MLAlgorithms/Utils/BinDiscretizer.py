@@ -22,7 +22,7 @@ class BinDiscretizer:
         self.bins = bins
         self.train_data = train_data
         self.trained = False
-        self.multi = multi
+        self.multi = False #multi
         self.columns = None
 
         #Type checking
@@ -118,7 +118,7 @@ class BinDiscretizer:
 
     def _digitize_from_bins(self, data, bin_edges):
         # sorted_data = np.sort(data)
-        digitized_data = np.zeros_like(data)
+        digitized_data = np.zeros_like(data) 
 
         left_edge = data.min()
         last_edge = len(bin_edges) - 1
