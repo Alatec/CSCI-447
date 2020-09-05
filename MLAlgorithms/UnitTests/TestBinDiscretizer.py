@@ -44,7 +44,7 @@ class TestBinDiscretizer(unittest.TestCase):
         numpy_digitize = np.digitize(breastCancer["clumpThickness"], numpy_bins)
         max_vals = np.asarray(np.where(numpy_digitize==numpy_digitize.max())).flatten()
         numpy_digitize[max_vals] = numpy_digitize.max() - 1
-
+        print("Shape", breastCancer.shape)
         self.assertEqual(np.allclose(numpy_digitize, fitted_data), True, "Should produce the same results as np.digitize")
 
 

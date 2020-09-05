@@ -6,10 +6,10 @@ import matplotlib.pyplot as plt
 from MLAlgorithms.Errors.UtilError import *
 
 
-class StandardNormalizer:
+class RangeNormalizer:
     
     def __init__(self, train_data):
-        """Converts the dataset to its Z-Score
+        """Maps dataset from [0,1]
 
         Args:
             train_data (DataFrame, numpy array): The dataset to be normalized
@@ -18,8 +18,9 @@ class StandardNormalizer:
         self.parameters = {}
         
     def train(self):
-        self.parameters["mean"] = self.train_data.mean()
-        self.parameters["sd"] = self.train_data.std()
+        self.parameters["min"] = self.train_data.min()
+        self.parameters["max"] = self.train_data.max()
+        self.parameters["range"] = self.parameters["max"] - self.parameters["min"]
 
     def fit(self, data):
         """Fit unseen data according to the trained model
@@ -32,23 +33,22 @@ class StandardNormalizer:
             TrainTestColumnMismatch: Raised if the number of columns in the test set is different than in the train set
 
         Returns:
-            DataFrame: Z-Score normalized data
+            DataFrame: Range normalized data
         """
 
 
         #Error checking
-        if "mean" not in self.parameters: raise UntrainedUtilityError
+        if "min" not in self.parameters: raise UntrainedUtilityError
 
         length_check = 0
         if len(data.shape) == 1:
             length_check = 1
         else:
             length_check = data.shape[1]
-        
-        if len(self.parameters["mean"]) != length_check: raise TrainTestColumnMismatch
+        if len(self.parameters["min"]) != length_check: raise TrainTestColumnMismatch
         
         #Calculate Z-Score of test data in terms of train data parameters
-        return (data-self.parameters["mean"])/self.parameters["sd"]
+        return (data-self.parameters["min"])/self.parameters["range"]
 
     def train_fit(self):
         self.train()
