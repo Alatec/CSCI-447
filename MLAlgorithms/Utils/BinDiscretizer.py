@@ -117,7 +117,8 @@ class BinDiscretizer:
         return edges[1:]
 
     def _digitize_from_bins(self, data, bin_edges):
-        # sorted_data = np.sort(data)
+        sorted_args = np.argsort(data, kind='stable')
+        sorted_data = np.sort(data, kind='stable')
         digitized_data = np.zeros_like(data) 
 
         left_edge = data.min()
@@ -125,20 +126,20 @@ class BinDiscretizer:
         for i, edge in enumerate(bin_edges):
             indices = None
             if i == last_edge:
-                indices = np.where(data>=left_edge)
+                indices = np.where(sorted_data>left_edge)
                 indices = np.asarray(indices, dtype=np.int64).flatten()
                 if len(indices):
-                    digitized_data[indices[0]:] = i
+                    digitized_data[sorted_args[indices[0]:]] = i
             else:
-                indices = np.where((data>=left_edge)&(data<edge))
+                indices = np.where((sorted_data>=left_edge)&(sorted_data<edge))
                 indices = np.asarray(indices, dtype=np.int64).flatten()
                 # print(indices)
                 if len(indices):
-                    digitized_data[indices] = i
+                    digitized_data[sorted_args[indices[0]:]] = i
 
             left_edge = edge
             
-        return digitized_data
+        return digitized_data + 1
             
             
 

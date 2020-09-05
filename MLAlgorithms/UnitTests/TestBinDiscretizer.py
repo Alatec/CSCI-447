@@ -2,6 +2,7 @@ from MLAlgorithms.Utils.DataRetriever import DataRetriever
 from MLAlgorithms.Utils.BinDiscretizer import BinDiscretizer
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 import unittest
 import os 
 
@@ -19,13 +20,9 @@ class TestBinDiscretizer(unittest.TestCase):
         
         self.assertTrue('positional' in str(context.exception), "Should Raise Error if no data is passed in")
 
-
-        with self.assertRaises(Exception) as context:
-            BinDiscretizer()
-        
-        self.assertTrue('positional' in str(context.exception), "Should Raise Error if Bins is None")
-       
-
+        with self.assertRaises(TypeError):
+            BinDiscretizer(breastCancer["clumpThickness"], bins=None)
+     
     ## Tests to check if the entered string returns valid JSON dataset menu
     def test_calc_bins(self):
         #Initialization
@@ -41,23 +38,16 @@ class TestBinDiscretizer(unittest.TestCase):
         
         self.assertEqual(np.allclose(bd.bin_edges, numpy_bins[1:]),True, "Should produce the same bins as np.histogram")
         
+        #Numpy digitize has this weird shenanigan where values of array.max() are considered the next highest bin:
+        #https://stackoverflow.com/questions/4355132/numpy-digitize-returns-values-out-of-range
+        #These lines convert the array returned to consider the max values as part of the right most bin
         numpy_digitize = np.digitize(breastCancer["clumpThickness"], numpy_bins)
+        max_vals = np.asarray(np.where(numpy_digitize==numpy_digitize.max())).flatten()
+        numpy_digitize[max_vals] = numpy_digitize.max() - 1
 
         self.assertEqual(np.allclose(numpy_digitize, fitted_data), True, "Should produce the same results as np.digitize")
 
-    ## Tests to check if a given object is there
-    def test_existence(self):
-        dataRetriever = DataRetriever("../Datasets/metadata.json")
-        self.assertEqual(dataRetriever.hasData("breastCancer"), True, "Should have breast cancer data")
-        self.assertEqual(dataRetriever.hasData("dogDiseases"), False, "Shouldn't have dog disease data")
 
-    ## Tests to ensure that we can grab an item from the JSON menu
-    def test_data_retrieval(self):
-        dataRetriever = DataRetriever("../Datasets/metadata.json")
-
-        # This test is failing because the test itself isn't working
-        # self.assertEqual(dataRetriever.retrieveData("breastCancer"), pd.DataFrame() , "Should return a dataframe")
-        self.assertEqual(dataRetriever.retrieveData("dogDiseases"), None, "Should return null since no data exist")
 
 
     pass
