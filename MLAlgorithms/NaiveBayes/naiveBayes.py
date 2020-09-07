@@ -8,22 +8,34 @@ class NaiveBayes():
         self.dataClass = dataClass
 
         self.separatedClasses = self.seperateDataByClass()
-        self.qCalculation = self.calculateQ()
+        self.d = len(next(iter(self.separatedClasses.values())).columns)
+
+        self.qCalculation, self.tbnCalculation = self.train()
 
 
 
-    def calculateQ(self):
+    def train(self):
         qDict = {}
+        tbnDict = {}
 
         for dataClass, data in self.separatedClasses.items():
             qDict[dataClass] = {}
+            tbnDict[dataClass] = {}
             for feature in data:
                 qDict[dataClass][feature] = {}
+                tbnDict[dataClass][feature] = {}
                 for value in data[feature].unique():
-                    qDict[dataClass][feature][value] = {}
-                    qDict[dataClass][feature][value] = len(data[data[feature] == value]) / len(data)
 
-        return qDict
+                    qnumerator = len(data[data[feature] == value])
+                    qdenominator = len(data)
+                    qValue = qnumerator / qdenominator
+                    qDict[dataClass][feature][value] = qValue
+
+                    tbnDict[dataClass][feature][value] = qnumerator + 1 / qdenominator + self.d
+
+
+
+        return (qDict, tbnDict)
 
 
     # Separates the data set into a dictionary with the key being the class
@@ -39,6 +51,7 @@ class NaiveBayes():
 
         self.separatedClasses = separatedClasses
         return separatedClasses
+
 
 
 
