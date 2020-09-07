@@ -1,55 +1,55 @@
 import pandas as pd
 
-class NaiveBayes():
 
+class NaiveBayes():
 
     def __init__(self, dataFrame, dataClass):
         self.dataFrame = dataFrame
         self.dataClass = dataClass
 
         self.separatedClasses = self.seperateDataByClass()
+        self.classPriors = self.calculateClassPriors()
         self.d = len(next(iter(self.separatedClasses.values())).columns)
 
-        self.qCalculation, self.tbnCalculation = self.train()
-
+        self.trainCalculation = self.train()
 
     def retrain(self, dataFrame, dataClass):
         self.dataFrame = dataFrame
         self.dataClass = dataClass
 
         self.separatedClasses = self.seperateDataByClass()
+        self.classPriors = self.calculateClassPriors()
         self.d = len(next(iter(self.separatedClasses.values())).columns)
 
-        self.qCalculation, self.tbnCalculation = self.train()
+        self.trainCalculation = self.train()
 
     def test(self, testFrame):
         pass
 
-    # This method trains the algorithm and returns a tuple of a dictionary containing qValues and a dictionary
-    # containing trained values
+    # This method trains the algorithm and returns a tuple of a dictionary containing trained values
     def train(self):
-        qDict = {}
-        tbnDict = {}
+        trainDict = {}
 
         for dataClass, data in self.separatedClasses.items():
-            qDict[dataClass] = {}
-            tbnDict[dataClass] = {}
+            trainDict[dataClass] = {}
             for feature in data:
-                qDict[dataClass][feature] = {}
-                tbnDict[dataClass][feature] = {}
+
+                trainDict[dataClass][feature] = {}
                 for value in data[feature].unique():
+                    numerator = len(data[data[feature] == value]) + 1
+                    denominator = len(data) + self.d
 
-                    qnumerator = len(data[data[feature] == value])
-                    qdenominator = len(data)
-                    qValue = qnumerator / qdenominator
-                    qDict[dataClass][feature][value] = qValue
+                    trainDict[dataClass][feature][value] = numerator / denominator
 
-                    tbnDict[dataClass][feature][value] = (qnumerator + 1) / (qdenominator + self.d)
+        return trainDict
 
+    def calculateClassPriors(self):
+        classPriors = {}
 
+        for dataClass, data in self.separatedClasses.items():
+            classPriors[dataClass] = len(data) / len(self.dataFrame)
 
-        return (qDict, tbnDict)
-
+        return classPriors
 
     # This method returns a dictionary where the keys are classes and the values
     # are dataframes of classes for their respective key
@@ -64,7 +64,3 @@ class NaiveBayes():
 
         self.separatedClasses = separatedClasses
         return separatedClasses
-
-
-
-
