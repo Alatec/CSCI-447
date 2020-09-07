@@ -1,4 +1,4 @@
-from MLAlgorithms.NaiveBayes.naiveBayes import seperateDataByClass
+from MLAlgorithms.NaiveBayes.naiveBayes import NaiveBayes
 from MLAlgorithms.Utils.DataRetriever import DataRetriever
 import pandas as pd
 import unittest
@@ -8,12 +8,15 @@ import os
 class TestDataRetriever(unittest.TestCase):
 
     ## Tests to check if the entered string returns valid JSON dataset menu
-    def test_menu(self):
+    def test_data_seperation(self):
         dataRetriever = DataRetriever("../Datasets/metadata.json")
         dataRetriever.retrieveData("breastCancer")
-        seperatedByClass = seperateDataByClass(dataRetriever.dataSet, dataRetriever.classifier)
 
+        naiveBayes = NaiveBayes()
+
+        seperatedByClass = naiveBayes.seperateDataByClass(dataRetriever.getDataSet(), dataRetriever.getDataClass())
         print(seperatedByClass)
+
 
         self.assertEqual(dataRetriever.getDataMenu(), ["breastCancer", "glass", "iris", "soybeanSmall", "vote"]
                          , "should return list of data sets")

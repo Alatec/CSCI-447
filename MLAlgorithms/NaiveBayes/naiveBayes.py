@@ -4,21 +4,21 @@ class NaiveBayes():
 
 
     def __init__(self):
+        self.idea = None
+
+
+
+    def calculateQ(self, dataFrame, classifier):
         pass
 
 
+    def seperateDataByClass(self, dataFrame, dataClass):
+        separatedClasses = {}
 
-def calculateQ(dataFrame, classifier):
-    pass
+        for i in dataFrame[dataClass].unique():
+            separatedClasses[i] = dataFrame[dataFrame[dataClass] == i]
 
-def seperateDataByClass(dataFrame, classifier):
-    seperatedClassifiers = {}
+        return separatedClasses
 
-    for i in dataFrame.iterrows():
-        if classifier not in seperatedClassifiers.keys():
-            seperatedClassifiers[classifier] = []
-        seperatedClassifiers[classifier].append(i[1][:-1]) # Only works if the classifier is the last element
-
-    return seperatedClassifiers
 
 
