@@ -29,9 +29,6 @@ class TestDataRetriever(unittest.TestCase):
         # self.assertEqual(dataRetriever.retrieveData("breastCancer"), pd.DataFrame() , "Should return a dataframe")
         self.assertEqual(dataRetriever.retrieveData("dogDiseases"), None, "Should return null since no data exist")
 
-
-    pass
-
 if __name__ == '__main__':
     # Grabs the location of the unit test file and sets cwd
     abspath = os.path.abspath(__file__)

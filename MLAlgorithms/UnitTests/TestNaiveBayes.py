@@ -8,15 +8,26 @@ import os
 class TestDataRetriever(unittest.TestCase):
 
     ## Tests to check if the entered string returns valid JSON dataset menu
-    def test_data_seperation(self):
+    # def test_data_seperation(self):
+    #     dataRetriever = DataRetriever("../Datasets/metadata.json")
+    #     dataRetriever.retrieveData("breastCancer")
+    #
+    #     naiveBayes = NaiveBayes(dataRetriever.getDataSet(), dataRetriever.getDataClass())
+    #
+    #     seperatedByClass = naiveBayes.seperateDataByClass()
+    #
+    #     self.assertEqual(True, True, "should return list of data sets")
+
+    ## Tests to check if the entered string returns valid JSON dataset menu
+    def test_q_calculation(self):
         dataRetriever = DataRetriever("../Datasets/metadata.json")
         dataRetriever.retrieveData("breastCancer")
 
-        naiveBayes = NaiveBayes()
+        naiveBayes = NaiveBayes(dataRetriever.getDataSet(), dataRetriever.getDataClass())
 
-        seperatedByClass = naiveBayes.seperateDataByClass(dataRetriever.getDataSet(), dataRetriever.getDataClass())
-        print(seperatedByClass)
+        #seperatedByClass = naiveBayes.calculateQ()
 
+        #print(seperatedByClass)
 
         self.assertEqual(dataRetriever.getDataMenu(), ["breastCancer", "glass", "iris", "soybeanSmall", "vote"]
                          , "should return list of data sets")
