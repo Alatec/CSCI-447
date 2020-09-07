@@ -21,7 +21,7 @@ class TestDataRetriever(unittest.TestCase):
     ## Tests to check if the entered string returns valid JSON dataset menu
     def test_q_calculation(self):
         dataRetriever = DataRetriever("../Datasets/metadata.json")
-        dataRetriever.retrieveData("breastCancer")
+        dataRetriever.retrieveData("soybeanSmall")
 
         naiveBayes = NaiveBayes(dataRetriever.getDataSet(), dataRetriever.getDataClass())
 

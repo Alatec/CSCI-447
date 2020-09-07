@@ -33,13 +33,13 @@
     },
     "soybeanSmall": {
         "dataPath": "soybean-small.data",
-        "attributes": ["date", "plantStand", "precip", "temp", "temp", "hail", "cropHist", "areaDamaged", "severity", "seed-tmt",
+        "attributes": ["date", "plantStand", "precip", "temp", "hail", "cropHist", "areaDamaged", "severity", "seed-tmt",
         "germination", "plantGrowth", "leaves", "leafspotsHalo", "leafspotsMarg", "leafspotSize", "leafShread", "leafMalf", "leafMild",
         "stem", "lodging", "stemCankers", "cankerLesion", "fruitingBodies", "externalDecay", "mycelium", "intDiscolor", "sclerotia", "fruitPods",
         "fruitSpots", "seed", "moldGrowth", "seedDiscolor", "seedSize", "shriveling", "roots"],
         "class": "roots",
         "continuous": [],
-        "discrete": ["date", "plantStand", "precip", "temp", "temp", "hail", "cropHist", "areaDamaged", "severity", "seed-tmt",
+        "discrete": ["date", "plantStand", "precip", "temp", "hail", "cropHist", "areaDamaged", "severity", "seed-tmt",
         "germination", "plantGrowth", "leaves", "leafspotsHalo", "leafspotsMarg", "leafspotSize", "leafShread", "leafMalf", "leafMild",
         "stem", "lodging", "stemCankers", "cankerLesion", "fruitingBodies", "externalDecay", "mycelium", "intDiscolor", "sclerotia", "fruitPods",
         "fruitSpots", "seed", "moldGrowth", "seedDiscolor", "seedSize", "shriveling", "roots"],
@@ -57,7 +57,7 @@
         "discrete": ["className", "handicappedInfants", "waterProjectCostSharing", "adoptionOfTheBudgetResolution", "physicianFeeFreeze",
         "elSalvadorAid", "religiousGroupsInSchool", "antiSatelliteTestBan", "aidToNicaraguanContras", "mxMissile", "immigration",
         "synfuelsCorporationCutback", "educationSpending", "superfundRightToSue", "crime", "dutyFreeExports", "exportAdministrationActSouthAfrica"],
-        "NAValues":[],
+        "NAValues":["?"],
         "rowsToDrop": [],
         "classIndex": 0
     }
