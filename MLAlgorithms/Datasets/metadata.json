@@ -7,21 +7,29 @@
         "continuous": ["clumpThickness", "uniformityOfCellSize", "uniformityOfCellShape",
                       "marginalAdhesion", "singleEpithelialCellSize", "bareNuclei", "blandChromatin", "normalNucleoli", "mitoses", "class"],
         "discrete": ["sampleCodeNumber"],
-        "NAValues":["?"]
+        "NAValues":["?"],
+        "rowsToDrop": ["sampleCodeNumber"],
+        "classIndex": 9
     },
     "glass": {
         "dataPath": "glass.data",
         "attributes": ["idNumber", "RI", "Na", "Mg", "Al", "Si", "K", "Ca", "Ba", "Fe", "typeOfGlass"],
         "class": "typeOfGlass",
         "continuous": ["RI", "Na", "Mg", "Al", "Si", "K", "Ca", "Ba", "Fe"],
-        "discrete": ["idNumber", "typeOfGlass"]
+        "discrete": ["idNumber", "typeOfGlass"],
+        "NAValues":[],
+        "rowsToDrop": [],
+        "classIndex": 10
     },
     "iris": {
         "dataPath": "iris.data",
         "attributes": ["sepalLength", "sepalWidth", "petalLength", "petalWidth", "class"],
         "class": "class",
         "continuous": ["sepalLength", "sepalWidth", "petalLength", "petalWidth"],
-        "discrete": ["class"]
+        "discrete": ["class"],
+        "NAValues":[],
+        "rowsToDrop": [],
+        "classIndex": 4
     },
     "soybeanSmall": {
         "dataPath": "soybean-small.data",
@@ -34,7 +42,10 @@
         "discrete": ["date", "plantStand", "precip", "temp", "temp", "hail", "cropHist", "areaDamaged", "severity", "seed-tmt",
         "germination", "plantGrowth", "leaves", "leafspotsHalo", "leafspotsMarg", "leafspotSize", "leafShread", "leafMalf", "leafMild",
         "stem", "lodging", "stemCankers", "cankerLesion", "fruitingBodies", "externalDecay", "mycelium", "intDiscolor", "sclerotia", "fruitPods",
-        "fruitSpots", "seed", "moldGrowth", "seedDiscolor", "seedSize", "shriveling", "roots"]
+        "fruitSpots", "seed", "moldGrowth", "seedDiscolor", "seedSize", "shriveling", "roots"],
+        "NAValues":[],
+        "rowsToDrop": [],
+        "classIndex": 35
     },
     "vote": {
         "dataPath": "house-votes-84.data",
@@ -45,7 +56,10 @@
         "continuous": [],
         "discrete": ["className", "handicappedInfants", "waterProjectCostSharing", "adoptionOfTheBudgetResolution", "physicianFeeFreeze",
         "elSalvadorAid", "religiousGroupsInSchool", "antiSatelliteTestBan", "aidToNicaraguanContras", "mxMissile", "immigration",
-        "synfuelsCorporationCutback", "educationSpending", "superfundRightToSue", "crime", "dutyFreeExports", "exportAdministrationActSouthAfrica"]
+        "synfuelsCorporationCutback", "educationSpending", "superfundRightToSue", "crime", "dutyFreeExports", "exportAdministrationActSouthAfrica"],
+        "NAValues":[],
+        "rowsToDrop": [],
+        "classIndex": 0
     }
 
 }

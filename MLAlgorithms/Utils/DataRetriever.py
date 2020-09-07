@@ -8,6 +8,8 @@ class DataRetriever():
         self.dataSetPath = os.path.split(path)[0]
         self.metaDataPath = path
         self.menu = []
+        self.dataSet = None
+        self.classifier = None
 
         self._buildDataMenu()
 
@@ -22,6 +24,8 @@ class DataRetriever():
 
     def getDataMenu(self):
         return self.menu
+
+
 
     # Determines if given data exists in the menu
     def hasData(self, data):
@@ -40,8 +44,12 @@ class DataRetriever():
         dataPath = self.dataSetPath + "/" + jsonData["dataPath"]
         header = jsonData["attributes"]
         naValues = jsonData["NAValues"]
+        classifier = jsonData['class']
 
         dataSet = pd.read_csv(self.dataSetPath + "/" + dataPath, names=header, na_values=naValues)
+        dataSet = dataSet.drop(jsonData["rowsToDrop"], axis=1)
 
-        return dataSet
+        self.classifier = classifier
+        self.dataSet = dataSet
+
 
