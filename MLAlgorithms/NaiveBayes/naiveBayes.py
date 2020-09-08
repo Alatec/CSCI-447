@@ -3,7 +3,10 @@ import pandas as pd
 
 class NaiveBayes():
 
+
     def __init__(self, dataFrame, dataClass):
+        self.unknownVal = "unk"
+
         self.dataFrame = dataFrame
         self.dataClass = dataClass
 
@@ -14,6 +17,8 @@ class NaiveBayes():
         self.trainCalculation = self.train()
 
     def retrain(self, dataFrame, dataClass):
+        self.unknownVal = "unk"
+
         self.dataFrame = dataFrame
         self.dataClass = dataClass
 
@@ -24,7 +29,20 @@ class NaiveBayes():
         self.trainCalculation = self.train()
 
     def test(self, testFrame):
-        pass
+        classProbs = {}
+        results = []
+        for test in testFrame.iterrows():
+            for dataClass in self.trainCalculation.keys():
+                classProb = 1
+                for feature in self.trainCalculation[dataClass].keys():
+                    if test[1][feature] in self.trainCalculation[dataClass][feature]:
+                        classProb *= self.trainCalculation[dataClass][feature][test[1][feature]]
+                    else:
+                        classProb *= self.trainCalculation[dataClass][feature][self.unknownVal]
+                classProbs[dataClass] = classProb
+
+            results.append(max(classProbs, key=classProbs.get))
+        return results
 
     # This method trains the algorithm and returns a tuple of a dictionary containing trained values
     def train(self):
@@ -35,6 +53,7 @@ class NaiveBayes():
             for feature in data:
 
                 trainDict[dataClass][feature] = {}
+                trainDict[dataClass][feature][self.unknownVal] = (1 / len(data)) + self.d
                 for value in data[feature].unique():
                     numerator = len(data[data[feature] == value]) + 1
                     denominator = len(data) + self.d
