@@ -34,7 +34,7 @@ class DataRetriever():
         return self.dataClass
 
     def getDataSet(self):
-        return self.dataSet
+        return self.dataSet.sample(frac=1, random_state=69)
 
     #####################################
 

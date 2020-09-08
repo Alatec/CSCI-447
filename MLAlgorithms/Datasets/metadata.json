@@ -5,7 +5,7 @@
                       "marginalAdhesion", "singleEpithelialCellSize", "bareNuclei", "blandChromatin", "normalNucleoli", "mitoses", "class"],
         "class": "class",
         "continuous": ["clumpThickness", "uniformityOfCellSize", "uniformityOfCellShape",
-                      "marginalAdhesion", "singleEpithelialCellSize", "bareNuclei", "blandChromatin", "normalNucleoli", "mitoses", "class"],
+                      "marginalAdhesion", "singleEpithelialCellSize", "bareNuclei", "blandChromatin", "normalNucleoli", "mitoses"],
         "discrete": ["sampleCodeNumber"],
         "NAValues":["?"],
         "rowsToDrop": ["sampleCodeNumber"]
@@ -41,7 +41,7 @@
         "stem", "lodging", "stemCankers", "cankerLesion", "fruitingBodies", "externalDecay", "mycelium", "intDiscolor", "sclerotia", "fruitPods",
         "fruitSpots", "seed", "moldGrowth", "seedDiscolor", "seedSize", "shriveling", "roots"],
         "NAValues":[],
-        "rowsToDrop": []
+        "rowsToDrop": ["date"]
     },
     "vote": {
         "dataPath": "house-votes-84.data",

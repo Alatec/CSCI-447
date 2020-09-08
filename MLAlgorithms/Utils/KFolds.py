@@ -14,7 +14,7 @@ class KFolds:
         """
 
         #Shuffle the dataset and reset the index
-        self.data = data.sample(frac=1.0, random_state=seed)
+        self.data = data
         self.data.reset_index(drop=True, inplace=True)
         self.data_index = self.data.index.to_numpy()[:]
         self.data_length = len(data)

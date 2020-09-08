@@ -36,24 +36,25 @@ dataRetriever = DataRetriever("../Datasets/metadata.json")
 for dataSet in dataRetriever.getDataMenu():
     dataRetriever.retrieveData(dataSet)
     dataClass = dataRetriever.getDataClass()
+    retrievedData = dataRetriever.getDataSet()
 
     print(f"CURRENTLY PRINTING RESULTS FOR THE DATASET {dataSet}")
-    for train, test in KFolds(dataRetriever.getDataSet(), 10):
-        trainBin = BinDiscretizer(train[dataRetriever.getContinuousAttributes()])
-        testBin = BinDiscretizer(test[dataRetriever.getContinuousAttributes()])
+    for train, test in KFolds(retrievedData, 10):
+        trainBin = BinDiscretizer(train[dataRetriever.getContinuousAttributes()], multi=True)
 
-        trainBin = trainBin.train_fit()
-        testBin = testBin.train_fit()
+        trainBin.train_multi()
+        train[dataRetriever.getContinuousAttributes()] = trainBin.fit_multi(train[dataRetriever.getContinuousAttributes()] )
+        test[dataRetriever.getContinuousAttributes()] = trainBin.fit_multi(test[dataRetriever.getContinuousAttributes()])
 
-        trainNormalized = RangeNormalizer(trainBin)
-        testNormalized = RangeNormalizer(testBin)
+        # trainNormalized = RangeNormalizer(trainBin)
+        # testNormalized = RangeNormalizer(testBin)
 
-        trainNormalized = trainNormalized.train_fit()
-        testNormalized = testNormalized.train_fit()
+        # trainNormalized = trainNormalized.train_fit()
+        # testNormalized = testNormalized.train_fit()
 
-        naiveBayes = NaiveBayes(trainNormalized, dataClass)
+        naiveBayes = NaiveBayes(train, dataClass)
 
-        answers = testNormalized[dataClass].to_numpy()
+        answers = test[dataClass].to_numpy()[:]
         test = test.drop(columns=dataClass)
         predictions = naiveBayes.test(test)
 

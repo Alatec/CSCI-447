@@ -10,7 +10,7 @@ from MLAlgorithms.Errors.UtilError import *
 
 class BinDiscretizer:
     
-    def __init__(self,  train_data, bins=8):
+    def __init__(self,  train_data, bins=8, multi=False):
 
         """Intended to separate continuous data into discrete bins
 
@@ -22,7 +22,7 @@ class BinDiscretizer:
         self.bins = bins
         self.train_data = train_data
         self.trained = False
-        self.multi = False #multi
+        self.multi = multi
         self.columns = None
 
         #Type checking
