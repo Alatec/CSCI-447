@@ -8,8 +8,7 @@
                       "marginalAdhesion", "singleEpithelialCellSize", "bareNuclei", "blandChromatin", "normalNucleoli", "mitoses", "class"],
         "discrete": ["sampleCodeNumber"],
         "NAValues":["?"],
-        "rowsToDrop": ["sampleCodeNumber"],
-        "classIndex": 9
+        "rowsToDrop": ["sampleCodeNumber"]
     },
     "glass": {
         "dataPath": "glass.data",
@@ -18,8 +17,7 @@
         "continuous": ["RI", "Na", "Mg", "Al", "Si", "K", "Ca", "Ba", "Fe"],
         "discrete": ["idNumber", "typeOfGlass"],
         "NAValues":[],
-        "rowsToDrop": ["idNumber"],
-        "classIndex": 10
+        "rowsToDrop": ["idNumber"]
     },
     "iris": {
         "dataPath": "iris.data",
@@ -28,8 +26,7 @@
         "continuous": ["sepalLength", "sepalWidth", "petalLength", "petalWidth"],
         "discrete": ["class"],
         "NAValues":[],
-        "rowsToDrop": [],
-        "classIndex": 4
+        "rowsToDrop": []
     },
     "soybeanSmall": {
         "dataPath": "soybean-small.data",
@@ -44,8 +41,7 @@
         "stem", "lodging", "stemCankers", "cankerLesion", "fruitingBodies", "externalDecay", "mycelium", "intDiscolor", "sclerotia", "fruitPods",
         "fruitSpots", "seed", "moldGrowth", "seedDiscolor", "seedSize", "shriveling", "roots"],
         "NAValues":[],
-        "rowsToDrop": [],
-        "classIndex": 35
+        "rowsToDrop": []
     },
     "vote": {
         "dataPath": "house-votes-84.data",
@@ -58,8 +54,7 @@
         "elSalvadorAid", "religiousGroupsInSchool", "antiSatelliteTestBan", "aidToNicaraguanContras", "mxMissile", "immigration",
         "synfuelsCorporationCutback", "educationSpending", "superfundRightToSue", "crime", "dutyFreeExports", "exportAdministrationActSouthAfrica"],
         "NAValues":["?"],
-        "rowsToDrop": [],
-        "classIndex": 0
+        "rowsToDrop": []
     }
 
 }

@@ -4,19 +4,12 @@ from MLAlgorithms.Utils.DataRetriever import DataRetriever
 from MLAlgorithms.Utils.KFolds import KFolds
 from MLAlgorithms.Utils.RangeNormalizer import RangeNormalizer
 
-import pandas as pd
-import numpy as np
-
 # For train. test in KFOLD:
 #   binData()
 #   NormalizeData
 #   Naivebayes
 
 dataRetriever = DataRetriever("../Datasets/metadata.json")
-
-
-dataRetriever.retrieveData("breastCancer")
-
 
 for dataSet in dataRetriever.getDataMenu():
     dataRetriever.retrieveData(dataSet)

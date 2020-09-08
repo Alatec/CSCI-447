@@ -22,6 +22,7 @@ class DataRetriever():
         for object in self.data:
             self.menu.append(object)
 
+    ############## Getters ##############
     def getDataMenu(self):
         return self.menu
 
@@ -31,7 +32,8 @@ class DataRetriever():
     def getDataSet(self):
         return self.dataSet
 
-    # Determines if given data exists in the menu
+    #####################################
+
     def hasData(self, data):
         return data in self.menu
 
