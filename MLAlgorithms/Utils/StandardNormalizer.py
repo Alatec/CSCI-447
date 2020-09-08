@@ -45,7 +45,7 @@ class StandardNormalizer:
         else:
             length_check = data.shape[1]
         
-        if len(self.parameters["mean"]) != length_check: raise TrainTestColumnMismatch
+        #if len(self.parameters["mean"]) != length_check: raise TrainTestColumnMismatch
         
         #Calculate Z-Score of test data in terms of train data parameters
         return (data-self.parameters["mean"])/self.parameters["sd"]

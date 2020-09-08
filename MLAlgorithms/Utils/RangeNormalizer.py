@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 
 from MLAlgorithms.Errors.UtilError import *
@@ -45,7 +45,7 @@ class RangeNormalizer:
             length_check = 1
         else:
             length_check = data.shape[1]
-        if len(self.parameters["min"]) != length_check: raise TrainTestColumnMismatch
+        #if len(self.parameters["min"]) != length_check: raise TrainTestColumnMismatch
         
         #Calculate Z-Score of test data in terms of train data parameters
         return (data-self.parameters["min"])/self.parameters["range"]

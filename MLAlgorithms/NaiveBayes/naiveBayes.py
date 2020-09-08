@@ -3,6 +3,12 @@ class NaiveBayes():
 
 
     def __init__(self, dataFrame, dataClass):
+        """Creates an instance of a trained NaiveBayes Algorithm
+
+        Args:
+            dataFrame (DataFrame): The dataset that will train the algorithm
+            dataClass (String): The class attribute for a given data set
+        """
         self.unknownVal = "arbitraryValue"
 
         self.dataFrame = dataFrame
@@ -12,27 +18,35 @@ class NaiveBayes():
         self.classPriors = self.calculateClassPriors()
         self.d = len(next(iter(self.separatedClasses.values())).columns)
 
-        self.traindCalculation = self.train()
+        self.trainedCalculation = self.train()
 
-    # This method tests the trained algorithm with a given pandas test data frame.
+
     def test(self, testFrame):
+        """Tests the NaiveBayes instance will a given test data set
+
+        Args:
+            testFrame (DataFrame): The test set
+
+        Returns:
+            results (List<PredictedValues>): A list of predicted values for the given test set
+        """
         classProbs = {}
         results = []
 
         for test in testFrame.iterrows():
-            for dataClass in self.traindCalculation.keys():
+            for dataClass in self.trainedCalculation.keys():
                 classProb = 1
-                for feature in self.traindCalculation[dataClass].keys():
-                    if test[1][feature] in self.traindCalculation[dataClass][feature]:
-                        classProb *= self.traindCalculation[dataClass][feature][test[1][feature]]
+                for feature in self.trainedCalculation[dataClass].keys():
+                    if test[1][feature] in self.trainedCalculation[dataClass][feature]:
+                        classProb *= self.trainedCalculation[dataClass][feature][test[1][feature]]
                     else:
-                        classProb *= self.traindCalculation[dataClass][feature][self.unknownVal]
+                        classProb *= self.trainedCalculation[dataClass][feature][self.unknownVal]
                 classProbs[dataClass] = self.classPriors[dataClass] * classProb
             results.append(max(classProbs, key=classProbs.get))
         return results
 
-    # This method trains the algorithm and returns a nested dictionary of value probabilities
     def train(self):
+        """On creation of the object, the object will create a trained dictionary based on the input data set"""
         trainDict = {}
 
         for dataClass, data in self.separatedClasses.items():
@@ -50,8 +64,9 @@ class NaiveBayes():
 
         return trainDict
 
-    # Calculates the ClassPriors
     def calculateClassPriors(self):
+        """On creation of the object, the object will calculate the class priors"""
+
         classPriors = {}
 
         for dataClass, data in self.separatedClasses.items():
@@ -59,9 +74,10 @@ class NaiveBayes():
 
         return classPriors
 
-    # This method returns a dictionary where the keys are classes and the values
-    # are dataframes of classes for their respective key
     def seperateDataByClass(self):
+        """On creation of the object, the object will separate the data set by class.
+            Once separated, the class column will be dropped, leaving a 'Class':'DataFrame'
+         """
         separatedClasses = {}
 
         for i in self.dataFrame[self.dataClass].unique():
