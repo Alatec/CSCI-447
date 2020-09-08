@@ -1,5 +1,8 @@
 from MLAlgorithms.NaiveBayes.naiveBayes import NaiveBayes
+from MLAlgorithms.Utils.BinDiscretizer import BinDiscretizer
 from MLAlgorithms.Utils.DataRetriever import DataRetriever
+from MLAlgorithms.Utils.KFolds import KFolds
+from MLAlgorithms.Utils.RangeNormalizer import RangeNormalizer
 
 import pandas as pd
 import numpy as np
@@ -10,28 +13,38 @@ import numpy as np
 #   Naivebayes
 
 dataRetriever = DataRetriever("../Datasets/metadata.json")
+
+
 dataRetriever.retrieveData("breastCancer")
 
 
-naiveBayes = NaiveBayes(dataRetriever.getDataSet(), dataRetriever.getDataClass())
+for dataSet in dataRetriever.getDataMenu():
+    dataRetriever.retrieveData(dataSet)
+    dataClass = dataRetriever.getDataClass()
+    print(f"CURRENTLY PRINTING RESULTS FOR THE DATASET {dataSet}")
 
-test = dataRetriever.getDataSet()
-answers = test["class"].to_numpy()
+    for train, test in KFolds(dataRetriever.getDataSet(), 10):
+        bin = BinDiscretizer(train)
+        normalizer = RangeNormalizer(train)
 
-test = test.drop(columns="class")
-print(answers)
-predictions = naiveBayes.test(test)
-print(predictions)
-t = 0
-f = 0
 
-for i in range(len(answers)):
-    if predictions[i] == answers[i]:
-        t += 1
-        print("SUCCESS: Prediction is {p1} and Answer is {a}".format(p1=predictions[i], a=answers[i]))
-    else:
-        f += 1
-        print("FAILURE: Prediction is {p1} and Answer is {a}".format(p1=predictions[i], a=answers[i]))
+        naiveBayes = NaiveBayes(train, dataClass)
 
-print(t/len(answers))
-print(f/len(answers))
+        answers = test[dataClass].to_numpy()
+        test = test.drop(columns=dataClass)
+        predictions = naiveBayes.test(test)
+
+        t = 0
+        f = 0
+        for i in range(len(answers)):
+            if predictions[i] == answers[i]:
+                t += 1
+                #print("SUCCESS: Prediction is {p1} and Answer is {a}".format(p1=predictions[i], a=answers[i]))
+            else:
+                f += 1
+                #print("FAILURE: Prediction is {p1} and Answer is {a}".format(p1=predictions[i], a=answers[i]))
+
+        print("The Percent True is {t}".format(t=t / len(answers)))
+        print("The Percent False is {f}\n".format(f=f / len(answers)))
+
+

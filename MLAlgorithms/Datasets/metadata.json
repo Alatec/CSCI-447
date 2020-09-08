@@ -18,7 +18,7 @@
         "continuous": ["RI", "Na", "Mg", "Al", "Si", "K", "Ca", "Ba", "Fe"],
         "discrete": ["idNumber", "typeOfGlass"],
         "NAValues":[],
-        "rowsToDrop": [],
+        "rowsToDrop": ["idNumber"],
         "classIndex": 10
     },
     "iris": {

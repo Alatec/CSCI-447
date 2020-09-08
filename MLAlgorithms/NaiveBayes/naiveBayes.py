@@ -1,6 +1,4 @@
 import pandas as pd
-
-
 class NaiveBayes():
 
 
@@ -16,17 +14,17 @@ class NaiveBayes():
 
         self.trainCalculation = self.train()
 
-    def retrain(self, dataFrame, dataClass):
-        self.unknownVal = "unk"
-
-        self.dataFrame = dataFrame
-        self.dataClass = dataClass
-
-        self.separatedClasses = self.seperateDataByClass()
-        self.classPriors = self.calculateClassPriors()
-        self.d = len(next(iter(self.separatedClasses.values())).columns)
-
-        self.trainCalculation = self.train()
+    # def retrain(self, dataFrame, dataClass):
+    #     self.unknownVal = "unk"
+    #
+    #     self.dataFrame = dataFrame
+    #     self.dataClass = dataClass
+    #
+    #     self.separatedClasses = self.seperateDataByClass()
+    #     self.classPriors = self.calculateClassPriors()
+    #     self.d = len(next(iter(self.separatedClasses.values())).columns)
+    #
+    #     self.trainCalculation = self.train()
 
     def test(self, testFrame):
         classProbs = {}
@@ -39,8 +37,7 @@ class NaiveBayes():
                         classProb *= self.trainCalculation[dataClass][feature][test[1][feature]]
                     else:
                         classProb *= self.trainCalculation[dataClass][feature][self.unknownVal]
-                classProbs[dataClass] = classProb
-
+                classProbs[dataClass] = self.classPriors[dataClass] * classProb
             results.append(max(classProbs, key=classProbs.get))
         return results
 
