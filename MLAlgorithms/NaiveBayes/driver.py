@@ -39,14 +39,21 @@ for dataSet in dataRetriever.getDataMenu():
 
     print(f"CURRENTLY PRINTING RESULTS FOR THE DATASET {dataSet}")
     for train, test in KFolds(dataRetriever.getDataSet(), 10):
-        #bin = BinDiscretizer(train)
+        trainBin = BinDiscretizer(train[dataRetriever.getContinuousAttributes()])
+        testBin = BinDiscretizer(test[dataRetriever.getContinuousAttributes()])
 
-        normalizer = RangeNormalizer(train[dataRetriever.getContinuousAttributes()])
-        fitted = normalizer.train_fit()
+        trainBin = trainBin.train_fit()
+        testBin = testBin.train_fit()
 
-        naiveBayes = NaiveBayes(train, dataClass)
+        trainNormalized = RangeNormalizer(trainBin)
+        testNormalized = RangeNormalizer(testBin)
 
-        answers = test[dataClass].to_numpy()
+        trainNormalized = trainNormalized.train_fit()
+        testNormalized = testNormalized.train_fit()
+
+        naiveBayes = NaiveBayes(trainNormalized, dataClass)
+
+        answers = testNormalized[dataClass].to_numpy()
         test = test.drop(columns=dataClass)
         predictions = naiveBayes.test(test)
 
