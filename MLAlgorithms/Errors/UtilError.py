@@ -24,3 +24,10 @@ class TrainTestColumnMismatch(Exception):
     def __init__ (self):
         super().__init__("The number of columns in the train and test sets are inconsistent")
        
+class UndefinedPerformaceMethod(Exception):
+
+    def __init__ (self, multi=False):
+        if multi:
+            super().__init__("Method needs to be defined if there is more than one class")
+        else:
+            super().__init__("Method makes no since if there is only one class")
