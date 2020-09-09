@@ -8,6 +8,10 @@ class DataRetriever():
         self.dataSetPath = os.path.split(path)[0]
         self.metaDataPath = path
         self.menu = []
+        self.dataSet = None
+        self.dataClass = None
+        self.continuousAttributes = None
+        self.rowsToDrop = None
 
         self._buildDataMenu()
 
@@ -20,10 +24,24 @@ class DataRetriever():
         for object in self.data:
             self.menu.append(object)
 
+    ############## Getters ##############
+    def getContinuousAttributes(self):
+        return self.continuousAttributes
+
     def getDataMenu(self):
         return self.menu
 
-    # Determines if given data exists in the menu
+    def getDataClass(self):
+        return self.dataClass
+
+    def getDataSet(self):
+        return self.dataSet.sample(frac=1, random_state=69)
+
+    def getRowsToDrop(self):
+        return self.rowsToDrop
+
+    #####################################
+
     def hasData(self, data):
         return data in self.menu
 
@@ -40,8 +58,15 @@ class DataRetriever():
         dataPath = self.dataSetPath + "/" + jsonData["dataPath"]
         header = jsonData["attributes"]
         naValues = jsonData["NAValues"]
+        dataClass = jsonData['class']
+        continuousAttributes = jsonData['continuous']
 
         dataSet = pd.read_csv(self.dataSetPath + "/" + dataPath, names=header, na_values=naValues)
+        dataSet = dataSet.drop(jsonData["rowsToDrop"], axis=1)
 
-        return dataSet
+        self.rowsToDrop = jsonData["rowsToDrop"]
+        self.dataClass = dataClass
+        self.dataSet = dataSet
+        self.continuousAttributes = continuousAttributes
+
 

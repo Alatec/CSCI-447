@@ -2,7 +2,7 @@ from MLAlgorithms.Utils.DataRetriever import DataRetriever
 from MLAlgorithms.Utils.BinDiscretizer import BinDiscretizer
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import unittest
 import os 
 
