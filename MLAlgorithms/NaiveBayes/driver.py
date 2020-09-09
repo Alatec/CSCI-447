@@ -20,10 +20,8 @@ def calculateResults(predictions, answers):
     for i in range(len(answers)):
         if predictions[i] == answers[i]:
             t += 1
-            # print("SUCCESS: Prediction is {p1} and Answer is {a}".format(p1=predictions[i], a=answers[i]))
         else:
             f += 1
-            # print("FAILURE: Prediction is {p1} and Answer is {a}".format(p1=predictions[i], a=answers[i]))
 
     print("The Percent of Correct Predictions is {t}%".format(t=round((t * 100 / len(answers)), 1)))
     print("The Percent of Incorrect Predictions is {f}%\n".format(f=round((f * 100 / len(answers)), 1)))
@@ -77,8 +75,7 @@ for dataSet in dataRetriever.getDataMenu():
         print("Trained Model for Control:")
         pprint.pprint(naiveBayes.trainedCalculation)
         print()
-        break
-    break
+
 ##################################################################################################################
 
 
@@ -141,8 +138,7 @@ for dataSet in dataRetriever.getDataMenu():
         print("Trained Model for Shuffled:")
         pprint.pprint(naiveBayes.trainedCalculation)
         print()
-        break
-    break
+
 ##################################################################################################################
 
 ################### Write to File #####################
