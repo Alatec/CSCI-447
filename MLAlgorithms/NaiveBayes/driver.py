@@ -3,11 +3,9 @@ from MLAlgorithms.Utils.BinDiscretizer import BinDiscretizer
 from MLAlgorithms.Utils.ClassifierAnalyzer import ClassifierAnalyzer
 from MLAlgorithms.Utils.DataRetriever import DataRetriever
 from MLAlgorithms.Utils.KFolds import KFolds
-from MLAlgorithms.Utils.RangeNormalizer import RangeNormalizer
-from MLAlgorithms.Utils.StandardNormalizer import StandardNormalizer
-import pandas as pd
+
 import math as m
-import json
+import pprint
 
 
 def calculateResults(predictions, answers):
@@ -27,12 +25,16 @@ def calculateResults(predictions, answers):
             f += 1
             # print("FAILURE: Prediction is {p1} and Answer is {a}".format(p1=predictions[i], a=answers[i]))
 
-    print("The Percent True is {t}".format(t=t / len(answers)))
-    print("The Percent False is {f}\n".format(f=f / len(answers)))
+    print("The Percent of Correct Predictions is {t}%".format(t=round((t * 100 / len(answers)), 1)))
+    print("The Percent of Incorrect Predictions is {f}%\n".format(f=round((f * 100 / len(answers)), 1)))
+
 
 
 dataRetriever = DataRetriever("../Datasets/metadata.json")
 
+################################################ Un-Shuffled Data ################################################
+
+# This first for loop performs the NaiveBayes algorithm for un-shuffled data
 jsonResults1 = {}
 for dataSet in dataRetriever.getDataMenu():
     dataRetriever.retrieveData(dataSet)
@@ -44,9 +46,8 @@ for dataSet in dataRetriever.getDataMenu():
     foldNum = 1
 
     jsonResults1[dataSet] = {}
-    jsonResults1[dataSet]["isShuffled"] = False
 
-    print(f"CURRENTLY PRINTING RESULTS FOR THE DATASET {dataSet}")
+    print(f"PRINTING RESULTS FOR THE CONTROL DATASET {dataSet}")
     for train, test in KFolds(retrievedData, 10):
 
         trainBin = BinDiscretizer(train[dataRetriever.getContinuousAttributes()], multi=True)
@@ -65,11 +66,6 @@ for dataSet in dataRetriever.getDataMenu():
 
         classifierAnalyzer = ClassifierAnalyzer(answers, predictions)
 
-
-        # print(set(answers))
-        # print(set(predictions))
-        #
-        # print(dataSet, foldNum)
         jsonResults1[dataSet][foldNum] = {}
         jsonResults1[dataSet][foldNum]["Precision"] = classifierAnalyzer.calc_precision(method=method)
         jsonResults1[dataSet][foldNum]["Recall"] = classifierAnalyzer.calc_recall(method=method)
@@ -78,9 +74,18 @@ for dataSet in dataRetriever.getDataMenu():
         foldNum += 1
 
         calculateResults(predictions, answers)
+        print("Trained Model for Control:")
+        pprint.pprint(naiveBayes.trainedCalculation)
+        print()
+        break
+    break
+##################################################################################################################
 
+
+################################################### Shuffled Data ################################################
+
+# This first for loop performs the NaiveBayes algorithm for shuffled data
 jsonResults2 = {}
-
 for dataSet in dataRetriever.getDataMenu():
     dataRetriever.retrieveData(dataSet)
     dataClass = dataRetriever.getDataClass()
@@ -97,17 +102,16 @@ for dataSet in dataRetriever.getDataMenu():
     foldNum = 1
 
     jsonResults2[dataSet] = {}
-    jsonResults2[dataSet]["isShuffled"] = False
 
 
     for i, col in enumerate(dataToShuffle.columns):
-        onlyData.drop([col], axis=1)
         onlyData[col] = dataToShuffle[col].sample(frac=1, random_state=i).to_numpy()
+
 
     onlyData[dataRetriever.getDataClass()] = onlyClasses
 
 
-    print(f"CURRENTLY PRINTING RESULTS FOR THE SHUFFLED DATASET {dataSet}")
+    print(f"PRINTING RESULTS FOR THE SHUFFLED DATASET {dataSet}")
     for train, test in KFolds(onlyData, 10):
         jsonResults2[dataSet][foldNum] = {}
         trainBin = BinDiscretizer(train[dataRetriever.getContinuousAttributes()], multi=True)
@@ -134,10 +138,19 @@ for dataSet in dataRetriever.getDataMenu():
         foldNum += 1
 
         calculateResults(predictions, answers)
+        print("Trained Model for Shuffled:")
+        pprint.pprint(naiveBayes.trainedCalculation)
+        print()
+        break
+    break
+##################################################################################################################
 
+################### Write to File #####################
 
-with open("Nonshuffled.json", 'w') as f:
-    f.write(json.dumps(jsonResults1, indent=2))
+# with open("Nonshuffled.json", 'w') as f:
+#     f.write(json.dumps(jsonResults1, indent=2))
+#
+# with open("Shuffled.json", 'w') as f:
+#     f.write(json.dumps(jsonResults2, indent=2))
 
-with open("Shuffled.json", 'w') as f:
-    f.write(json.dumps(jsonResults2, indent=2))
+#######################################################
