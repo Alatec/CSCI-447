@@ -11,6 +11,7 @@ class DataRetriever():
         self.dataSet = None
         self.dataClass = None
         self.continuousAttributes = None
+        self.rowsToDrop = None
 
         self._buildDataMenu()
 
@@ -36,6 +37,9 @@ class DataRetriever():
     def getDataSet(self):
         return self.dataSet.sample(frac=1, random_state=69)
 
+    def getRowsToDrop(self):
+        return self.rowsToDrop
+
     #####################################
 
     def hasData(self, data):
@@ -60,6 +64,7 @@ class DataRetriever():
         dataSet = pd.read_csv(self.dataSetPath + "/" + dataPath, names=header, na_values=naValues)
         dataSet = dataSet.drop(jsonData["rowsToDrop"], axis=1)
 
+        self.rowsToDrop = jsonData["rowsToDrop"]
         self.dataClass = dataClass
         self.dataSet = dataSet
         self.continuousAttributes = continuousAttributes

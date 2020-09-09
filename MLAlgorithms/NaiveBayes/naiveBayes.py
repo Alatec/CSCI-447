@@ -55,7 +55,7 @@ class NaiveBayes():
             for feature in data:
 
                 trainDict[dataClass][feature] = {}
-                trainDict[dataClass][feature][self.unknownVal] = (1 / len(data)) + self.d
+                trainDict[dataClass][feature][self.unknownVal] = (1 / (len(data) + self.d))
                 for value in data[feature].unique():
                     numerator = len(data[data[feature] == value]) + 1
                     denominator = len(data) + self.d
