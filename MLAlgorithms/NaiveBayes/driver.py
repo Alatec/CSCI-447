@@ -72,9 +72,9 @@ for dataSet in dataRetriever.getDataMenu():
         foldNum += 1
 
         calculateResults(predictions, answers)
-        print("Trained Model for Control:")
-        pprint.pprint(naiveBayes.trainedCalculation)
-        print()
+        # print("Trained Model for Control:")
+        # pprint.pprint(naiveBayes.trainedCalculation)
+        # print()
 
 ##################################################################################################################
 
@@ -135,9 +135,9 @@ for dataSet in dataRetriever.getDataMenu():
         foldNum += 1
 
         calculateResults(predictions, answers)
-        print("Trained Model for Shuffled:")
-        pprint.pprint(naiveBayes.trainedCalculation)
-        print()
+        # print("Trained Model for Shuffled:")
+        # pprint.pprint(naiveBayes.trainedCalculation)
+        # print()
 
 ##################################################################################################################
 
