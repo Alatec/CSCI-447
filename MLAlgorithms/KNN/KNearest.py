@@ -1,5 +1,3 @@
-from numba.experimental import jitclass
-from numba import int32, float32, float64 
 import numpy as np
 import pandas as pd
 
@@ -11,46 +9,41 @@ import time
 from tqdm import tqdm
 from MLAlgorithms.Utils.DataRetriever import DataRetriever
 from MLAlgorithms.Utils.KFolds import KFolds
-
-
-dataRetriever = DataRetriever("../Datasets/metadata.json")
-dataRetriever.retrieveData("breastCancer")
-data = dataRetriever.getDataSet()
-data = data.dropna()
-data = data.reset_index(drop=True)
-
-
-spec = [
-    ('test', float64[:,:]),
-    ('train', float64[:,:])
-]
-@jitclass(spec)
-class DistanceCalculator(object):
-    def __init__(self, test, train):
-        self.train = train
-        self.test = test
-
-    def calculate_distances(self):
-        distances = np.zeros((self.test.shape[0], self.train.shape[0]), dtype=np.float64)
-
-        for i in range(self.test.shape[0]):
-            for j in range(self.train.shape[0]):
-             distances[i,j] = ((self.test[i]-self.train[j])**2).sum()
-
-        return distances
-
+from MLAlgorithms.Utils.NumbaFunctions import calculate_euclid_distances
 
 class KNearestNeighbor:
-    def __init__(self,test, train, k, metric='euclid'):
-        self.test = test
-        self.train = train
+    def __init__(self, test, train, k, unknown_col='class', metric='euclid', classification=True):
+        self.test_data = test
+        self.train_data = train
         self.k = k
-        self.distance_calc = DistanceCalculator(test.to_numpy(), train.to_numpy())
+        self.metric = metric
 
-    def get_neighbors(self, test_index):
-        neighbors = self.distance_calc.calculate_distances()
-        
-        return neighbors[test_index].argsort()[:self.k]
+        #This way the unknowns can be passed in as either part of the data frame or as a separate list
+        list_types = (list, tuple, np.ndarray, pd.Series)
+        if isinstance(unknown_col, list_types):
+            self.unknown_col = pd.Series(unknown_col)
+        elif isinstance(unknown_col, str):
+            self.unknown_col = self.train_data[unknown_col][:]
+            self.train_data = self.train_data.drop([unknown_col], axis=1)
+
+
+        if metric == 'euclid': 
+            self.neighbors = calculate_euclid_distances(self.test_data.to_numpy(dtype=np.float64), self.train_data.to_numpy(dtype=np.float64))
+        else:
+            raise NotImplementedError
+
+    def get_neighbors(self, test_index):        
+        return self.neighbors[test_index].argsort()[:self.k]
+    
+    #
+    def get_most_common_class_apply(self, neighbors_list):
+        k_neighbors = neighbors_list.argsort()[:self.k]
+        unknowns = self.unknown_col.loc[k_neighbors]
+        return unknowns.value_counts().idxmax()
+
+
+    def test(self):
+        return np.apply_along_axis(self.get_most_common_class_apply,0,self.neighbors)
 
 if __name__ == "__main__":
     dataRetriever = DataRetriever("../Datasets/metadata.json")
@@ -59,6 +52,7 @@ if __name__ == "__main__":
     data = data.dropna()
     data = data.reset_index(drop=True)
 
-    KNN = KNearestNeighbor(data,data,5)
+    KNN = KNearestNeighbor(data.drop('class', axis=1),data,5)
     print(KNN.get_neighbors(5))
+    print(KNN.test())
         
