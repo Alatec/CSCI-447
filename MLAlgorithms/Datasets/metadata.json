@@ -8,7 +8,8 @@
                       "marginalAdhesion", "singleEpithelialCellSize", "bareNuclei", "blandChromatin", "normalNucleoli", "mitoses"],
         "discrete": ["sampleCodeNumber"],
         "NAValues":["?"],
-        "rowsToDrop": ["sampleCodeNumber"]
+        "rowsToDrop": ["sampleCodeNumber"],
+        "predictionType": "classification"
     },
     "glass": {
         "dataPath": "glass.data",
@@ -17,7 +18,8 @@
         "continuous": ["RI", "Na", "Mg", "Al", "Si", "K", "Ca", "Ba", "Fe"],
         "discrete": ["idNumber", "typeOfGlass"],
         "NAValues":[],
-        "rowsToDrop": ["idNumber"]
+        "rowsToDrop": ["idNumber"],
+        "predictionType": "classification"
     },
     "iris": {
         "dataPath": "iris.data",
@@ -26,7 +28,8 @@
         "continuous": ["sepalLength", "sepalWidth", "petalLength", "petalWidth"],
         "discrete": ["class"],
         "NAValues":[],
-        "rowsToDrop": []
+        "rowsToDrop": [],
+        "predictionType": "classification"
     },
     "soybeanSmall": {
         "dataPath": "soybean-small.data",
@@ -41,7 +44,8 @@
         "stem", "lodging", "stemCankers", "cankerLesion", "fruitingBodies", "externalDecay", "mycelium", "intDiscolor", "sclerotia", "fruitPods",
         "fruitSpots", "seed", "moldGrowth", "seedDiscolor", "seedSize", "shriveling", "roots"],
         "NAValues":[],
-        "rowsToDrop": ["date"]
+        "rowsToDrop": ["date"],
+        "predictionType": "classification"
     },
     "vote": {
         "dataPath": "house-votes-84.data",
@@ -54,7 +58,51 @@
         "elSalvadorAid", "religiousGroupsInSchool", "antiSatelliteTestBan", "aidToNicaraguanContras", "mxMissile", "immigration",
         "synfuelsCorporationCutback", "educationSpending", "superfundRightToSue", "crime", "dutyFreeExports", "exportAdministrationActSouthAfrica"],
         "NAValues":["?"],
-        "rowsToDrop": []
+        "rowsToDrop": [],
+        "predictionType": "classification"
+    },
+    "imageSegmentation": {
+        "dataPath": "segmentation.data",
+        "attributes": ["class", "region-centroid-col", "region-centroid-row", "region-pixel-count", "short-line-density-5", "short-line-density-2", "vedge-mean", "vedge-sd", "hedge-mean", "hedge-sd",
+            "intensity-mean", "rawred-mean", "rawblue-mean", "rawgreen-mean", "exred-mean" ,"exblue-mean", "exgreen-mean", "value-mean", "saturatoin-mean", "hue-mean"],
+        "class": "class",
+        "continuous": ["region-centroid-col", "region-centroid-row", "region-pixel-count", "short-line-density-5", "short-line-density-2", "vedge-mean", "vedge-sd", "hedge-mean", "hedge-sd",
+            "intensity-mean", "rawred-mean", "rawblue-mean", "rawgreen-mean", "exred-mean" ,"exblue-mean", "exgreen-mean", "value-mean", "saturatoin-mean", "hue-mean"],
+        "discrete": ["class"],
+        "NAValues": [],
+        "rowsToDrop": [],
+        "predictionType": "classification"
+
+    },
+    "Abalone": {
+        "dataPath": "abalone.data",
+        "attributes": ["sex", "length", "diameter", "height", "wholeWeight", "shuckedWeight", "visceraWeight", "shellWeight", "rings", "age"],
+        "class": "age",
+        "continuous": ["length", "diameter", "height", "wholeWeight", "shuckedWeight", "visceraWeight", "shellWeight"],
+        "discrete": ["sex", "rings"],
+        "NAValues": [],
+        "rowsToDrop": [],
+        "predictionType": "regression"
+    },
+    "computerHardware": {
+        "dataPath": "machine.data",
+        "attributes": ["venderName", "modelName", "myct", "mmin", "mmax", "cach", "chmin", "chmax", "prp", "erp"],
+        "class": "prp",
+        "continuous": [],
+        "discrete": ["venderName", "modelName", "myct", "mmin", "mmax", "cach", "chmin", "chmax", "prp", "erp"],
+        "NAValues": [],
+        "rowsToDrop": ["erp"],
+        "predictionType": "regression"
+    },
+    "forestFires":{
+        "dataPath": "forestfires.csv",
+        "attributes": ["x", "y", "month", "day", "ffmc", "dmc", "dc", "isi", "temp", "rh", "wind", "rain", "area"],
+        "class": "area",
+        "continuous": ["ffmc", "dmc", "dc", "isi", "temp", "rh", "wind", "rain", "area"],
+        "discrete": ["x", "y", "month", "day"],
+        "NAValues": [],
+        "rowsToDrop": [],
+        "predictionType": "regression"
     }
 
 }
