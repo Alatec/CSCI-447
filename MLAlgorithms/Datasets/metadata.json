@@ -74,10 +74,10 @@
         "predictionType": "classification"
 
     },
-    "Abalone": {
+    "abalone": {
         "dataPath": "abalone.data",
-        "attributes": ["sex", "length", "diameter", "height", "wholeWeight", "shuckedWeight", "visceraWeight", "shellWeight", "rings", "age"],
-        "class": "age",
+        "attributes": ["sex", "length", "diameter", "height", "wholeWeight", "shuckedWeight", "visceraWeight", "shellWeight", "rings"],
+        "class": "rings",
         "continuous": ["length", "diameter", "height", "wholeWeight", "shuckedWeight", "visceraWeight", "shellWeight"],
         "discrete": ["sex", "rings"],
         "NAValues": [],
