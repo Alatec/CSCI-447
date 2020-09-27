@@ -28,6 +28,9 @@ class DataRetriever():
     def getContinuousAttributes(self):
         return self.continuousAttributes
 
+    def getDescreteAttributes(self):
+        return self.descreteAttributes
+
     def getDataMenu(self):
         return self.menu
 
@@ -60,6 +63,7 @@ class DataRetriever():
         naValues = jsonData["NAValues"]
         dataClass = jsonData['class']
         continuousAttributes = jsonData['continuous']
+        discreteAttributes = jsonData['discrete']
 
         dataSet = pd.read_csv(self.dataSetPath + "/" + dataPath, names=header, na_values=naValues)
         dataSet = dataSet.drop(jsonData["rowsToDrop"], axis=1)
@@ -68,5 +72,8 @@ class DataRetriever():
         self.dataClass = dataClass
         self.dataSet = dataSet
         self.continuousAttributes = continuousAttributes
+        self.descreteAttributes = list(set(discreteAttributes) ^ set(jsonData["rowsToDrop"]))
+
+        return self
 
 
