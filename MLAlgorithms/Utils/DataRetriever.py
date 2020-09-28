@@ -43,6 +43,9 @@ class DataRetriever():
     def getRowsToDrop(self):
         return self.rowsToDrop
 
+    def getPredictionType(self):
+        return self.predictionType
+
     #####################################
 
     def hasData(self, data):
@@ -68,6 +71,7 @@ class DataRetriever():
         dataSet = pd.read_csv(self.dataSetPath + "/" + dataPath, names=header, na_values=naValues)
         dataSet = dataSet.drop(jsonData["rowsToDrop"], axis=1)
 
+        self.predictionType = jsonData["predictionType"]
         self.rowsToDrop = jsonData["rowsToDrop"]
         self.dataClass = dataClass
         self.dataSet = dataSet

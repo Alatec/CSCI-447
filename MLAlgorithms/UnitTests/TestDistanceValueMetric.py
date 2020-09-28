@@ -11,7 +11,21 @@ class TestValueDistanceMetric(unittest.TestCase):
         dataRetriver = DataRetriever("../Datasets/metadata.json")
         data = dataRetriver.retrieveData("vote")
 
-        DistanceValueMetric(data.getDataSet(), data.getDataClass(), data.getDescreteAttributes())
+        DistanceValueMetric(data.getDataSet(), data.getDataClass(), data.getDescreteAttributes(), data.getPredictionType())
+
+    def test_distance(self):
+        dataRetriver = DataRetriever("../Datasets/metadata.json")
+        data = dataRetriver.retrieveData("vote")
+
+        dataMetric = DistanceValueMetric(data.getDataSet(), data.getDataClass(), data.getDescreteAttributes(), data.getPredictionType())
+        dataFrame = data.getDataSet()
+
+        row1 = dataFrame.sample(random_state=1)
+        row2 = dataFrame.sample(random_state=2)
+        result = dataMetric.calculateDistance(row1, row2)
+        print(result)
+
+        #dataMetric.printMatrix()
 
 
 if __name__ == '__main__':

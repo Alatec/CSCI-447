@@ -57,7 +57,7 @@
         "discrete": ["className", "handicappedInfants", "waterProjectCostSharing", "adoptionOfTheBudgetResolution", "physicianFeeFreeze",
         "elSalvadorAid", "religiousGroupsInSchool", "antiSatelliteTestBan", "aidToNicaraguanContras", "mxMissile", "immigration",
         "synfuelsCorporationCutback", "educationSpending", "superfundRightToSue", "crime", "dutyFreeExports", "exportAdministrationActSouthAfrica"],
-        "NAValues":["?"],
+        "NAValues":[],
         "rowsToDrop": [],
         "predictionType": "classification"
     },
