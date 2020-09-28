@@ -1,4 +1,5 @@
 import numpy as np
+from numba import njit
 
 """
 Calculates the Hamming distance between two binary vectors
@@ -12,6 +13,7 @@ Args:
 Returns:
     hammingDistance: int
 """
+@njit
 def calculateHammingDistance(arr1, arr2):
 
     if arr1 is None or arr2 is None: return -1

@@ -1,17 +1,17 @@
 from MLAlgorithms.Utils.DataRetriever import DataRetriever
-from MLAlgorithms.Utils.OneHotEncoder import oneHotEncoder
+from MLAlgorithms.Utils.DistanceValueMetric import DistanceValueMetric
+import numpy as np
 import unittest
 import os
 
 
-class OneHotEncoder(unittest.TestCase):
+class TestValueDistanceMetric(unittest.TestCase):
 
-    def testOneHotEncoder(self):
+    def test(self):
         dataRetriver = DataRetriever("../Datasets/metadata.json")
-        glassData = dataRetriver.retrieveData("imageSegmentation")
+        data = dataRetriver.retrieveData("vote")
 
-        print(oneHotEncoder(glassData.getDataSet(), glassData.getDescreteAttributes()))
-
+        DistanceValueMetric(data.getDataSet(), data.getDataClass(), data.getDescreteAttributes())
 
 
 if __name__ == '__main__':
