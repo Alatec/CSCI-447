@@ -28,11 +28,14 @@ class DistanceValueMetric:
     Args:
         x: Pandas DataFrame
         y: Pandas DataFrame
+    
+    Returns:
+        sum: int
     """
     def calculateDistance(self, x, y):
         sum = 0
         for attr in self.matrixDict.keys():
-            sum += self.matrixDict[attr][x[attr].item()][y[attr].item()]
+            sum += self.matrixDict[attr][x[attr]][y[attr]]
 
         sum = sum**(1/self.wonskianMetric)
 

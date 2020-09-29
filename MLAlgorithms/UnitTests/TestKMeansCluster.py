@@ -11,11 +11,12 @@ import os
 class TestKMeansCluster(unittest.TestCase):
 
     def testKMeans(self):
-        dataRetriver = DataRetriever("../Datasets/metadata.json")
-        glassData = dataRetriver.retrieveData("vote")
+        data = DataRetriever("../Datasets/metadata.json")
+        data.retrieveData("vote")
 
         kValue = 3
-        print(KMeans(glassData.getDataSet(), kValue))
+        KMeans(data.getDataSet(), data.getDataClass(), data.getDescreteAttributes(),
+               data.getContinuousAttributes(), data.getPredictionType(), kValue)
 
 
 if __name__ == '__main__':

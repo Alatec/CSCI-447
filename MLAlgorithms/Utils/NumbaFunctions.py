@@ -6,6 +6,7 @@ spec = [
     ('test', float64[:,:]),
     ('train', float64[:,:])
 ]
+# Train is centroid
 
 @numba.njit(float64[:,:](float64[:,:],float64[:,:]))
 def calculate_euclid_distances(test, train):
