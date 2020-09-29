@@ -20,9 +20,9 @@ data = data.reset_index(drop=True)
 times = []
 rows_list = []
 distances = np.zeros((len(data), len(data)), dtype=np.float)
-for index, row in tqdm(enumerate(data.to_numpy()), total=len(data)):
-
-    distances[index] = data.apply(lambda row2: ((row2-row)**2).sum(), axis=1, raw=True).to_numpy()
+for index, row in tqdm(data.iterrows(), total=len(data)):
+    for index2, row2 in data.iterrows():
+        distances[index, index2] = ((row2-row)**2).sum()
 
     
 @numba.njit
