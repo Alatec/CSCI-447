@@ -1,26 +1,11 @@
 import numpy as np
 import pandas as pd
-"""
-for each feature in data set
-    var 1 = count how many values each feature has                    For instance, for the feature type color, how many blues, reds, ect exist
-    var 2 = count how many values each feature has and where the class is equal to some variable a
 
-    Construct the feature difference matrix
-"""
-
-"""
-asd
-
-Args:
-    dataFrame: Pandas DataFrame
-    
-Returns:
-    
-
-"""
 class DistanceValueMetric:
 
     """
+    On instantiation, a dictionary of Value Difference Metrics are created for each attribute in a data set
+
     Args:
         dataFrame: Pandas DataFrame
         classifier: String
@@ -31,14 +16,18 @@ class DistanceValueMetric:
         self.wonskianMetric = 1
 
         discreteValuesSorted = sorted(discreteValues)
-        discreteValuesSorted.remove(classifier)
+        if classifier in discreteValuesSorted:
+            discreteValuesSorted.remove(classifier)
 
         for attr in discreteValuesSorted:
             self.matrixDict[attr] = self._createMatrix(dataFrame, classifier, attr, predictionType)
 
-
     """
     Pass in two data points to calculate the the total distance of categorical data
+    
+    Args:
+        x: Pandas DataFrame
+        y: Pandas DataFrame
     """
     def calculateDistance(self, x, y):
         sum = 0
@@ -59,7 +48,12 @@ class DistanceValueMetric:
         uniqueValuesLen = len(uniqueValues)
         uniqueValuesCount = {}
         uniqueValuesCountWithClass = {}
-        uniqueClassifiers = sorted(dataFrame[classifier].unique())
+
+        if predictionType == "classification":
+            uniqueClassifiers = sorted(dataFrame[classifier].unique())
+        else:
+            uniqueClassifiers = np.histogram(dataFrame[classifier], bins=8)
+            uniqueClassifiers = uniqueClassifiers[0]
 
 
         # Create a dictionary of value counts both in total and in class specific total
@@ -93,6 +87,4 @@ class DistanceValueMetric:
     def printMatrix(self):
         for attr in self.matrixDict.keys():
             print(self.matrixDict[attr])
-            print(self.matrixDict[attr]["?"])
-            break
 

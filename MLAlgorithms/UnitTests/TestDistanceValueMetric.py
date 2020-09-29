@@ -23,9 +23,9 @@ class TestValueDistanceMetric(unittest.TestCase):
         row1 = dataFrame.sample(random_state=1)
         row2 = dataFrame.sample(random_state=2)
         result = dataMetric.calculateDistance(row1, row2)
-        print(result)
 
-        #dataMetric.printMatrix()
+
+        dataMetric.printMatrix()
 
 
 if __name__ == '__main__':

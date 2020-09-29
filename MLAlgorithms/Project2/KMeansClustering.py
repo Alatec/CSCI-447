@@ -16,9 +16,14 @@ Returns:
 def KMeans(dataSet, k):
     # Pick k random cluster centers from the given dataspace
     centroids = _createCentroids(dataSet, k)
+    flag = True
+
+    while flag:
+        for row in dataSet:
+            pass
 
     """
-    while our centroids have't change:
+    while our centroids haven't change:
     |   for row in data set:
     |    |   calculate distance between row and centroid
     |    |   assign the row to the closest centroid
