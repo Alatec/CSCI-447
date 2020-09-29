@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
 
-import matplotlib
-print(matplotlib.rcsetup.interactive_bk)
-matplotlib.use('WebAgg')
+# import matplotlib
+# print(matplotlib.rcsetup.interactive_bk)
+# matplotlib.use('WebAgg')
 import matplotlib.pyplot as plt
 import time
 from tqdm import tqdm
@@ -63,7 +63,7 @@ class KNearestNeighbor:
 
 
     def test(self, augmented=False):
-        return np.apply_along_axis(self.get_most_common_class_apply,0,self.neighbors,augmented=augmented)
+        return np.apply_along_axis(self.get_most_common_class_apply,1,self.neighbors,augmented=augmented)
 
     # def augmented_test(self):
     #     two_neighbors = self.neighbors
@@ -75,20 +75,31 @@ class EditedKNN(KNearestNeighbor):
 
 
         self.validation = validation
+        # print("Validation shape:", self.validation.shape)
         list_types = (list, tuple, np.ndarray, pd.Series)
         if isinstance(val_unknown_col, list_types):
             self.val_unknown_col = pd.Series(val_unknown_col)
         elif isinstance(val_unknown_col, str):
             self.val_unknown_col = self.validation[val_unknown_col][:]
             self.validation = self.validation.drop([val_unknown_col], axis=1)
-    def train(self, acc_delta=0.01, max_iter=1000, remove_correct=True):
 
+        # print("Val unknown size", self.val_unknown_col.shape)
+
+    def train(self, acc_delta=0.01, max_iter=1000, remove_correct=True):
+        # print(self.validation)
         validation_KNN = KNearestNeighbor(self.validation, self.train_data, self.k, unknown_col=self.unknown_col, 
                                         metric=self.metric, classification=self.classification)
-        intial_validation_performance = (validation_KNN.test() == self.val_unknown_col).sum()/len(self.validation)
+        print("Valid shape", self.validation.shape)
+        print("Train shape", self.train_data.shape)
+        print("Val unknown shape", self.val_unknown_col.shape)
+        print("Val test shape", len(validation_KNN.test()))
+        intial_validation_performance = (validation_KNN.test() == self.val_unknown_col).sum()
+        intial_validation_performance /= len(self.validation)
         curr_performance = intial_validation_performance
         prev_performance = 0.01
         curr_iter = 0
+
+
         # 3 Exit conditions: Performance is worse than when we started, performance hasn't increased, hit iteration limit
         while curr_performance >= (1+acc_delta)*prev_performance and curr_iter < max_iter:
             prev_performance = curr_performance
@@ -99,13 +110,17 @@ class EditedKNN(KNearestNeighbor):
             temp_train = self.train_data.drop(points_to_remove, axis=0)
             validation_KNN = KNearestNeighbor(self.validation, temp_train, self.k, unknown_col=self.val_unknown_col, 
                                         metric=self.metric, classification=self.classification)
-            curr_performance = (validation_KNN.test() == self.unknown_col).sum()/len(self.validation)
+            curr_performance = (validation_KNN.test() == self.val_unknown_col).sum()/len(self.validation)
+            print(f"Iter:{curr_iter}, Curr Perf: {curr_performance},  Prev Perf: {prev_performance}")
+            print(len(points_to_remove))
             if curr_performance < intial_validation_performance:
                 break
             else:
                 self.train_data = temp_train.deep_copy()
             
+            
             curr_iter += 1
+            
 
         # baseline_acc = classifierAnalyzer.calc_accuracy(method=method)
 
@@ -116,10 +131,10 @@ if __name__ == "__main__":
     data = data.dropna()
     data = data.reset_index(drop=True)
 
-    test = data.sample(frac=0.2)
+    test = data.sample(frac=0.2, random_state=17)
     train = data.drop(test.index)
 
-    validate = test.sample(frac=0.5)
+    validate = test.sample(frac=0.5, random_state=13)
     test = test.drop(validate.index)
 
     train = train.reset_index(drop=True)
@@ -127,6 +142,8 @@ if __name__ == "__main__":
     validate = validate.reset_index(drop=True)
 
     KNN = KNearestNeighbor(test.drop('class', axis=1),train,5)
+    print("KNN test length", len(KNN.test()))
+    print("Test set length", test.shape)
     EKNN = EditedKNN(test.drop('class', axis=1), validate, train, 5)
     EKNN.train()
     # print(KNN.get_neighbors([5,10]))
