@@ -87,7 +87,14 @@ class DistanceValueMetric:
 
         return matrix
 
+    def lookUp(self, attr, val):
+        print(self.matrixDict[attr])
+        return self.matrixDict[attr][val]
+
     def printMatrix(self):
         for attr in self.matrixDict.keys():
             print(self.matrixDict[attr])
+
+    def printSpecificMatrix(self, key):
+        print(self.matrixDict[key])
 

@@ -2,6 +2,7 @@ from MLAlgorithms.Utils.DistanceValueMetric import DistanceValueMetric
 from MLAlgorithms.Utils.NumbaFunctions import calculate_euclid_distances
 import pandas as pd
 import numpy as np
+import math as m
 
 
 """
@@ -19,24 +20,65 @@ Args:
 Returns:
     clusteredData: Panadas DataFrame
 """
-def KMeans(dataSet, classifier, discreteAttr, continAttr, predictionType, k):
+def KMeans(dataSet, classifier, discreteAttr, continAttr, predictionType, k, maxIter):
     dataMetric = DistanceValueMetric(dataSet, classifier, discreteAttr,
                                      predictionType)
 
+    totalAttr = len(discreteAttr) + len(continAttr)
+    percentDis = len(discreteAttr)/totalAttr
+    percentCon = len(continAttr)/totalAttr
+
     #Pick k random cluster centers from the given dataspace
     centroids = _createCentroids(dataSet, k)
-    flag = True
+    iteration = 0
 
-    while flag:
+    while iteration < maxIter:
+        print(iteration)
+        flag = False
+# ============================================================================================= Assign each point to a cluster
         assignedClusters = {}
         for index, row in dataSet.iterrows():
             lowestDict = {}
             for cent, centVal in centroids.items():
                 totalDistance = 0
-                totalDistance += dataMetric.calculateDistance(centVal, row) # Calculate every categorical
+                totalDistance += percentDis*dataMetric.calculateDistance(centVal, row) # Calculate every categorical
+                continAttrMatrix = calculate_euclid_distances(row[continAttr].to_numpy(dtype="float64"), centVal[continAttr].to_numpy(dtype="float64"))
+                continAttrFrame = pd.DataFrame(continAttrMatrix, continAttr, columns=continAttr)
+
                 for cont in continAttr:
-                    totalDistance += calculate_euclid_distances(row[cont], centVal)
-        break
+                    totalDistance += percentCon*continAttrFrame[cont][cont]
+
+                lowestDict[cent] = totalDistance
+
+            lowestCentroid = min(lowestDict.items(), key=lambda x: x[1])
+
+            if lowestCentroid[0] not in assignedClusters:
+                assignedClusters[lowestCentroid[0]] = []
+            assignedClusters[lowestCentroid[0]].append(index)
+
+# ============================================================================================= Recalculate our centroids
+
+        for centroidId, assignedPoints in assignedClusters.items():
+            for cAttr in continAttr:
+                oldVal = centroids[centroidId][cAttr]
+                newVal = dataSet.iloc[assignedPoints][cAttr].mean()
+                if round(oldVal, 2) != round(newVal, 2):
+                    flag = True
+                centroids[centroidId][cAttr] = dataSet.iloc[assignedPoints][cAttr].mean()
+            for dAttr in discreteAttr:
+                oldVal = centroids[centroidId][dAttr]
+                newVal = dataSet.iloc[assignedPoints][dAttr].mode().head().values
+                if oldVal in newVal:
+                    continue
+                else:
+                    flag = True
+                    centroids[centroidId][dAttr] = dataSet.iloc[assignedPoints][dAttr].mode().head().values[0]
+
+# ============================================================================================= Check if they changed
+        iteration += 1
+        if not flag:
+            break
+
 
 
     """
@@ -59,7 +101,7 @@ def KMeans(dataSet, classifier, discreteAttr, continAttr, predictionType, k):
     """
 
 
-    return None
+    return pd.DataFrame(centroids).T
 
 
 def _calculateMean():

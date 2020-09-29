@@ -12,11 +12,15 @@ class TestKMeansCluster(unittest.TestCase):
 
     def testKMeans(self):
         data = DataRetriever("../Datasets/metadata.json")
-        data.retrieveData("vote")
+        data.retrieveData("imageSegmentation")
 
         kValue = 3
-        KMeans(data.getDataSet(), data.getDataClass(), data.getDescreteAttributes(),
-               data.getContinuousAttributes(), data.getPredictionType(), kValue)
+        centroids = KMeans(data.getDataSet(), data.getDataClass(), data.getDescreteAttributes(),
+               data.getContinuousAttributes(), data.getPredictionType(), kValue, 100)
+
+        print(centroids)
+
+        centroids.to_csv('out.csv', index=False)
 
 
 if __name__ == '__main__':
