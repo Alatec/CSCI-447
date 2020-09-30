@@ -52,9 +52,12 @@ class KNearestNeighbor:
         return self.neighbors[test_index].argsort()[:self.k]
     
     #
-    def get_most_common_class_apply(self, neighbors_list, augmented=False):
+    def get_most_common_class_apply(self, neighbors_list, augmented=False, verbose=False):
         
         k_neighbors = neighbors_list.argsort()[:self.k]
+        if verbose:
+            print("K Neighbors", k_neighbors)
+            print(self.unknown_col.shape)
         unknowns = self.unknown_col.loc[k_neighbors]
         if augmented:
             return (unknowns.iloc[0]==unknowns.iloc[1])
@@ -62,8 +65,8 @@ class KNearestNeighbor:
             return unknowns.value_counts().idxmax()
 
 
-    def test(self, augmented=False):
-        return np.apply_along_axis(self.get_most_common_class_apply,1,self.neighbors,augmented=augmented)
+    def test(self, augmented=False, verbose=False):
+        return np.apply_along_axis(self.get_most_common_class_apply,1,self.neighbors,augmented=augmented,verbose=verbose)
 
     # def augmented_test(self):
     #     two_neighbors = self.neighbors
@@ -71,7 +74,7 @@ class KNearestNeighbor:
 
 class EditedKNN(KNearestNeighbor):
     def __init__(self, test, validation, train, k, unknown_col='class', val_unknown_col='class', metric='euclid', classification=True):
-        super().__init__(test, train, k, unknown_col='class', metric='euclid', classification=True)
+        super().__init__(test, train, k, unknown_col=unknown_col, metric=metric, classification=classification)
 
 
         self.validation = validation
@@ -85,9 +88,9 @@ class EditedKNN(KNearestNeighbor):
 
         # print("Val unknown size", self.val_unknown_col.shape)
 
-    def train(self, acc_delta=0.01, max_iter=1000, remove_correct=True):
+    def train(self, acc_delta=0.01, max_iter=1000, remove_correct=False):
         # print(self.validation)
-        validation_KNN = KNearestNeighbor(self.validation, self.train_data, self.k, unknown_col=self.unknown_col, 
+        validation_KNN = KNearestNeighbor(self.validation, self.train_data, 1, unknown_col=self.unknown_col, 
                                         metric=self.metric, classification=self.classification)
         print("Valid shape", self.validation.shape)
         print("Train shape", self.train_data.shape)
@@ -107,16 +110,19 @@ class EditedKNN(KNearestNeighbor):
                                         metric=self.metric, classification=self.classification)
             correct_points = testing_KNN.test(augmented=True)
             points_to_remove = np.argwhere(correct_points==remove_correct).flatten()
-            temp_train = self.train_data.drop(points_to_remove, axis=0)
-            validation_KNN = KNearestNeighbor(self.validation, temp_train, self.k, unknown_col=self.val_unknown_col, 
+            temp_train = self.train_data.drop(points_to_remove, axis=0).reset_index(drop=True)
+            temp_unknown_col = self.unknown_col.drop(points_to_remove).reset_index(drop=True)
+            del(validation_KNN)
+            validation_KNN = KNearestNeighbor(self.validation, temp_train, 1, unknown_col=temp_unknown_col, 
                                         metric=self.metric, classification=self.classification)
             curr_performance = (validation_KNN.test() == self.val_unknown_col).sum()/len(self.validation)
             print(f"Iter:{curr_iter}, Curr Perf: {curr_performance},  Prev Perf: {prev_performance}")
             print(len(points_to_remove))
-            if curr_performance < intial_validation_performance:
+            if curr_performance < intial_validation_performance and curr_iter > 0:
                 break
             else:
-                self.train_data = temp_train.deep_copy()
+                self.train_data = temp_train.copy(deep=True)
+                self.unknown_col = temp_unknown_col.copy(deep=True)
             
             
             curr_iter += 1
@@ -126,10 +132,11 @@ class EditedKNN(KNearestNeighbor):
 
 if __name__ == "__main__":
     dataRetriever = DataRetriever("../Datasets/metadata.json")
-    dataRetriever.retrieveData("breastCancer")
+    dataRetriever.retrieveData("abalone")
     data = dataRetriever.getDataSet()
     data = data.dropna()
     data = data.reset_index(drop=True)
+    data = data.drop('sex', axis=1)
 
     test = data.sample(frac=0.2, random_state=17)
     train = data.drop(test.index)
@@ -141,10 +148,12 @@ if __name__ == "__main__":
     test  = test.reset_index(drop=True)
     validate = validate.reset_index(drop=True)
 
-    KNN = KNearestNeighbor(test.drop('class', axis=1),train,5)
+    class_col = 'rings'
+
+    KNN = KNearestNeighbor(test.drop(class_col, axis=1),train,5, unknown_col=class_col)
     print("KNN test length", len(KNN.test()))
     print("Test set length", test.shape)
-    EKNN = EditedKNN(test.drop('class', axis=1), validate, train, 5)
+    EKNN = EditedKNN(test.drop(class_col, axis=1), validate, train, 5, unknown_col=class_col, val_unknown_col=class_col)
     EKNN.train()
     # print(KNN.get_neighbors([5,10]))
     # print(KNN.test(augmented=True))
