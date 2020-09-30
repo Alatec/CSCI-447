@@ -11,7 +11,8 @@ class TestBinDiscretizer(unittest.TestCase):
     def test_train_test_sizes(self):
         #Initialization
         dataRetriever = DataRetriever("../Datasets/metadata.json")
-        breastCancer = dataRetriever.retrieveData("breastCancer")
+        dataRetriever.retrieveData("breastCancer")
+        breastCancer = dataRetriever.getDataSet()
         continousAttributes = ["clumpThickness", "uniformityOfCellSize", "uniformityOfCellShape",
                       "marginalAdhesion", "singleEpithelialCellSize", "bareNuclei", "blandChromatin", "normalNucleoli", "mitoses", "class"]
 
@@ -21,7 +22,8 @@ class TestBinDiscretizer(unittest.TestCase):
     def test_train_test_independence(self):
         #Initialization
         dataRetriever = DataRetriever("../Datasets/metadata.json")
-        breastCancer = dataRetriever.retrieveData("breastCancer")
+        dataRetriever.retrieveData("breastCancer")
+        breastCancer = dataRetriever.getDataSet()
         continousAttributes = ["clumpThickness", "uniformityOfCellSize", "uniformityOfCellShape",
                       "marginalAdhesion", "singleEpithelialCellSize", "bareNuclei", "blandChromatin", "normalNucleoli", "mitoses", "class"]
 
@@ -32,7 +34,8 @@ class TestBinDiscretizer(unittest.TestCase):
     def test_test_set_coverage(self):
         #Initialization
         dataRetriever = DataRetriever("../Datasets/metadata.json")
-        breastCancer = dataRetriever.retrieveData("breastCancer")
+        dataRetriever.retrieveData("breastCancer")
+        breastCancer = dataRetriever.getDataSet()
         continousAttributes = ["clumpThickness", "uniformityOfCellSize", "uniformityOfCellShape",
                       "marginalAdhesion", "singleEpithelialCellSize", "bareNuclei", "blandChromatin", "normalNucleoli", "mitoses", "class"]
 
@@ -50,7 +53,8 @@ class TestBinDiscretizer(unittest.TestCase):
     def test_proper_number_of_folds(self):
         #Initialization
         dataRetriever = DataRetriever("../Datasets/metadata.json")
-        breastCancer = dataRetriever.retrieveData("breastCancer")
+        dataRetriever.retrieveData("breastCancer")
+        breastCancer = dataRetriever.getDataSet()
         continousAttributes = ["clumpThickness", "uniformityOfCellSize", "uniformityOfCellShape",
                       "marginalAdhesion", "singleEpithelialCellSize", "bareNuclei", "blandChromatin", "normalNucleoli", "mitoses", "class"]
 
@@ -61,7 +65,19 @@ class TestBinDiscretizer(unittest.TestCase):
         self.assertEqual(iterations,10)
 
 
-    pass
+    def test_stratisfied(self):
+        #Initialization
+        dataRetriever = DataRetriever("../Datasets/metadata.json")
+        dataRetriever.retrieveData("breastCancer")
+        breastCancer = dataRetriever.getDataSet()
+        continousAttributes = ["clumpThickness", "uniformityOfCellSize", "uniformityOfCellShape",
+                      "marginalAdhesion", "singleEpithelialCellSize", "bareNuclei", "blandChromatin", "normalNucleoli", "mitoses", "class"]
+
+        iterations = 0
+        for test, train in KFolds(breastCancer, 10, stratisfied=True):
+            print("TestLen 2",len(test[test['class']==2]), "TestLen 4",len(test[test['class']==4]))
+            print("TrainLen 2",len(train[train['class']==2]), "TrainLen 4",len(train[train['class']==4]))
+            iterations+=1
 
 if __name__ == '__main__':
     # Grabs the location of the unit test file and sets cwd

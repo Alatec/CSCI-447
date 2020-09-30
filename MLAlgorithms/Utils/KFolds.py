@@ -26,7 +26,7 @@ class KFolds:
 
         if self.stratisfied:
             self.unique_classes = self.data[class_col].unique()
-
+            print(self.unique_classes)
             self.segmented_frames = []
             self.segmented_indexes = []
             self.segmented_mod_vals = []
@@ -35,9 +35,10 @@ class KFolds:
             self.segmented_main_folds = []
             self.segmented_last_folds = []
             for c in self.unique_classes:
-                self.segmented_frames.append(self.data[self.data[class_col==c]].reset_index(drop=True))
+                print(c)
+                self.segmented_frames.append(self.data[self.data[class_col]==c].reset_index(drop=True))
                 self.segmented_indexes.append(self.segmented_frames[-1].index)
-                self.segmented_mod_val.append(len(self.segmented_frames[-1])%self.k)
+                self.segmented_mod_vals.append(len(self.segmented_frames[-1])%self.k)
                 self.segmented_fold_size.append(len(self.segmented_frames[-1])//self.k)
 
                 self.segmented_main_folds.append([np.arange(self.segmented_fold_size[-1]),np.arange(self.segmented_fold_size[-1],len(self.segmented_frames[-1]))])
