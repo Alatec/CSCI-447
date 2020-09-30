@@ -1,14 +1,11 @@
 import numba
-from numba import int32, float32, float64, njit
+from numba import int32, float32, float64, jit
 import numpy as np
 
-spec = [
-    ('test', float64[:,:]),
-    ('train', float64[:,:])
-]
+
 # Train is centroid
 
-
+@jit(nopython=True)
 def calculate_euclid_distances(test, train):
     distances = np.zeros((test.shape[0], train.shape[0]), dtype=np.float64)
 

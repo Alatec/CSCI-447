@@ -70,7 +70,7 @@ class DataRetriever():
 
         dataSet = pd.read_csv(self.dataSetPath + "/" + dataPath, names=header, na_values=naValues)
 
-        if jsonData["rowsToDrop"] in dataSet.columns:
+        if jsonData["rowsToDrop"] in list(dataSet.columns):
             dataSet = dataSet.drop(jsonData["rowsToDrop"], axis=1)
 
         self.predictionType = jsonData["predictionType"]

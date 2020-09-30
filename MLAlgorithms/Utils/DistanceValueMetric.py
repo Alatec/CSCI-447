@@ -23,19 +23,22 @@ class DistanceValueMetric:
             self.matrixDict[attr] = self._createMatrix(dataFrame, classifier, attr, predictionType)
 
     """
-    Pass in two data points to calculate the the total distance of categorical data
+    Pass in two numpy array representing data points and the attribute dictionary to define indexes to calclate
+    the distance between categorical values
     
     Args:
-        x: Pandas DataFrame
-        y: Pandas DataFrame
-    
+        x: Array<Object>
+        y: Array<Object>
+        attrDict: Dict<Object, int>
+        
     Returns:
         sum: int
     """
-    def calculateDistance(self, x, y):
+    def calculateDistance(self, x, y, attrDict):
         sum = 0
         for attr in self.matrixDict.keys():
-            sum += self.matrixDict[attr][x[attr]][y[attr]]
+            sum += self.matrixDict[attr][x[attrDict[attr]]][y[attrDict[attr]]]
+            # sum += self.matrixDict[attr][x[attr]][y[attr]]
 
         sum = sum**(1/self.wonskianMetric)
 
