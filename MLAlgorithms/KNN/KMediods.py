@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 
-
 """
 data.getDataSet(), data.getDataClass(), data.getDescreteAttributes(), data.getPredictionType()
 Clusters the data to be used for the various KNN algorithms
@@ -15,22 +14,24 @@ Args:
     discreteAttr: List<String>
     predictionType: String
     k: int
-    
+
 Returns:
     clusteredData: Panadas DataFrame
 """
-def KMeans(dataSet, classifier, discreteAttr, continAttr, predictionType, k, maxIter):
-    #Pick k random cluster centers from the given dataspace
+
+
+def KMediods(dataSet, classifier, discreteAttr, continAttr, predictionType, k, maxIter):
+    # Pick k random cluster centers from the given dataspace
     centroids = _createCentroids(dataSet, k)
 
     totalAttr = len(discreteAttr) + len(continAttr)
-    percentDis = len(discreteAttr)/totalAttr
-    percentCon = len(continAttr)/totalAttr
+    percentDis = len(discreteAttr) / totalAttr
+    percentCon = len(continAttr) / totalAttr
 
     iteration = 0
 
-    distanceMatrix = DistanceMatrix(dataSet, centroids, continAttr, discreteAttr, percentCon, percentDis, predictionType, classifier)
-
+    distanceMatrix = DistanceMatrix(dataSet, centroids, continAttr, discreteAttr, percentCon, percentDis,
+                                    predictionType, classifier)
 
     while iteration < maxIter:
         flag = False
@@ -40,7 +41,8 @@ def KMeans(dataSet, classifier, discreteAttr, continAttr, predictionType, k, max
         for index, row in tqdm(enumerate(dataSet.to_numpy()), total=len(dataSet)):
             closestCentroidIndex = distanceMatrix.distanceMatrix[index].argmin()
 
-            if centroids.iloc[[closestCentroidIndex]].index[0] not in assignedClusters: # Assign the point to the centroid
+            if centroids.iloc[[closestCentroidIndex]].index[
+                0] not in assignedClusters:  # Assign the point to the centroid
                 assignedClusters[centroids.iloc[[closestCentroidIndex]].index[0]] = []
             assignedClusters[centroids.iloc[[closestCentroidIndex]].index[0]].append(index)
 
