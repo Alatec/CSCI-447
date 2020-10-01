@@ -21,15 +21,16 @@ Returns:
     clusteredData: Panadas DataFrame
 """
 def KMeans(dataSet, classifier, discreteAttr, continAttr, predictionType, k, maxIter):
+    #Pick k random cluster centers from the given dataspace
+    centroids = _createCentroids(dataSet, k)
     dataMetric = DistanceValueMetric(dataSet, classifier, discreteAttr,
                                      predictionType)
+    # calculatedContinDistance = calculate_euclid_distances(, )
 
     totalAttr = len(discreteAttr) + len(continAttr)
     percentDis = len(discreteAttr)/totalAttr
     percentCon = len(continAttr)/totalAttr
 
-    #Pick k random cluster centers from the given dataspace
-    centroids = _createCentroids(dataSet, k)
     iteration = 0
 
     attrDict = {}
@@ -41,7 +42,7 @@ def KMeans(dataSet, classifier, discreteAttr, continAttr, predictionType, k, max
     while iteration < maxIter:
         print(iteration)
         flag = False
-# ============================================================================================= Assign each point to a cluster
+        # ============================================================================================= Assign each point to a cluster
         assignedClusters = {}
 
         for index, row in tqdm(enumerate(dataSet.to_numpy()), total=len(dataSet)):
@@ -64,7 +65,7 @@ def KMeans(dataSet, classifier, discreteAttr, continAttr, predictionType, k, max
                 assignedClusters[lowestCentroid[0]] = []
             assignedClusters[lowestCentroid[0]].append(index)
 
-# ============================================================================================= Recalculate our centroids
+        # ============================================================================================= Recalculate our centroids
 
         for centroidId, assignedPoints in assignedClusters.items():
             for cAttr in continAttr:
@@ -82,7 +83,7 @@ def KMeans(dataSet, classifier, discreteAttr, continAttr, predictionType, k, max
                     flag = True
                     centroids[centroidId][dAttr] = dataSet.iloc[assignedPoints][dAttr].mode().head().values[0]
 
-# ============================================================================================= Check if they changed
+        # ============================================================================================= Check if they changed
         iteration += 1
         if not flag:
             break
