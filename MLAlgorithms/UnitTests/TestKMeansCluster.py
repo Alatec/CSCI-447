@@ -16,13 +16,12 @@ class TestKMeansCluster(unittest.TestCase):
         data = DataRetriever("../Datasets/metadata.json")
         data.retrieveData("abalone")
 
-        kValue = 57
+        kValue = 413
         t = Timer()
         t.start()
         centroids = KMeans(data.getDataSet(), data.getDataClass(), data.getDescreteAttributes(),
                data.getContinuousAttributes(), data.getPredictionType(), kValue, 100)
 
-        print(centroids)
         t.stop()
         print(f"Time: {t}")
         centroids.to_csv('out.csv', index=False)

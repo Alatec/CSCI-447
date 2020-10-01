@@ -1,4 +1,5 @@
 from MLAlgorithms.Utils.DistanceValueMetric import DistanceValueMetric
+from MLAlgorithms.Utils.DistanceMatrix import DistanceMatrix
 from MLAlgorithms.Utils.NumbaFunctions import calculate_euclid_distances
 import pandas as pd
 import numpy as np
@@ -23,8 +24,8 @@ Returns:
 def KMeans(dataSet, classifier, discreteAttr, continAttr, predictionType, k, maxIter):
     #Pick k random cluster centers from the given dataspace
     centroids = _createCentroids(dataSet, k)
-    dataMetric = DistanceValueMetric(dataSet, classifier, discreteAttr,
-                                     predictionType)
+    # dataMetric = DistanceValueMetric(dataSet, classifier, discreteAttr,
+    #                                  predictionType)
     # calculatedContinDistance = calculate_euclid_distances(, )
 
     totalAttr = len(discreteAttr) + len(continAttr)
@@ -39,7 +40,11 @@ def KMeans(dataSet, classifier, discreteAttr, continAttr, predictionType, k, max
     for i in range(0, len(attrArray)):
         attrDict[attrArray[i]] = i
 
+
+    distanceMatrix = DistanceMatrix(dataSet, centroids, continAttr, discreteAttr, percentCon, percentDis, predictionType, classifier)
+
     while iteration < maxIter:
+        break
         print(iteration)
         flag = False
         # ============================================================================================= Assign each point to a cluster
@@ -132,4 +137,4 @@ def _createCentroids(dataSet, k):
 
         dict[key] = val
 
-    return dict
+    return pd.DataFrame.from_dict(dict, orient="index")

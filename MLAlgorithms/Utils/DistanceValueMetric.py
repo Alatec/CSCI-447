@@ -34,11 +34,11 @@ class DistanceValueMetric:
     Returns:
         sum: int
     """
-    def calculateDistance(self, x, y, attrDict):
+    def calculateDistance(self, x, y):
         sum = 0
         for attr in self.matrixDict.keys():
-            sum += self.matrixDict[attr][x[attrDict[attr]]][y[attrDict[attr]]]
-            # sum += self.matrixDict[attr][x[attr]][y[attr]]
+            # sum += self.matrixDict[attr][x[attrDict[attr]]][y[attrDict[attr]]]
+            sum += self.matrixDict[attr][x[attr].item()][y[attr].item()]
 
         sum = sum**(1/self.wonskianMetric)
 
