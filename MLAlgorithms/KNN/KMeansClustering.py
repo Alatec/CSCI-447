@@ -50,30 +50,39 @@ def KMeans(dataSet, classifier, discreteAttr, continAttr, predictionType, k, max
         # ============================================================================================= Recalculate our centroids
 
 
-
+        print(centroids)
         for centroidId, assignedPoints in assignedClusters.items():
             for cAttr in continAttr:
-                oldVal = centroids.loc[[centroidId]][cAttr]
+                oldVal = centroids.loc[[centroidId]][cAttr].item()
                 newVal = dataSet.iloc[assignedPoints][cAttr].mean()
+
+                print(oldVal)
+                print(newVal)
+                print(abs(oldVal - newVal))
                 if abs(oldVal - newVal) < .01:
-                    flag = True
-                centroids.loc[[centroidId]][cAttr] = dataSet.iloc[assignedPoints][cAttr].mean()
+                    flag = False
+                # print(centroids.loc[[centroidId]][cAttr])
+                centroids.at[centroidId, cAttr] = newVal
+                # print(centroids.loc[[centroidId]][cAttr])
+
             for dAttr in discreteAttr:
-                oldVal = centroids.loc[[centroidId]][dAttr]
+                oldVal = centroids.loc[[centroidId]][dAttr].values
                 newVal = dataSet.iloc[assignedPoints][dAttr].mode().head().values
-                if list(oldVal) in list(newVal):
+                if oldVal[0] == newVal[0]:
                     continue
                 else:
                     flag = True
-                    centroids.loc[[centroidId]][dAttr] = dataSet.iloc[assignedPoints][dAttr].mode().head().values[0]
+                    centroids.at[centroidId, dAttr] = dataSet.iloc[assignedPoints][dAttr].mode().head().values[0]
 
         distanceMatrix.recalculateCentriods(centroids)
+
 
         # ============================================================================================= Check if they changed
         iteration += 1
         if not flag:
             break
 
+        # print(centroids)
 
     return pd.DataFrame(centroids).T
 

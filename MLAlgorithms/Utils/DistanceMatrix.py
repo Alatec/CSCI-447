@@ -44,4 +44,5 @@ class DistanceMatrix():
     def recalculateCentriods(self, centroids):
         self.contMatrix = self._createContMatrix(self.testSet, centroids, self.contAttr)
         self.distanceMatrix = self._createDistanceMatrix(self.contMatrix, self.discMatrix, self.testSet, centroids, len(self.trainSet), len(self.testSet), self.alpha, self.beta)
+        # print(self.distanceMatrix)
 

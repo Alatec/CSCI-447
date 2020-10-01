@@ -1,10 +1,6 @@
 from MLAlgorithms.Utils.DataRetriever import DataRetriever
-from MLAlgorithms.Utils.KFolds import KFolds
-from MLAlgorithms.Project2.KMeansClustering import KMeans
+from MLAlgorithms.KNN.KMeansClustering import KMeans
 from codetiming import Timer
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 import unittest
 import os
 
@@ -14,7 +10,7 @@ class TestKMeansCluster(unittest.TestCase):
 
     def testKMeans(self):
         data = DataRetriever("../Datasets/metadata.json")
-        data.retrieveData("computerHardware")
+        data.retrieveData("abalone")
 
         kValue = 3
         t = Timer()

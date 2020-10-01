@@ -1,6 +1,5 @@
 from MLAlgorithms.Utils.DataRetriever import DataRetriever
-from MLAlgorithms.Project2.KMeansClustering import KMeans
-from tqdm import tqdm
+from MLAlgorithms.KNN.KMeansClustering import KMeans
 
 dataSets = ["vote","imageSegmentation", "computerHardware", ]
             # "forestFires", "abalone"]
