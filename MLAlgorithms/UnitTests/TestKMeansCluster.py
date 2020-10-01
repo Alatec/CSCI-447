@@ -14,9 +14,9 @@ class TestKMeansCluster(unittest.TestCase):
 
     def testKMeans(self):
         data = DataRetriever("../Datasets/metadata.json")
-        data.retrieveData("abalone")
+        data.retrieveData("computerHardware")
 
-        kValue = 413
+        kValue = 3
         t = Timer()
         t.start()
         centroids = KMeans(data.getDataSet(), data.getDataClass(), data.getDescreteAttributes(),
@@ -24,6 +24,7 @@ class TestKMeansCluster(unittest.TestCase):
 
         t.stop()
         print(f"Time: {t}")
+        print(centroids)
         centroids.to_csv('out.csv', index=False)
 
 

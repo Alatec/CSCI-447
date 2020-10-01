@@ -2,6 +2,7 @@ from MLAlgorithms.Utils.DistanceValueMetric import DistanceValueMetric
 from MLAlgorithms.Utils.NumbaFunctions import calculate_euclid_distances
 from tqdm import tqdm
 import numpy as np
+import pandas as pd
 np.set_printoptions(threshold=np.inf)
 
 class DistanceMatrix():
@@ -31,11 +32,16 @@ class DistanceMatrix():
     def _createDistanceMatrix(self, contMatrix, discMatrix, testSet, trainSet, trainLen, testLen, alpha, beta):
 
         distanceMatrix = np.zeros((testLen, trainLen))
-        for x in tqdm(range(0, len(distanceMatrix)), total=len(distanceMatrix)):
+        for x in range(0, len(distanceMatrix)):
             for y in range(0, len(distanceMatrix[1])):
-                distanceMatrix[x,y] += contMatrix[x, y]
-                distanceMatrix[x,y] += discMatrix.calculateDistance(testSet.iloc[[x]], trainSet.iloc[[y]])
+                distanceMatrix[x,y] += alpha*contMatrix[x, y]
+                distanceMatrix[x,y] += beta*discMatrix.calculateDistance(testSet.iloc[[x]], trainSet.iloc[[y]])
 
-        print(distanceMatrix)
+        # something = pd.DataFrame(distanceMatrix)
+
         return distanceMatrix
+
+    def recalculateCentriods(self, centroids):
+        self.contMatrix = self._createContMatrix(self.testSet, centroids, self.contAttr)
+        self.distanceMatrix = self._createDistanceMatrix(self.contMatrix, self.discMatrix, self.testSet, centroids, len(self.trainSet), len(self.testSet), self.alpha, self.beta)
 
