@@ -1,6 +1,7 @@
 from MLAlgorithms.Utils.DistanceMatrix import DistanceMatrix
 import pandas as pd
 import numpy as np
+from numpy import genfromtxt
 from tqdm import tqdm
 
 """
@@ -22,7 +23,7 @@ Returns:
 
 def KMediods(dataSet, classifier, discreteAttr, continAttr, predictionType, k, maxIter):
     # Pick k random cluster centers from the given dataspace
-    centroids = _createCentroids(dataSet, k)
+    mediods = _createMediods(dataSet, k)
 
     totalAttr = len(discreteAttr) + len(continAttr)
     percentDis = len(discreteAttr) / totalAttr
@@ -30,8 +31,14 @@ def KMediods(dataSet, classifier, discreteAttr, continAttr, predictionType, k, m
 
     iteration = 0
 
-    distanceMatrix = DistanceMatrix(dataSet, centroids, continAttr, discreteAttr, percentCon, percentDis,
-                                    predictionType, classifier)
+    # print(dataSet)
+    distanceMatrix = genfromtxt('foo.csv', delimiter=',')
+    # distanceMatrix = DistanceMatrix(dataSet, dataSet, continAttr, discreteAttr, percentCon, percentDis,
+    #                                 predictionType, classifier)
+    # print(distanceMatrix.distanceMatrix)
+    # np.savetxt("foo.csv", distanceMatrix.distanceMatrix, delimiter=",")
+    # print("done")
+    mediodList = mediods.index
 
     while iteration < maxIter:
         flag = False
@@ -39,58 +46,82 @@ def KMediods(dataSet, classifier, discreteAttr, continAttr, predictionType, k, m
         assignedClusters = {}
 
         for index, row in tqdm(enumerate(dataSet.to_numpy()), total=len(dataSet)):
-            closestCentroidIndex = distanceMatrix.distanceMatrix[index].argmin()
+            closestCentroidIndex = distanceMatrix[index][mediods.index].argmin()
 
-            if centroids.iloc[[closestCentroidIndex]].index[
-                0] not in assignedClusters:  # Assign the point to the centroid
-                assignedClusters[centroids.iloc[[closestCentroidIndex]].index[0]] = []
-            assignedClusters[centroids.iloc[[closestCentroidIndex]].index[0]].append(index)
+            if mediods.iloc[[closestCentroidIndex]].index[0] not in assignedClusters:  # Assign the point to the centroid
+                assignedClusters[mediods.iloc[[closestCentroidIndex]].index[0]] = []
+            assignedClusters[mediods.iloc[[closestCentroidIndex]].index[0]].append(index)
 
+        # ============================================================================================= calculate distortion
+        initialDistortionSum = 0
+        for mediodPoint in mediods.index:
+            for dataPoint in assignedClusters[mediodPoint]:
+                initialDistortionSum += (distanceMatrix[dataPoint][mediodPoint])**2
+
+        print(initialDistortionSum)
         # ============================================================================================= Recalculate our centroids
 
-        for centroidId, assignedPoints in assignedClusters.items():
-            for cAttr in continAttr:
-                oldVal = centroids.loc[[centroidId]][cAttr].item()
-                newVal = dataSet.iloc[assignedPoints][cAttr].mean()
-
-                if abs(oldVal - newVal) < .01:
-                    flag = False
-
-                centroids.at[centroidId, cAttr] = newVal
-
-            for dAttr in discreteAttr:
-                oldVal = centroids.loc[[centroidId]][dAttr].values
-                newVal = dataSet.iloc[assignedPoints][dAttr].mode().head().values
-                if oldVal[0] == newVal[0]:
+        for mediodPoint in mediods.index:
+            for dataPoint in dataSet.index:
+                if mediodPoint == dataPoint:
                     continue
                 else:
-                    flag = True
-                    centroids.at[centroidId, dAttr] = dataSet.iloc[assignedPoints][dAttr].mode().head().values[0]
+                    tempMediod = dataPoint
+                    tempDataPoint = mediodPoint
 
-        distanceMatrix.recalculateCentriods(centroids)
+                    newDistortionSum = 0
+                    for mediodPointv in mediods.index:
+                        if mediodPointv == mediodPoint:
+                            mediodPointv = tempMediod
+                        for dataPointv in assignedClusters[mediodPoint]:
+                            if dataPointv == dataPoint:
+                                dataPointv = tempDataPoint
+                            newDistortionSum += (distanceMatrix[dataPointv][mediodPointv]) ** 2
+                    if newDistortionSum <= initialDistortionSum:
+                        flag = True
+                        mediods.iloc[[mediodPoint]], dataSet.iloc[[dataPoint]] = dataSet.iloc[[tempDataPoint]], mediods.iloc[[tempMediod]]
 
-        # ============================================================================================= Check if they changed
+        """
+        mainDis = Calculate Distortion
+        for mediod in mediods:
+            for datapoint in DataPoints
+                if datapoint -= mediod
+                    continue
+                swap mediod & datapoint
+                
+                loopDis = calculate Distortion 
+                
+                if loopDis <= mainDis
+                    swap back
+        
+        
+        If no change in mediods:
+            end
+        """
+
+        # ============================================================================================= Check
         iteration += 1
         if not flag:
             break
 
-    return pd.DataFrame(centroids).T
+    return pd.DataFrame(mediods).T
+
+
+"""
+What is Distortion?
+    Sum over clusters k
+        sum over points in cluster k
+            ()
+        
+
+"""
 
 
 # This function creates k centroids
-def _createCentroids(dataSet, k):
+def _createMediods(dataSet, k):
     seed = 69
-    dict = {}
 
-    # Populate the dictionary with k centroids
-    for i in range(k):
-        np.random.seed(seed)
-        seed += 1
+    mediods = dataSet.sample(k, random_state=seed)
+    # mediods.index = [f"centroid{i}" for i in range(0, k)]
 
-        key = "centroid" + str(i)
-        val = pd.Series([np.random.choice(dataSet[i], 1)[0] for i in dataSet.columns]).T
-        val.index = dataSet.columns
-
-        dict[key] = val
-
-    return pd.DataFrame.from_dict(dict, orient="index")
+    return mediods

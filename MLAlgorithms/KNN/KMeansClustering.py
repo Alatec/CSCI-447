@@ -1,6 +1,7 @@
 from MLAlgorithms.Utils.DistanceMatrix import DistanceMatrix
 import pandas as pd
 import numpy as np
+from numpy import genfromtxt
 from tqdm import tqdm
 
 
