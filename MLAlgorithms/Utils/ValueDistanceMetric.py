@@ -15,6 +15,7 @@ class ValueDifferenceMetric:
 
         self.unknown_col = train[unknown_col].reset_index(drop=True)
         self.train_data = train.drop(unknown_col, axis=1).reset_index(drop=True)
+        # self.train_data = train
 
         if prediction_type == 'regression':
             bin_edges = np.histogram(self.unknown_col, bins=bins)[1]
@@ -62,20 +63,17 @@ class ValueDifferenceMetric:
         for i, x_row in enumerate(x_points.to_numpy()):
             for j, y_row in enumerate(y_points.to_numpy()):
                 for k, col in enumerate(test_cols):
-                    # print(col, type(i) , type(j))
-                    # print(type(x_points.iloc[i]))
-                    
-                    self.distances[i,j] += self.probMatrix[col][x_row[k]][y_row[k]]
+                    self.distances[i, j] += self.probMatrix[col][x_row[k]][y_row[k]]
                     
 
 
 
 if __name__ == "__main__":
     dataRetriever = DataRetriever("../Datasets/metadata.json")
-    dataRetriever.retrieveData("abalone")
+    dataRetriever.retrieveData("computerHardware")
     data = dataRetriever.getDataSet()
     data = data.dropna()
-    data = data.reset_index(drop=True)[["sex","rings"]]
+    data = data.reset_index(drop=True)[["venderName", "modelName", "myct", "mmin", "mmax", "cach", "chmin", "chmax", "prp", "erp"]]
 
     test = data.sample(frac=0.2)
     train = data.drop(test.index)
@@ -84,14 +82,14 @@ if __name__ == "__main__":
     train = train.reset_index(drop=True)
 
 
-    VDM = ValueDifferenceMetric(data, unknown_col='rings', prediction_type='regresssion')
+    VDM = ValueDifferenceMetric(data, unknown_col=dataRetriever.getDataClass(), prediction_type=dataRetriever.getPredictionType())
 
     start = time.time()
     VDM.train()
     print(f"Training took: {time.time() - start} seconds")
 
     start = time.time()
-    VDM.calc_distance_matrix(data["sex"], data["sex"])
+    VDM.calc_distance_matrix(data["mmin"], data["mmin"])
     print(f"Matrix took: {time.time() - start} seconds")
 
     # print(KNN.get_neighbors([5,10]))

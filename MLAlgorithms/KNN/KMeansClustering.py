@@ -23,7 +23,6 @@ Returns:
 def KMeans(dataSet, classifier, discreteAttr, continAttr, predictionType, k, maxIter):
     #Pick k random cluster centers from the given dataspace
     centroids = _createCentroids(dataSet, k)
-
     totalAttr = len(discreteAttr) + len(continAttr)
     percentDis = len(discreteAttr)/totalAttr
     percentCon = len(continAttr)/totalAttr
@@ -34,6 +33,7 @@ def KMeans(dataSet, classifier, discreteAttr, continAttr, predictionType, k, max
 
 
     while iteration < maxIter:
+
         flag = False
         # ============================================================================================= Assign each point to a cluster
         assignedClusters = {}
@@ -52,8 +52,9 @@ def KMeans(dataSet, classifier, discreteAttr, continAttr, predictionType, k, max
                 oldVal = centroids.loc[[centroidId]][cAttr].item()
                 newVal = dataSet.iloc[assignedPoints][cAttr].mean()
 
-                if abs(oldVal - newVal) < .01:
-                    flag = False
+                if abs(oldVal - newVal) > .01:
+                    print(f"OLD: {oldVal} NEW: {newVal}")
+                    flag = True
 
                 centroids.at[centroidId, cAttr] = newVal
 

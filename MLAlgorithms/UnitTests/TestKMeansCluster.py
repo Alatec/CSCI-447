@@ -10,9 +10,9 @@ class TestKMeansCluster(unittest.TestCase):
 
     def testKMeans(self):
         data = DataRetriever("../Datasets/metadata.json")
-        data.retrieveData("abalone")
+        data.retrieveData("forestFires")
 
-        kValue = 3
+        kValue = 10
         t = Timer()
         t.start()
         centroids = KMeans(data.getDataSet(), data.getDataClass(), data.getDescreteAttributes(),

@@ -1,4 +1,5 @@
 from MLAlgorithms.Utils.DistanceValueMetric import DistanceValueMetric
+from MLAlgorithms.Utils.ValueDistanceMetric import ValueDifferenceMetric
 from MLAlgorithms.Utils.NumbaFunctions import calculate_euclid_distances
 from tqdm import tqdm
 import numpy as np
@@ -16,26 +17,36 @@ class DistanceMatrix():
         self.predictionType = predictionType
         self.classifier = classifier
 
-        self.discMatrix = self._createDiscMatrix(self.testSet, self.classifier, self.discAttr, self.predictionType)
+        if self.classifier in self.discAttr:
+            self.discAttr.remove(classifier)
+
+        if self.classifier in self.contAttr:
+            self.contAttr.remove(classifier)
+
+        self.discMatrix = self._createDiscMatrix(self.testSet, self.trainSet, self.classifier, self.discAttr, self.predictionType)
         self.contMatrix = self._createContMatrix(self.testSet, self.trainSet, self.contAttr)
 
-        self.distanceMatrix = self._createDistanceMatrix(self.contMatrix, self.discMatrix, testSet, trainSet, len(trainSet), len(testSet), alpha, beta)
+        self.distanceMatrix = self._createDistanceMatrix(self.contMatrix, self.discMatrix, testSet, trainSet, len(trainSet), len(testSet), alpha, beta, self.classifier, self.discAttr)
 
     def _createContMatrix(self, testSet, trainSet, contAttr):
         result = calculate_euclid_distances(testSet[contAttr].to_numpy(dtype=np.float64), trainSet[contAttr].to_numpy(dtype=np.float64))
         return result
 
-    def _createDiscMatrix(self, testSet, classifier, discAttr, predictionType):
-        dataMetric = DistanceValueMetric(testSet, classifier, discAttr, predictionType)
+    def _createDiscMatrix(self, testSet, trainSet, classifier, discAttr, predictionType):
+        dataMetric = ValueDifferenceMetric(testSet[list(set(discAttr + [classifier]))], unknown_col=classifier, prediction_type=predictionType)
+        dataMetric.train()
+        # dataMetric.calc_distance_matrix(testSet[set(discAttr)], trainSet[set(discAttr)])
+        # dataMetric = DistanceValueMetric(testSet, classifier, discAttr, predictionType)
         return dataMetric
 
-    def _createDistanceMatrix(self, contMatrix, discMatrix, testSet, trainSet, trainLen, testLen, alpha, beta):
+    def _createDistanceMatrix(self, contMatrix, discMatrix, testSet, trainSet, trainLen, testLen, alpha, beta, classifier, discAttr):
 
         distanceMatrix = np.zeros((testLen, trainLen))
-        for x in range(0, len(distanceMatrix)):
-            for y in range(0, len(distanceMatrix[1])):
-                distanceMatrix[x,y] += alpha*contMatrix[x, y]
-                distanceMatrix[x,y] += beta*discMatrix.calculateDistance(testSet.iloc[[x]], trainSet.iloc[[y]])
+
+
+        discMatrix.calc_distance_matrix(testSet[discAttr], trainSet[discAttr])
+        distanceMatrix += alpha*contMatrix
+        distanceMatrix += beta*discMatrix.distances
 
         # something = pd.DataFrame(distanceMatrix)
 
@@ -43,6 +54,7 @@ class DistanceMatrix():
 
     def recalculateCentriods(self, centroids):
         self.contMatrix = self._createContMatrix(self.testSet, centroids, self.contAttr)
-        self.distanceMatrix = self._createDistanceMatrix(self.contMatrix, self.discMatrix, self.testSet, centroids, len(self.trainSet), len(self.testSet), self.alpha, self.beta)
+        self.discMatrix = self._createDiscMatrix(self.testSet, centroids, self.classifier, self.discAttr, self.predictionType)
+        self.distanceMatrix = self._createDistanceMatrix(self.contMatrix, self.discMatrix, self.testSet, centroids, len(self.trainSet), len(self.testSet), self.alpha, self.beta, self.classifier, self.discAttr)
         # print(self.distanceMatrix)
 
