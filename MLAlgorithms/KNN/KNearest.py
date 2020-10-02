@@ -130,6 +130,60 @@ class EditedKNN(KNearestNeighbor):
 
         # baseline_acc = classifierAnalyzer.calc_accuracy(method=method)
 
+
+class CondensedKNN(KNearestNeighbor):
+    def __init__(self, test, train, k, unknown_col='class', metric='euclid', classification=True):
+        super().__init__(test, train, k, unknown_col=unknown_col, metric=metric, classification=classification)
+
+        # print("Val unknown size", self.val_unknown_col.shape)
+
+    def train(self, acc_delta=0.01, max_iter=1000, remove_correct=False):
+        # print(self.validation)
+        np.random.seed(0)
+
+        curr_iter = 0
+
+        #Initialize X and Z sets
+        x_set = np.ones_like(self.unknown_col)
+        z_set = np.zeros_like(x_set)
+
+        #Initialize Z with a random subset of X
+        z_set[list(np.random.choice(self.train_data.index, self.unknown_col.nunique(), replace=False))] = 1
+        x_set[z_set==1] = 0
+        print("Z")
+        print(z_set, z_set.sum())
+        print("X")
+        print(x_set, x_set.sum())
+        prev_z_len = 0
+
+        # 3 Exit conditions: Performance is worse than when we started, performance hasn't increased, hit iteration limit
+        while prev_z_len * 1.1 < z_set.sum() and curr_iter < max_iter:
+            prev_z_len = z_set.sum()
+
+            testing_KNN = KNearestNeighbor(self.train_data.loc[x_set==1], self.train_data[z_set==1], 2, unknown_col=self.unknown_col, 
+                                        metric=self.metric, classification=self.classification)
+
+            #Numpy array containing points in the X set classified correctly
+            correct_points = (testing_KNN.test()==self.unknown_col[x_set==1])
+            # print(correct_points)
+            tested_indexes = self.train_data.index[x_set==1]
+            print("Z size:", z_set.sum())
+            for index in tested_indexes[correct_points==False]:
+                z_set[index] = 1
+                x_set[index] = 0
+
+            #Break if either set is empty
+            if x_set.sum() * z_set.sum() == 0: break
+
+           
+            
+            
+            curr_iter += 1
+
+        self.train_data = self.train_data.drop(self.train_data.index[x_set==1])
+        print(curr_iter)
+            
+
 if __name__ == "__main__":
     dataRetriever = DataRetriever("../Datasets/metadata.json")
     dataRetriever.retrieveData("abalone")
@@ -150,11 +204,10 @@ if __name__ == "__main__":
 
     class_col = 'rings'
 
-    KNN = KNearestNeighbor(test.drop(class_col, axis=1),train,5, unknown_col=class_col)
-    print("KNN test length", len(KNN.test()))
-    print("Test set length", test.shape)
-    EKNN = EditedKNN(test.drop(class_col, axis=1), validate, train, 5, unknown_col=class_col, val_unknown_col=class_col)
-    EKNN.train()
+    # KNN = KNearestNeighbor(test.drop(class_col, axis=1),train,5, unknown_col=class_col)
+    # print("KNN test length", len(KNN.test()))
+    # print("Test set length", test.shape)
+    CKNN = CondensedKNN(test.drop(class_col, axis=1), train, 5, unknown_col=class_col)
+    CKNN.train()
     # print(KNN.get_neighbors([5,10]))
     # print(KNN.test(augmented=True))
-        
