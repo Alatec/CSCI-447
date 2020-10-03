@@ -71,8 +71,6 @@ def KMediods(dataSet, classifier, discreteAttr, continAttr, predictionType, k, m
         print(initialDistortionSum)
 
         # # ============================================================================================= Recalculate our centroids
-
-
         for medoid in medoidList:
             for dataPoint in nonMedoidList:
                 tempMedoid = dataPoint
@@ -84,7 +82,21 @@ def KMediods(dataSet, classifier, discreteAttr, continAttr, predictionType, k, m
                         initialDistortionSum += (distanceMatrix.distanceMatrix[dataPoint][mediodPoint]) ** 2
 
 
+        for medoid in medoidList:
+            for dataPoint in nonMedoidList:
+                tempMedoid = dataPoint
+                tempDataPoint = medoid
 
+                newDistortionSum = 0
+                for medoid in medoidList:
+                    for dataPoint in nonMedoidList:
+                        tempMedoid = dataPoint
+                        tempDataPoint = medoid
+
+                        initialDistortionSum = 0
+                        for mediodPoint in mediods.index:
+                            for dataPoint in assignedClusters[mediodPoint]:
+                                initialDistortionSum += (distanceMatrix.distanceMatrix[dataPoint][mediodPoint]) ** 2
 
         #
         # for mediodPoint in mediods.index:
