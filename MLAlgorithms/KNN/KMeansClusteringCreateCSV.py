@@ -8,17 +8,17 @@ import numpy as np
 data = DataRetriever("../Datasets/metadata.json")
 
 
-dataSetName = "abalone"
+dataSetName = "computerHardware"
 
 
 print(f"Creating CSV for {dataSetName}")
 data.retrieveData(dataSetName)
 
 maxItter = 100
-kValue = 476
+kValue = 78
 
 dataSetUnNormalized = data.getDataSet()
-# dataSetUnNormalized[data.getDataClass()] = np.log(dataSetUnNormalized[data.getDataClass()] + 0.001)  // This is for Forest Fires
+dataSetUnNormalized[data.getDataClass()] = np.log(dataSetUnNormalized[data.getDataClass()] + 0.001)  #// This is for Forest Fires
 
 sn = StandardNormalizer(dataSetUnNormalized[data.getContinuousAttributes()])
 dataSetUnNormalized[data.getContinuousAttributes()] = sn.train_fit()
