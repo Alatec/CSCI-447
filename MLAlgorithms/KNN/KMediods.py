@@ -3,23 +3,6 @@ import pandas as pd
 import numpy as np
 
 
-"""
-data.getDataSet(), data.getDataClass(), data.getDescreteAttributes(), data.getPredictionType()
-Clusters the data to be used for the various KNN algorithms
-
-Ensure that the dataframe has been preprocessed before being inputted
-Args: 
-    dataSet: Pandas DataFrame
-    classfier: String
-    discreteAttr: List<String>
-    predictionType: String
-    k: int
-
-Returns:
-    clusteredData: Panadas DataFrame
-"""
-
-
 def KMediods(dataSet, classifier, discreteAttr, continAttr, predictionType, k, maxIter):
     # Pick k random cluster centers from the given dataspace
     mediods = _createMediods(dataSet, k)
@@ -29,6 +12,8 @@ def KMediods(dataSet, classifier, discreteAttr, continAttr, predictionType, k, m
     percentCon = len(continAttr) / totalAttr
 
     iteration = 0
+
+    print(mediods)
 
 
     distanceMatrix = DistanceMatrix(dataSet, dataSet, continAttr, discreteAttr, percentCon, percentDis, predictionType, classifier)
@@ -109,7 +94,6 @@ def KMediods(dataSet, classifier, discreteAttr, continAttr, predictionType, k, m
         if np.array_equal(oldMedoidList, medoidList):
             break
 
-    print(dataSet.loc[medoidList])
     return dataSet.loc[medoidList]
 
 
