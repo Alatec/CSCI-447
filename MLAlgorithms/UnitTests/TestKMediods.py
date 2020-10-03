@@ -1,27 +1,27 @@
 from MLAlgorithms.Utils.DataRetriever import DataRetriever
-from MLAlgorithms.KNN.KMeansClustering import KMeans
+from MLAlgorithms.KNN.KMediods import KMediods
 from codetiming import Timer
 import unittest
 import os
 
 
 
-class TestKMeansCluster(unittest.TestCase):
+class TestKMediods(unittest.TestCase):
 
     def testKMeans(self):
         data = DataRetriever("../Datasets/metadata.json")
-        data.retrieveData("abalone")
+        data.retrieveData("computerHardware")
 
-        kValue = 400
+        kValue = 3
         t = Timer()
         t.start()
-        centroids = KMeans(data.getDataSet(), data.getDataClass(), data.getDescreteAttributes(),
+        mediods = KMediods(data.getDataSet(), data.getDataClass(), data.getDescreteAttributes(),
                data.getContinuousAttributes(), data.getPredictionType(), kValue, 100)
 
         t.stop()
         print(f"Time: {t}")
-        print(centroids)
-        centroids.to_csv('out.csv', index=False)
+        print(mediods)
+        mediods.to_csv('out.csv', index=False)
 
 
 if __name__ == '__main__':
