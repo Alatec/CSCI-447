@@ -11,33 +11,49 @@ from MLAlgorithms.Utils.DataRetriever import DataRetriever
 from MLAlgorithms.Utils.KFolds import KFolds
 from MLAlgorithms.Utils.ClassifierAnalyzer import ClassifierAnalyzer
 from MLAlgorithms.Utils.NumbaFunctions import calculate_euclid_distances
+from MLAlgorithms.Utils.DistanceMatrix import DistanceMatrix
+from MLAlgorithms.Utils.StandardNormalizer import StandardNormalizer
 
 class KNearestNeighbor:
 
 
 
-    def __init__(self, test, train, k, unknown_col='class', metric='euclid', classification=True):
+    def __init__(self, test, train, k, contAttr, discAttr, unknown_col='class', predictionType="classification"):
 
         self.test_data = test
         self.train_data = train
         self.k = k
-        self.metric = metric
-        self.classification = classification
+        self.predictionType = predictionType
+        self.contAttr = contAttr
+        self.discAttr = discAttr
 
+        
+        # print("This is what I think unknown col is:", unknown_col)
+        
         #This way the unknowns can be passed in as either part of the data frame or as a separate list
         list_types = (list, tuple, np.ndarray, pd.Series)
         if isinstance(unknown_col, list_types):
             self.unknown_col = pd.Series(unknown_col)
         elif isinstance(unknown_col, str):
+            if unknown_col in self.discAttr:
+                self.discAttr.remove(unknown_col)
+
+            if unknown_col in self.contAttr:
+                self.contAttr.remove(unknown_col)
             self.unknown_col = self.train_data[unknown_col][:]
-            self.train_data = self.train_data.drop([unknown_col], axis=1)
+            self.train_data = self.train_data.drop(unknown_col, axis=1)
 
         self.unknown_col.reset_index(drop=True)
         self.train_data.reset_index(drop=True)
-        if metric == 'euclid': 
-            self.neighbors = calculate_euclid_distances(self.test_data.to_numpy(dtype=np.float64), self.train_data.to_numpy(dtype=np.float64))
-        else:
-            pass
+        temp_train_with_unknown = self.train_data.copy(deep=True)
+        temp_train_with_unknown["unknown_col"] = self.unknown_col.values
+        # print(temp_train_with_unknown)
+
+        self.distance_matrix = DistanceMatrix(self.test_data, temp_train_with_unknown, contAttr, discAttr, len(contAttr), len(discAttr), predictionType, "unknown_col")
+        
+
+        self.neighbors = self.distance_matrix.distanceMatrix #calculate_euclid_distances(self.test_data.to_numpy(dtype=np.float64), self.train_data.to_numpy(dtype=np.float64))
+        
             # raiasdfse NotIsdfplementedError
 
     def get_neighbors(self, test_index):      
@@ -74,8 +90,8 @@ class KNearestNeighbor:
 
 
 class EditedKNN(KNearestNeighbor):
-    def __init__(self, test, validation, train, k, unknown_col='class', val_unknown_col='class', metric='euclid', classification=True):
-        super().__init__(test, train, k, unknown_col=unknown_col, metric=metric, classification=classification)
+    def __init__(self, test, validation, train, k, contAttr, discAttr, unknown_col='class', val_unknown_col='class', predictionType="classification"):
+        super().__init__(test, train, k, contAttr, discAttr, unknown_col, predictionType)
 
 
         self.validation = validation
@@ -84,6 +100,12 @@ class EditedKNN(KNearestNeighbor):
         if isinstance(val_unknown_col, list_types):
             self.val_unknown_col = pd.Series(val_unknown_col)
         elif isinstance(val_unknown_col, str):
+            if val_unknown_col in self.discAttr:
+                self.discAttr.remove(val_unknown_col)
+
+            if val_unknown_col in self.contAttr:
+                self.contAttr.remove(val_unknown_col)
+
             self.val_unknown_col = self.validation[val_unknown_col][:]
             self.validation = self.validation.drop([val_unknown_col], axis=1)
 
@@ -91,8 +113,7 @@ class EditedKNN(KNearestNeighbor):
 
     def train(self, acc_delta=0.01, max_iter=1000, remove_correct=False):
         # print(self.validation)
-        validation_KNN = KNearestNeighbor(self.validation, self.train_data, 1, unknown_col=self.unknown_col, 
-                                        metric=self.metric, classification=self.classification)
+        validation_KNN = KNearestNeighbor(self.validation, self.train_data, 1,self.contAttr, self.discAttr, unknown_col=self.unknown_col, predictionType=self.predictionType)
         print("Valid shape", self.validation.shape)
         print("Train shape", self.train_data.shape)
         print("Val unknown shape", self.val_unknown_col.shape)
@@ -107,17 +128,15 @@ class EditedKNN(KNearestNeighbor):
         # 3 Exit conditions: Performance is worse than when we started, performance hasn't increased, hit iteration limit
         while curr_performance >= (1+acc_delta)*prev_performance and curr_iter < max_iter:
             prev_performance = curr_performance
-            testing_KNN = KNearestNeighbor(self.train_data, self.train_data, 2, unknown_col=self.unknown_col, 
-                                        metric=self.metric, classification=self.classification)
+            testing_KNN = KNearestNeighbor(self.train_data, self.train_data, 2, self.contAttr, self.discAttr, unknown_col=self.unknown_col, predictionType=self.predictionType)
             correct_points = testing_KNN.test(augmented=True)
             points_to_remove = np.argwhere(correct_points==remove_correct).flatten()
             temp_train = self.train_data.drop(points_to_remove, axis=0).reset_index(drop=True)
             temp_unknown_col = self.unknown_col.drop(points_to_remove).reset_index(drop=True)
             del(validation_KNN)
-            validation_KNN = KNearestNeighbor(self.validation, temp_train, 1, unknown_col=temp_unknown_col, 
-                                        metric=self.metric, classification=self.classification)
+            validation_KNN = KNearestNeighbor(self.validation, temp_train, 1, self.contAttr, self.discAttr, unknown_col=temp_unknown_col, predictionType=self.predictionType)
             curr_performance = (validation_KNN.test() == self.val_unknown_col).sum()/len(self.validation)
-            print(f"Iter:{curr_iter}, Curr Perf: {curr_performance},  Prev Perf: {prev_performance}")
+            print(f"Iter: {curr_iter}, Curr Perf: {curr_performance},  Prev Perf: {prev_performance}")
             print(len(points_to_remove))
             if curr_performance < intial_validation_performance and curr_iter > 0:
                 break
@@ -133,8 +152,8 @@ class EditedKNN(KNearestNeighbor):
 
 
 class CondensedKNN(KNearestNeighbor):
-    def __init__(self, test, train, k, unknown_col='class', metric='euclid', classification=True):
-        super().__init__(test, train, k, unknown_col=unknown_col, metric=metric, classification=classification)
+    def __init__(self, test, train, k, contAttr, discAttr, unknown_col='class', predictionType="classification"):
+        super().__init__(test, train, k, contAttr, discAttr, unknown_col, predictionType)
 
         # print("Val unknown size", self.val_unknown_col.shape)
 
@@ -163,8 +182,7 @@ class CondensedKNN(KNearestNeighbor):
             x_df = self.train_data.iloc[x_set==1]
             z_df = self.train_data.iloc[z_set==1]
             z_unknown = self.unknown_col.iloc[z_set==1]
-            testing_KNN = KNearestNeighbor(x_df, z_df, 2, unknown_col=z_unknown, 
-                                        metric=self.metric, classification=self.classification)
+            testing_KNN = KNearestNeighbor(x_df, z_df, 2, self.contAttr, self.discAttr, unknown_col=z_unknown, predictionType=self.predictionType)
 
             #Numpy array containing points in the X set classified correctly
             correct_points = (testing_KNN.test()==self.unknown_col[x_set==1])
@@ -189,14 +207,22 @@ class CondensedKNN(KNearestNeighbor):
 
 if __name__ == "__main__":
     dataRetriever = DataRetriever("../Datasets/metadata.json")
-    dataRetriever.retrieveData("imageSegmentation")
+    dataRetriever.retrieveData("glass")
     data = dataRetriever.getDataSet()
     data = data.dropna()
     data = data.reset_index(drop=True)
-    # data = data.drop('sex', axis=1)
+    data = data.drop('idNumber', axis=1)
+
+    class_col = dataRetriever.getDataClass()
+    contAttr = dataRetriever.getContinuousAttributes()
+    discAttr = dataRetriever.getDescreteAttributes()
 
     test = data.sample(frac=0.2, random_state=17)
     train = data.drop(test.index)
+    
+    sn = StandardNormalizer(train[contAttr])
+    train[contAttr] = sn.train_fit()
+
 
     validate = test.sample(frac=0.5, random_state=13)
     test = test.drop(validate.index)
@@ -205,9 +231,18 @@ if __name__ == "__main__":
     test  = test.reset_index(drop=True)
     validate = validate.reset_index(drop=True)
 
-    class_col = 'class'
+    test[contAttr] = sn.fit(test[contAttr])
+    validate[contAttr] = sn.fit(validate[contAttr])
 
-   
-    CKNN = CondensedKNN(test.drop(class_col, axis=1), train, 5, unknown_col=class_col)
-    CKNN.train()
+    
+
+    
+    
+
+    # test, train, k, contAttr, discAttr, unknown_col='class', predictionType="classification"):
+    # CKNN = CondensedKNN(test.drop(class_col, axis=1), train, 5, contAttr, discAttr, unknown_col=class_col, predictionType="classification")
+    # CKNN.train()
+
+    EKNN = EditedKNN(test.drop(class_col, axis=1), validate, train, 5, contAttr, discAttr, unknown_col=class_col, val_unknown_col=class_col, predictionType="classification")
+    EKNN.train()
     
