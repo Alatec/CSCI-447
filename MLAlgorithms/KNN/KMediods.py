@@ -13,7 +13,6 @@ def KMediods(dataSet, classifier, discreteAttr, continAttr, predictionType, k, m
 
     iteration = 0
 
-    print(mediods)
 
 
     distanceMatrix = DistanceMatrix(dataSet, dataSet, continAttr, discreteAttr, percentCon, percentDis, predictionType, classifier)
@@ -29,6 +28,7 @@ def KMediods(dataSet, classifier, discreteAttr, continAttr, predictionType, k, m
 
     assignedClusters = {}
     while iteration < maxIter:
+        print(iteration)
         oldMedoidList = np.copy(medoidList)
 
         # ============================================================================================= Assign each point to a cluster
