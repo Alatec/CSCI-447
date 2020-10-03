@@ -23,25 +23,34 @@ class ValueDifferenceMetric:
 
         self.unique_classes = self.unknown_col.unique()
     def train(self):
-        """
-        docstring
-        """
+        
+        #Contains values counts for each combination of attributes
         self.attrDict = {}
+        #Contrains the delta (relative probability) matrix
         self.probMatrix = {}
+
+        #Populate the attrDict
+        #Iterate through each column
         for i, col in enumerate(self.train_data.columns):
             self.attrDict[col] = {}
-            for j, val in enumerate(self.train_data[col].unique()):
+            values = list(self.train_data[col].unique())
+            values.append("unseen")
+            #Iterate through each unique val
+            for j, val in enumerate(values):
                 self.attrDict[col][val] = {
                     "total_VDM": 0
                 }
+                #Iterate through each class
                 for k, clss in enumerate(self.unique_classes):
-                    self.attrDict[col][val][clss] = len(self.train_data[(self.train_data[col]==val) & (self.unknown_col==clss)])
+                    self.attrDict[col][val][clss] = len(self.train_data[(self.train_data[col].astype(str)==str(val)) & (self.unknown_col==clss)]) + 1
                     self.attrDict[col][val]["total_VDM"] += self.attrDict[col][val][clss]
+                
         
         for i, col in enumerate(self.train_data.columns):
             # print(col)
             self.probMatrix[col]  = {}
-            unique_vals = self.train_data[col].unique()
+            unique_vals = list(self.train_data[col].unique())
+            unique_vals.append("unseen")
             for val1 in unique_vals:
                 self.probMatrix[col][val1] = {}
                 for val2 in unique_vals:
@@ -63,7 +72,13 @@ class ValueDifferenceMetric:
         for i, x_row in enumerate(x_points.to_numpy()):
             for j, y_row in enumerate(y_points.to_numpy()):
                 for k, col in enumerate(test_cols):
-                    self.distances[i, j] += self.probMatrix[col][x_row[k]][y_row[k]]
+                    x_val = "unseen"
+                    y_val = "unseen"
+
+                    if x_row[k] in self.probMatrix[col]: x_val = x_row[k]
+                    if y_row[k] in self.probMatrix[col]: y_val = y_row[k]
+
+                    self.distances[i, j] += self.probMatrix[col][x_val][y_val]
                     
 
 
