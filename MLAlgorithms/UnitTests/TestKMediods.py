@@ -12,7 +12,7 @@ class TestKMediods(unittest.TestCase):
         data = DataRetriever("../Datasets/metadata.json")
         data.retrieveData("computerHardware")
 
-        kValue = 3
+        kValue = 15
         t = Timer()
         t.start()
         mediods = KMediods(data.getDataSet(), data.getDataClass(), data.getDescreteAttributes(),

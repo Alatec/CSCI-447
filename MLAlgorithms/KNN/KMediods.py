@@ -1,8 +1,7 @@
 from MLAlgorithms.Utils.DistanceMatrix import DistanceMatrix
 import pandas as pd
 import numpy as np
-from numpy import genfromtxt
-from tqdm import tqdm
+
 
 """
 data.getDataSet(), data.getDataClass(), data.getDescreteAttributes(), data.getPredictionType()
@@ -36,125 +35,82 @@ def KMediods(dataSet, classifier, discreteAttr, continAttr, predictionType, k, m
 
     medoidList = np.array(mediods.index)
     nonMedoidList = np.array(list(set(dataSet.index)^set(medoidList)))
-    # nonMediodList = np.array(dataSet.index)
+
 
     mediodMatrix = np.zeros((len(dataSet), len(dataSet)), dtype=int)
     for medoid in medoidList:
         mediodMatrix[medoid][medoid] = medoid
 
 
+    assignedClusters = {}
     while iteration < maxIter:
-        print(iteration)
-        flag = False
+        oldMedoidList = np.copy(medoidList)
+
         # ============================================================================================= Assign each point to a cluster
-        assignedClusters = {}
 
-        # # Assign each datapoint to a mediod
-        for nonMedoid in nonMedoidList:
-            closestMedoid = medoidList[0]
+        if assignedClusters == {}:
+            for nonMedoid in nonMedoidList:
+                closestMedoid = medoidList[0]
+                for medoid in medoidList:
+                    if distanceMatrix.distanceMatrix[nonMedoid][medoid] < distanceMatrix.distanceMatrix[nonMedoid][closestMedoid]:
+                        closestMedoid = medoid
+
+                if closestMedoid not in assignedClusters:
+                    assignedClusters[closestMedoid] = []
+                assignedClusters[closestMedoid].append(nonMedoid)
             for medoid in medoidList:
-                if distanceMatrix.distanceMatrix[nonMedoid][medoid] < distanceMatrix.distanceMatrix[nonMedoid][closestMedoid]:
-                    closestMedoid = medoid
-
-            if closestMedoid not in assignedClusters:
-                assignedClusters[closestMedoid] = []
-            assignedClusters[closestMedoid].append(nonMedoid)
+                if medoid not in assignedClusters:
+                    assignedClusters[medoid] = []
 
 
 
         # # ============================================================================================= calculate distortion
+
         initialDistortionSum = 0
-        for mediodPoint in mediods.index:
+        for mediodPoint in medoidList:
             for dataPoint in assignedClusters[mediodPoint]:
                 initialDistortionSum += (distanceMatrix.distanceMatrix[dataPoint][mediodPoint])**2
 
-        print(initialDistortionSum)
 
         # # ============================================================================================= Recalculate our centroids
-        for medoid in medoidList:
-            for dataPoint in nonMedoidList:
-                tempMedoid = dataPoint
-                tempDataPoint = medoid
 
-                initialDistortionSum = 0
-                for mediodPoint in mediods.index:
-                    for dataPoint in assignedClusters[mediodPoint]:
-                        initialDistortionSum += (distanceMatrix.distanceMatrix[dataPoint][mediodPoint]) ** 2
+        for medoid, medoidRow in enumerate(medoidList):
 
-
-        for medoid in medoidList:
-            for dataPoint in nonMedoidList:
-                tempMedoid = dataPoint
-                tempDataPoint = medoid
-
-                newDistortionSum = 0
-                for medoid in medoidList:
-                    for dataPoint in nonMedoidList:
-                        tempMedoid = dataPoint
-                        tempDataPoint = medoid
-
-                        initialDistortionSum = 0
-                        for mediodPoint in mediods.index:
-                            for dataPoint in assignedClusters[mediodPoint]:
-                                initialDistortionSum += (distanceMatrix.distanceMatrix[dataPoint][mediodPoint]) ** 2
-
-        #
-        # for mediodPoint in mediods.index:
-        #     for dataPoint in dataSet.index:
-        #         if mediodPoint == dataPoint:
-        #             continue
-        #         else:
-        #             tempMediod = dataPoint
-        #             tempDataPoint = mediodPoint
-        #
-        #             newDistortionSum = 0
-        #             for mediodPointv in mediods.index:
-        #                 if mediodPointv == mediodPoint:
-        #                     mediodPointv = tempMediod
-        #                 for dataPointv in assignedClusters[mediodPoint]:
-        #                     if dataPointv == dataPoint:
-        #                         dataPointv = tempDataPoint
-        #                     newDistortionSum += (distanceMatrix[dataPointv][mediodPointv]) ** 2
-        #             if newDistortionSum <= initialDistortionSum:
-        #                 flag = True
-        #                 mediods.iloc[[mediodPoint]], dataSet.iloc[[dataPoint]] = dataSet.iloc[[tempDataPoint]], mediods.iloc[[tempMediod]]
-
-        """
-        mainDis = Calculate Distortion
-        for mediod in mediods:
-            for datapoint in DataPoints
-                if datapoint -= mediod
+            for dataPoint, dataRow in enumerate(dataSet.index):
+                if medoid == dataPoint:
                     continue
-                swap mediod & datapoint
-                
-                loopDis = calculate Distortion 
-                
-                if loopDis <= mainDis
-                    swap back
-        
-        
-        If no change in mediods:
-            end
-        """
+                else:
+                    tempMedoid = dataRow
+                    tempDataPoint = medoidRow
 
-        # distanceMatrix.recalculateCentriods(mediods)
+                    newDistortionSum = 0
+                    for mediodPointP in medoidList:
+
+                        if mediodPointP == medoid:
+                            mediodPointP = tempMedoid
+
+
+                        for dataPointP in assignedClusters[medoidRow]:
+                            if dataPointP == dataPoint:
+                                dataPointP = tempDataPoint
+
+                            newDistortionSum += (distanceMatrix.distanceMatrix[dataPointP][mediodPointP]) ** 2
+
+                    if newDistortionSum > initialDistortionSum and tempMedoid not in medoidList:
+
+                        assignedClusters[tempMedoid] = assignedClusters[medoidRow]
+                        del assignedClusters[medoidRow]
+
+                        medoidList[medoid] = tempMedoid
+                        medoidRow = tempMedoid
 
         # ============================================================================================= Check
         iteration += 1
-        # if not flag:
-        #     break
+        if np.array_equal(oldMedoidList, medoidList):
+            break
 
-    return pd.DataFrame(mediods).T
-
-
-"""
-What is Distortion?
-    Sum over clusters k
-        sum over points in cluster k
-            ()
-        
-
-"""
+    print(dataSet.loc[medoidList])
+    return dataSet.loc[medoidList]
 
 
 # This function creates k centroids
@@ -163,6 +119,5 @@ def _createMediods(dataSet, k):
 
 
     mediods = dataSet.sample(k, random_state=seed)
-    # mediods.index = [f"centroid{i}" for i in range(0, k)]
 
     return mediods
