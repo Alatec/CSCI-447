@@ -8,14 +8,14 @@ import numpy as np
 data = DataRetriever("../Datasets/metadata.json")
 
 
-dataSetName = "glass"
+dataSetName = "imageSegmentation"
 
 
 print(f"Creating CSV for {dataSetName}")
 data.retrieveData(dataSetName)
 
 maxItter = 100
-kValue = 112
+kValue = 1300
 
 dataSetUnNormalized = data.getDataSet()
 # dataSetUnNormalized[data.getDataClass()] = np.log(dataSetUnNormalized[data.getDataClass()] + 0.001)  // This is for Forest Fires
