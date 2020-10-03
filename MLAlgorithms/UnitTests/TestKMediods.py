@@ -21,7 +21,7 @@ class TestKMediods(unittest.TestCase):
         t.stop()
         print(f"Time: {t}")
         print(mediods)
-        mediods.to_csv('out.csv', index=False)
+        mediods.to_csv('kmedoids.csv', index=False)
 
 
 if __name__ == '__main__':
