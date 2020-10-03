@@ -1,8 +1,6 @@
 from MLAlgorithms.Utils.DataRetriever import DataRetriever
 from MLAlgorithms.KNN.KMeansClustering import KMeans
 
-# dataSets = ["vote","imageSegmentation", "computerHardware", ]
-#             # "forestFires", "abalone"]
 
 data = DataRetriever("../Datasets/metadata.json")
 
