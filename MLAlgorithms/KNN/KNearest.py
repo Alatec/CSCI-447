@@ -32,7 +32,8 @@ class KNearestNeighbor:
             self.unknown_col = self.train_data[unknown_col][:]
             self.train_data = self.train_data.drop([unknown_col], axis=1)
 
-
+        self.unknown_col.reset_index(drop=True)
+        self.train_data.reset_index(drop=True)
         if metric == 'euclid': 
             self.neighbors = calculate_euclid_distances(self.test_data.to_numpy(dtype=np.float64), self.train_data.to_numpy(dtype=np.float64))
         else:
@@ -58,7 +59,7 @@ class KNearestNeighbor:
         if verbose:
             print("K Neighbors", k_neighbors)
             print(self.unknown_col.shape)
-        unknowns = self.unknown_col.loc[k_neighbors]
+        unknowns = self.unknown_col.iloc[k_neighbors]
         if augmented:
             return (unknowns.iloc[0]==unknowns.iloc[1])
         else:
@@ -159,8 +160,10 @@ class CondensedKNN(KNearestNeighbor):
         # 3 Exit conditions: Performance is worse than when we started, performance hasn't increased, hit iteration limit
         while prev_z_len * 1.1 < z_set.sum() and curr_iter < max_iter:
             prev_z_len = z_set.sum()
-
-            testing_KNN = KNearestNeighbor(self.train_data.loc[x_set==1], self.train_data[z_set==1], 2, unknown_col=self.unknown_col, 
+            x_df = self.train_data.iloc[x_set==1]
+            z_df = self.train_data.iloc[z_set==1]
+            z_unknown = self.unknown_col.iloc[z_set==1]
+            testing_KNN = KNearestNeighbor(x_df, z_df, 2, unknown_col=z_unknown, 
                                         metric=self.metric, classification=self.classification)
 
             #Numpy array containing points in the X set classified correctly
@@ -186,11 +189,11 @@ class CondensedKNN(KNearestNeighbor):
 
 if __name__ == "__main__":
     dataRetriever = DataRetriever("../Datasets/metadata.json")
-    dataRetriever.retrieveData("abalone")
+    dataRetriever.retrieveData("imageSegmentation")
     data = dataRetriever.getDataSet()
     data = data.dropna()
     data = data.reset_index(drop=True)
-    data = data.drop('sex', axis=1)
+    # data = data.drop('sex', axis=1)
 
     test = data.sample(frac=0.2, random_state=17)
     train = data.drop(test.index)
@@ -202,12 +205,9 @@ if __name__ == "__main__":
     test  = test.reset_index(drop=True)
     validate = validate.reset_index(drop=True)
 
-    class_col = 'rings'
+    class_col = 'class'
 
-    # KNN = KNearestNeighbor(test.drop(class_col, axis=1),train,5, unknown_col=class_col)
-    # print("KNN test length", len(KNN.test()))
-    # print("Test set length", test.shape)
+   
     CKNN = CondensedKNN(test.drop(class_col, axis=1), train, 5, unknown_col=class_col)
     CKNN.train()
-    # print(KNN.get_neighbors([5,10]))
-    # print(KNN.test(augmented=True))
+    
