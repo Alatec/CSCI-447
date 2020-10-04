@@ -11,26 +11,28 @@ import glob
 import json
 
 dataRetriever = DataRetriever("../Datasets/metadata.json")
-dataRetriever.retrieveData("glass")
+dataRetriever.retrieveData("imageSegmentation")
 data = dataRetriever.getDataSet()
 data = data.dropna()
 data = data.sample(frac=1.0, random_state=93)
 data = data.reset_index(drop=True)
-# data = data.drop('idNumber', axis=1)
+
+data = data.drop('region-pixel-count', axis=1)
 
 class_col = dataRetriever.getDataClass()
 # data[class_col] = np.log(data[class_col] + 0.001)
 
 
 contAttr = dataRetriever.getContinuousAttributes()
+contAttr.remove('region-pixel-count')
 discAttr = dataRetriever.getDescreteAttributes()
 predictionType = dataRetriever.getPredictionType()
-f = open("votePerf.json",'r')
+f = open("imageSegPerf.json",'r')
 output_json = json.load(f)
 f.close()
 iter_num = 0
-centroidsTrain = pd.read_csv("CSVOutput/normalizedvoteKMeansClustered.csv")
-medoidsTrain = pd.read_csv("CSVOutput/normalizedvoteMedoidsClustered.csv")
+centroidsTrain = pd.read_csv("CSVOutput/normalizedimageSegmentationKMeansClustered.csv").drop('region-pixel-count', axis=1)
+medoidsTrain = pd.read_csv("CSVOutput/normalizedimageSegmentationMedoidsClustered.csv").drop('region-pixel-count', axis=1)
 for test, train in KFolds(data, 5, stratisfied=True, class_col=class_col):
 
     #KFolds doesn't have the capability of returning a validate set
@@ -49,75 +51,84 @@ for test, train in KFolds(data, 5, stratisfied=True, class_col=class_col):
     test1[contAttr] = sn.fit(test1[contAttr])
     test2[contAttr] = sn.fit(test2[contAttr])
 
-    k_vals = [1,3,5,7, 18]
+    k_vals = list(output_json[str(iter_num)].keys())
+    k_vals_int = [int(k) for k in k_vals]
 
     print(f"Fold {iter_num}")
     #Fold 1
-    KNN = KNearestNeighbor(test1.drop(class_col, axis=1), train, k_vals, contAttr, discAttr, unknown_col=class_col, predictionType="classification")
-    KPreds = KNN.test()
+    centroidsKNN = KNearestNeighbor(test1.drop(class_col, axis=1), centroidsTrain, k_vals_int, contAttr, discAttr, unknown_col=class_col, predictionType="classification")
+    centPreds = centroidsKNN.test()
 
-    CKNN = CondensedKNN(test1.drop(class_col, axis=1), train, k_vals, contAttr, discAttr, unknown_col=class_col, predictionType="classification")
-    CKNN.train()
-    CPreds = CKNN.test()
+    medoidsKNN = KNearestNeighbor(test1.drop(class_col, axis=1), medoidsTrain, k_vals_int, contAttr, discAttr, unknown_col=class_col, predictionType="classification")
+    medPreds =medoidsKNN.test()
 
-    EKNN = EditedKNN(test1.drop(class_col, axis=1), test2, train, k_vals, contAttr, discAttr, unknown_col=class_col, val_unknown_col=class_col, predictionType="classification")
-    EKNN.train()
-    EPreds = CKNN.test()
+    
     # output_json[iter_num] = {}
     for i, k in enumerate(k_vals):
-        KClassAnalyzer = ClassifierAnalyzer(test1[class_col], KPreds[:,i])
-        CClassAnalyzer = ClassifierAnalyzer(test1[class_col], CPreds[:,i])
-        EClassAnalyzer = ClassifierAnalyzer(test1[class_col], EPreds[:,i])
+        CentClassAnalyzer = ClassifierAnalyzer(test1[class_col], centPreds[:,i])
+        MedClassAnalyzer = ClassifierAnalyzer(test1[class_col], medPreds[:,i])
+
 
         
         # output_json[iter_num][k] = {}
 
-        #KNN
-        output_json[iter_num][k]["KNN"] = {
-            "F1": KClassAnalyzer.calc_f1_score("macro"),
-            "P": KClassAnalyzer.calc_f1_score("macro"),
-            "R": KClassAnalyzer.calc_f1_score("macro"),
-            "A": KClassAnalyzer.calc_f1_score("macro"),
+        #Centroids
+        output_json[str(iter_num)][str(k)]["cent"] = {
+            "F1": CentClassAnalyzer.calc_f1_score("macro"),
+            "P": CentClassAnalyzer.calc_f1_score("macro"),
+            "R": CentClassAnalyzer.calc_f1_score("macro"),
+            "A": CentClassAnalyzer.calc_f1_score("macro"),
         }
 
-        #CNN
-        output_json[iter_num][k]["CNN"] = {
-            "F1": CClassAnalyzer.calc_f1_score("macro"),
-            "P": CClassAnalyzer.calc_f1_score("macro"),
-            "R": CClassAnalyzer.calc_f1_score("macro"),
-            "A": CClassAnalyzer.calc_f1_score("macro"),
+        #Medoids
+        output_json[str(iter_num)][str(k)]["med"] = {
+            "F1": MedClassAnalyzer.calc_f1_score("macro"),
+            "P": MedClassAnalyzer.calc_f1_score("macro"),
+            "R": MedClassAnalyzer.calc_f1_score("macro"),
+            "A": MedClassAnalyzer.calc_f1_score("macro"),
         }
 
-        #ENN
-        output_json[iter_num][k]["ENN"] = {
-            "F1": EClassAnalyzer.calc_f1_score("macro"),
-            "P": EClassAnalyzer.calc_f1_score("macro"),
-            "R": EClassAnalyzer.calc_f1_score("macro"),
-            "A": EClassAnalyzer.calc_f1_score("macro"),
+    
+    iter_num += 1
+
+    print(f"Fold {iter_num}")
+    #Fold 2
+    centroidsKNN = KNearestNeighbor(test2.drop(class_col, axis=1), centroidsTrain, k_vals_int, contAttr, discAttr, unknown_col=class_col, predictionType="classification")
+    centPreds = centroidsKNN.test()
+
+    medoidsKNN = KNearestNeighbor(test2.drop(class_col, axis=1), medoidsTrain, k_vals_int, contAttr, discAttr, unknown_col=class_col, predictionType="classification")
+    medPreds = medoidsKNN.test()
+
+    
+    # output_json[iter_num] = {}
+    for i, k in enumerate(k_vals):
+        CentClassAnalyzer = ClassifierAnalyzer(test2[class_col], centPreds[:,i])
+        MedClassAnalyzer = ClassifierAnalyzer(test2[class_col], medPreds[:,i])
+
+
+        
+        # output_json[iter_num][k] = {}
+
+        #Centroids
+        output_json[str(iter_num)][str(k)]["cent"] = {
+            "F1": CentClassAnalyzer.calc_f1_score("macro"),
+            "P": CentClassAnalyzer.calc_f1_score("macro"),
+            "R": CentClassAnalyzer.calc_f1_score("macro"),
+            "A": CentClassAnalyzer.calc_f1_score("macro"),
         }
 
-    print(output_json)
+        #Medoids
+        output_json[str(iter_num)][str(k)]["med"] = {
+            "F1": MedClassAnalyzer.calc_f1_score("macro"),
+            "P": MedClassAnalyzer.calc_f1_score("macro"),
+            "R": MedClassAnalyzer.calc_f1_score("macro"),
+            "A": MedClassAnalyzer.calc_f1_score("macro"),
+        }
 
     
     iter_num += 1
 
 
 
-# dataRetriever = DataRetriever("../Datasets/metadata.json")
-# dataRetriever.retrieveData("glass")
-# data = dataRetriever.getDataSet()
-# data = data.dropna()
-# data = data.sample(frac=1.0, random_state=93)
-# data = data.reset_index(drop=True)
-# # data = data.drop('idNumber', axis=1)
-
-# class_col = dataRetriever.getDataClass()
-# # data[class_col] = np.log(data[class_col] + 0.001)
-
-
-# contAttr = dataRetriever.getContinuousAttributes()
-# discAttr = dataRetriever.getDescreteAttributes()
-# predictionType = dataRetriever.getPredictionType()
-
-# output_json = {}
-# iter_num = 0
+with open("imageSegPerfWClust.json", 'w') as f:
+    f.write(json.dumps(output_json, indent=2))
