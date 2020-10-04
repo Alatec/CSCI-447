@@ -74,7 +74,7 @@ def KMeans(dataSet, classifier, discreteAttr, continAttr, predictionType, k, max
         if not flag:
             break
 
-    return pd.DataFrame(centroids).T
+    return pd.DataFrame(centroids)
 
 
 # This function creates k centroids
