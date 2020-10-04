@@ -53,6 +53,7 @@ for test, train in KFolds(data, 5, stratisfied=True, class_col=class_col):
 
     k_vals = list(output_json[str(iter_num)].keys())
     k_vals_int = [int(k) for k in k_vals]
+    k_vals_int[-1] = 18
 
     print(f"Fold {iter_num}")
     #Fold 1
