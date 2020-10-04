@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 import matplotlib
-print(matplotlib.rcsetup.interactive_bk)
+# print(matplotlib.rcsetup.interactive_bk)
 matplotlib.use('WebAgg')
 import matplotlib.pyplot as plt
 import time
@@ -183,10 +183,10 @@ class CondensedKNN(KNearestNeighbor):
         #Initialize Z with a random subset of X
         z_set[list(np.random.choice(self.train_data.index, self.unknown_col.nunique(), replace=False))] = 1
         x_set[z_set==1] = 0
-        print("Z")
-        print(z_set, z_set.sum())
-        print("X")
-        print(x_set, x_set.sum())
+        # print("Z")
+        # print(z_set, z_set.sum())
+        # print("X")
+        # print(x_set, x_set.sum())
         prev_z_len = 0
 
         # 3 Exit conditions: Performance is worse than when we started, performance hasn't increased, hit iteration limit
@@ -220,14 +220,14 @@ class CondensedKNN(KNearestNeighbor):
 
 if __name__ == "__main__":
     dataRetriever = DataRetriever("../Datasets/metadata.json")
-    dataRetriever.retrieveData("forestFires")
+    dataRetriever.retrieveData("imageSegmentation")
     data = dataRetriever.getDataSet()
     data = data.dropna()
     data = data.reset_index(drop=True)
     # data = data.drop('idNumber', axis=1)
 
     class_col = dataRetriever.getDataClass()
-    data[class_col] = np.log(data[class_col] + 0.001)
+    # data[class_col] = np.log(data[class_col] + 0.001)
     contAttr = dataRetriever.getContinuousAttributes()
     discAttr = dataRetriever.getDescreteAttributes()
 
@@ -250,19 +250,22 @@ if __name__ == "__main__":
 
     
 
-    KNN = KNearestNeighbor(test.drop(class_col, axis=1), train, 5, contAttr, discAttr, unknown_col=class_col, predictionType="regression")
+    # KNN = KNearestNeighbor(test.drop(class_col, axis=1), train, 5, contAttr, discAttr, unknown_col=class_col, predictionType="regression")
     
-    res = KNN.test() - test[class_col]
-    mean_res = test[class_col].mean() - test[class_col]
+    # res = KNN.test() - test[class_col]
+    # mean_res = test[class_col].mean() - test[class_col]
 
-    plt.hist(res, label="Residuals", alpha=0.5, bins=20)
-    plt.hist(mean_res, label="Mean Residuals", alpha=0.5, bins=20)
-    plt.legend()
-    plt.show()
+    # plt.hist(res, label="Residuals", alpha=0.5, bins=20)
+    # plt.hist(mean_res, label="Mean Residuals", alpha=0.5, bins=20)
+    # plt.legend()
+    # plt.show()
     # test, train, k, contAttr, discAttr, unknown_col='class', predictionType="classification"):
-    # CKNN = CondensedKNN(test.drop(class_col, axis=1), train, 5, contAttr, discAttr, unknown_col=class_col, predictionType="classification")
-    # CKNN.train()
+    CKNN = CondensedKNN(test.drop(class_col, axis=1), train, 5, contAttr, discAttr, unknown_col=class_col, predictionType="classification")
+    CKNN.train()
 
-    # EKNN = EditedKNN(test.drop(class_col, axis=1), validate, train, 5, contAttr, discAttr, unknown_col=class_col, val_unknown_col=class_col, predictionType="classification")
-    # EKNN.train()
+    EKNN = EditedKNN(test.drop(class_col, axis=1), validate, train, 5, contAttr, discAttr, unknown_col=class_col, val_unknown_col=class_col, predictionType="classification")
+    EKNN.train()
+
+    print("CKNN: ", CKNN.train_data.shape)
+    print("EKNN: ", EKNN.train_data.shape)
     

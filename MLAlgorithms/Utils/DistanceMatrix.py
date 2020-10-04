@@ -33,7 +33,7 @@ class DistanceMatrix():
         return result
 
     def _createDiscMatrix(self, testSet, trainSet, classifier, discAttr, predictionType):
-        dataMetric = ValueDifferenceMetric(testSet[list(set(discAttr + [classifier]))], unknown_col=classifier, prediction_type=predictionType)
+        dataMetric = ValueDifferenceMetric(trainSet[list(set(discAttr + [classifier]))], unknown_col=classifier, prediction_type=predictionType)
         dataMetric.train()
         # dataMetric.calc_distance_matrix(testSet[set(discAttr)], trainSet[set(discAttr)])
         # dataMetric = DistanceValueMetric(testSet, classifier, discAttr, predictionType)
