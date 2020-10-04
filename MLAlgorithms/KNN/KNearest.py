@@ -13,6 +13,7 @@ from MLAlgorithms.Utils.ClassifierAnalyzer import ClassifierAnalyzer
 from MLAlgorithms.Utils.NumbaFunctions import calculate_euclid_distances
 from MLAlgorithms.Utils.DistanceMatrix import DistanceMatrix
 from MLAlgorithms.Utils.StandardNormalizer import StandardNormalizer
+from MLAlgorithms.Utils.RangeNormalizer import RangeNormalizer
 
 class KNearestNeighbor:
 
@@ -71,28 +72,48 @@ class KNearestNeighbor:
     #
     def get_most_common_class_apply(self, neighbors_list, augmented=False, verbose=False):
         
-        k_neighbors = neighbors_list.argsort()[:self.k]
-        unknowns = self.unknown_col.iloc[k_neighbors]
+        if type(self.k) == list:
+            return_vals = []
+            for k in self.k:
+                k_neighbors = neighbors_list.argsort()[:k]
+                unknowns = self.unknown_col.iloc[k_neighbors]
 
-        if self.predictionType == "regression":
-            mu = unknowns.mean()
-            var = unknowns.var()
+                if self.predictionType == "regression":
+                    mu = unknowns.mean()
+                    var = unknowns.var()
 
-            #The value of 5 was chosen empirically
-            eps = 5/(var+0.001)
+                    #The value of 5 was chosen empirically
+                    eps = 5/(var+0.001)
 
-            kernals = np.exp(-(eps*(np.abs(unknowns-mu)))**2)
-            return ((unknowns*kernals)/kernals.sum()).sum()
-
-
-        if verbose:
-            print("K Neighbors", k_neighbors)
-            print(self.unknown_col.shape)
-        
-        if augmented:
-            return (unknowns.iloc[0]==unknowns.iloc[1])
+                    kernals = np.exp(-(eps*(np.abs(unknowns-mu)))**2)
+                    return_vals.append(((unknowns*kernals)/kernals.sum()).sum())
+                else:
+                    return_vals.append(unknowns.value_counts().idxmax())
+            return np.asarray(return_vals)
         else:
-            return unknowns.value_counts().idxmax()
+
+            k_neighbors = neighbors_list.argsort()[:self.k]
+            unknowns = self.unknown_col.iloc[k_neighbors]
+
+            if self.predictionType == "regression":
+                mu = unknowns.mean()
+                var = unknowns.var()
+
+                #The value of 5 was chosen empirically
+                eps = 5/(var+0.001)
+
+                kernals = np.exp(-(eps*(np.abs(unknowns-mu)))**2)
+                return ((unknowns*kernals)/kernals.sum()).sum()
+
+
+            if verbose:
+                print("K Neighbors", k_neighbors)
+                print(self.unknown_col.shape)
+            
+            if augmented:
+                return (unknowns.iloc[0]==unknowns.iloc[1])
+            else:
+                return unknowns.value_counts().idxmax()
 
 
     def test(self, augmented=False, verbose=False):
@@ -147,6 +168,8 @@ class EditedKNN(KNearestNeighbor):
             temp_train = self.train_data.drop(points_to_remove, axis=0).reset_index(drop=True)
             temp_unknown_col = self.unknown_col.drop(points_to_remove).reset_index(drop=True)
             del(validation_KNN)
+            if len(temp_train) == 0:
+                break
             validation_KNN = KNearestNeighbor(self.validation, temp_train, 1, self.contAttr, self.discAttr, unknown_col=temp_unknown_col, predictionType=self.predictionType)
             curr_performance = (validation_KNN.test() == self.val_unknown_col).sum()/len(self.validation)
             print(f"Iter: {curr_iter}, Curr Perf: {curr_performance},  Prev Perf: {prev_performance}")
@@ -234,8 +257,8 @@ if __name__ == "__main__":
     test = data.sample(frac=0.2, random_state=17)
     train = data.drop(test.index)
     
-    sn = StandardNormalizer(train[contAttr])
-    train[contAttr] = sn.train_fit()
+    # sn = RangeNormalizer(train[contAttr])
+    # train[contAttr] = sn.train_fit()
 
 
     validate = test.sample(frac=0.5, random_state=13)
@@ -245,8 +268,8 @@ if __name__ == "__main__":
     test  = test.reset_index(drop=True)
     validate = validate.reset_index(drop=True)
 
-    test[contAttr] = sn.fit(test[contAttr])
-    validate[contAttr] = sn.fit(validate[contAttr])
+    # test[contAttr] = sn.fit(test[contAttr])
+    # validate[contAttr] = sn.fit(validate[contAttr])
 
     
 
@@ -260,7 +283,7 @@ if __name__ == "__main__":
     # plt.legend()
     # plt.show()
     # test, train, k, contAttr, discAttr, unknown_col='class', predictionType="classification"):
-    CKNN = CondensedKNN(test.drop(class_col, axis=1), train, 5, contAttr, discAttr, unknown_col=class_col, predictionType="classification")
+    CKNN = CondensedKNN(test.drop(class_col, axis=1), train, [5], contAttr, discAttr, unknown_col=class_col, predictionType="classification")
     CKNN.train()
 
     EKNN = EditedKNN(test.drop(class_col, axis=1), validate, train, 5, contAttr, discAttr, unknown_col=class_col, val_unknown_col=class_col, predictionType="classification")
