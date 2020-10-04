@@ -13,7 +13,6 @@ def KMediods(dataSet, classifier, discreteAttr, continAttr, predictionType, k, m
 
     iteration = 0
 
-    print(mediods)
 
 
     distanceMatrix = DistanceMatrix(dataSet, dataSet, continAttr, discreteAttr, percentCon, percentDis, predictionType, classifier)
@@ -29,11 +28,13 @@ def KMediods(dataSet, classifier, discreteAttr, continAttr, predictionType, k, m
 
     assignedClusters = {}
     while iteration < maxIter:
+        print(iteration)
         oldMedoidList = np.copy(medoidList)
 
         # ============================================================================================= Assign each point to a cluster
 
         if assignedClusters == {}:
+            print("Assigning Clusters...")
             for nonMedoid in nonMedoidList:
                 closestMedoid = medoidList[0]
                 for medoid in medoidList:
@@ -50,15 +51,16 @@ def KMediods(dataSet, classifier, discreteAttr, continAttr, predictionType, k, m
 
 
         # # ============================================================================================= calculate distortion
-
+        print("Calculating Distortion...")
         initialDistortionSum = 0
         for mediodPoint in medoidList:
             for dataPoint in assignedClusters[mediodPoint]:
                 initialDistortionSum += (distanceMatrix.distanceMatrix[dataPoint][mediodPoint])**2
 
-
+        print("Distortion Calculated")
         # # ============================================================================================= Recalculate our centroids
 
+        print("Swapping...")
         for medoid, medoidRow in enumerate(medoidList):
 
             for dataPoint, dataRow in enumerate(dataSet.index):
@@ -88,7 +90,7 @@ def KMediods(dataSet, classifier, discreteAttr, continAttr, predictionType, k, m
 
                         medoidList[medoid] = tempMedoid
                         medoidRow = tempMedoid
-
+        print("Swapping has Finished...")
         # ============================================================================================= Check
         iteration += 1
         if np.array_equal(oldMedoidList, medoidList):
