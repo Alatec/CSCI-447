@@ -9,16 +9,16 @@ import numpy as np
 data = DataRetriever("../Datasets/metadata.json")
 
 
-dataSetName = "abalone"
+dataSetName = "computerHardware"
 
 print(f"Creating CSV for {dataSetName}")
 data.retrieveData(dataSetName)
 
 maxItter = 100
-kValue = 476
-frac = .25
-random_state = 69
-kValue = m.floor(frac * kValue)
+kValue = 78
+# frac = .25
+# random_state = 69
+# kValue = m.floor(frac * kValue)
 
 
 
@@ -31,8 +31,8 @@ dataSetUnNormalized[data.getContinuousAttributes()] = sn.train_fit()
 
 dataSetNormalized = dataSetUnNormalized
 
-dataSetNormalized = dataSetNormalized.sample(frac=frac, random_state=random_state)
-dataSetNormalized = dataSetNormalized.reset_index()
+# dataSetNormalized = dataSetNormalized.sample(frac=frac, random_state=random_state)
+# dataSetNormalized = dataSetNormalized.reset_index()
 
 
 # dataSetNormalized = dataSetNormalized.drop(["idNumber"], axis=1) #// For Glass
