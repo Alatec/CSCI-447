@@ -7,15 +7,13 @@ import numpy as np
 
 data = DataRetriever("../Datasets/metadata.json")
 
-dataSetName = "computerHardware"
-
 dataSetName = "imageSegmentation"
 
 print(f"Creating CSV for {dataSetName}")
 data.retrieveData(dataSetName)
 
 maxItter = 100
-kValue = 476
+kValue = 1330
 frac = .25
 random_state = 69
 kValue = m.floor(frac * kValue)
