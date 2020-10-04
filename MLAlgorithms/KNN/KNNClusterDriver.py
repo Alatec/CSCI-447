@@ -11,28 +11,28 @@ import glob
 import json
 
 dataRetriever = DataRetriever("../Datasets/metadata.json")
-dataRetriever.retrieveData("imageSegmentation")
+dataRetriever.retrieveData("glass")
 data = dataRetriever.getDataSet()
 data = data.dropna()
 data = data.sample(frac=1.0, random_state=93)
 data = data.reset_index(drop=True)
 
-data = data.drop('region-pixel-count', axis=1)
+# data = data.drop('region-pixel-count', axis=1)
 
 class_col = dataRetriever.getDataClass()
 # data[class_col] = np.log(data[class_col] + 0.001)
 
 
 contAttr = dataRetriever.getContinuousAttributes()
-contAttr.remove('region-pixel-count')
+# contAttr.remove('region-pixel-count')
 discAttr = dataRetriever.getDescreteAttributes()
 predictionType = dataRetriever.getPredictionType()
-f = open("imageSegPerf.json",'r')
+f = open("glassPerf.json",'r')
 output_json = json.load(f)
 f.close()
 iter_num = 0
-centroidsTrain = pd.read_csv("CSVOutput/normalizedimageSegmentationKMeansClustered.csv").drop('region-pixel-count', axis=1)
-medoidsTrain = pd.read_csv("CSVOutput/normalizedimageSegmentationMedoidsClustered.csv").drop('region-pixel-count', axis=1)
+centroidsTrain = pd.read_csv("CSVOutput/normalizedglassKMeansClustered.csv")
+medoidsTrain = pd.read_csv("CSVOutput/normalizedglassMedoidsClustered.csv")
 for test, train in KFolds(data, 5, stratisfied=True, class_col=class_col):
 
     #KFolds doesn't have the capability of returning a validate set
@@ -131,5 +131,5 @@ for test, train in KFolds(data, 5, stratisfied=True, class_col=class_col):
 
 
 
-with open("imageSegPerfWClust.json", 'w') as f:
+with open("glassPerfWClust.json", 'w') as f:
     f.write(json.dumps(output_json, indent=2))

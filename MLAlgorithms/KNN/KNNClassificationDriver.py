@@ -10,7 +10,7 @@ import json
 
 
 dataRetriever = DataRetriever("../Datasets/metadata.json")
-dataRetriever.retrieveData("glass")
+dataRetriever.retrieveData("imageSegmentation")
 data = dataRetriever.getDataSet()
 data = data.dropna()
 data = data.sample(frac=1.0, random_state=93)
@@ -148,5 +148,5 @@ for test, train in KFolds(data, 5, stratisfied=True, class_col=class_col):
     
     iter_num += 1
 
-with open("glassPerf.json", 'w') as f:
+with open("imageSegPerf.json", 'w') as f:
     f.write(json.dumps(output_json, indent=2))

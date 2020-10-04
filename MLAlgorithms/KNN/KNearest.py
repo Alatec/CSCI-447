@@ -183,7 +183,11 @@ class EditedKNN(KNearestNeighbor):
             
             curr_iter += 1
             
+        temp_train_with_unknown = self.train_data.copy(deep=True)
+        temp_train_with_unknown["unknown_col"] = self.unknown_col.values
+        self.distance_matrix = DistanceMatrix(self.test_data, temp_train_with_unknown, self.contAttr, self.discAttr, len(self.contAttr), len(self.discAttr), self.predictionType, "unknown_col")
 
+        self.neighbors = self.distance_matrix.distanceMatrix
         # baseline_acc = classifierAnalyzer.calc_accuracy(method=method)
 
 
@@ -238,6 +242,12 @@ class CondensedKNN(KNearestNeighbor):
             curr_iter += 1
 
         self.train_data = self.train_data.drop(self.train_data.index[x_set==1])
+        self.unknown_col = self.unknown_col.iloc[z_set==1]
+        temp_train_with_unknown = self.train_data.copy(deep=True)
+        temp_train_with_unknown["unknown_col"] = self.unknown_col.values
+        self.distance_matrix = DistanceMatrix(self.test_data, temp_train_with_unknown, self.contAttr, self.discAttr, len(self.contAttr), len(self.discAttr), self.predictionType, "unknown_col")
+
+        self.neighbors = self.distance_matrix.distanceMatrix
         print(curr_iter)
             
 
