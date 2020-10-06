@@ -1,9 +1,6 @@
-from MLAlgorithms.Utils.DistanceValueMetric import DistanceValueMetric
-from MLAlgorithms.Utils.ValueDistanceMetric import ValueDifferenceMetric
+from MLAlgorithms.Utils.ValueDifferenceMetric import ValueDifferenceMetric
 from MLAlgorithms.Utils.NumbaFunctions import calculate_euclid_distances
-from tqdm import tqdm
 import numpy as np
-import pandas as pd
 np.set_printoptions(threshold=np.inf)
 
 class DistanceMatrix():
@@ -35,8 +32,6 @@ class DistanceMatrix():
     def _createDiscMatrix(self, testSet, trainSet, classifier, discAttr, predictionType):
         dataMetric = ValueDifferenceMetric(trainSet[list(set(discAttr + [classifier]))], unknown_col=classifier, prediction_type=predictionType)
         dataMetric.train()
-        # dataMetric.calc_distance_matrix(testSet[set(discAttr)], trainSet[set(discAttr)])
-        # dataMetric = DistanceValueMetric(testSet, classifier, discAttr, predictionType)
         return dataMetric
 
     def _createDistanceMatrix(self, contMatrix, discMatrix, testSet, trainSet, trainLen, testLen, alpha, beta, classifier, discAttr):
@@ -48,13 +43,11 @@ class DistanceMatrix():
         distanceMatrix += alpha*contMatrix
         distanceMatrix += beta*discMatrix.distances
 
-        # something = pd.DataFrame(distanceMatrix)
-
         return distanceMatrix
 
     def recalculateCentriods(self, centroids):
         self.contMatrix = self._createContMatrix(self.testSet, centroids, self.contAttr)
         self.discMatrix = self._createDiscMatrix(self.testSet, centroids, self.classifier, self.discAttr, self.predictionType)
         self.distanceMatrix = self._createDistanceMatrix(self.contMatrix, self.discMatrix, self.testSet, centroids, len(self.trainSet), len(self.testSet), self.alpha, self.beta, self.classifier, self.discAttr)
-        # print(self.distanceMatrix)
+
 
