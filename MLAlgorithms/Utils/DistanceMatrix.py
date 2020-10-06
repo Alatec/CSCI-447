@@ -1,11 +1,23 @@
-from MLAlgorithms.Utils.DistanceValueMetric import DistanceValueMetric
-from MLAlgorithms.Utils.ValueDistanceMetric import ValueDifferenceMetric
+from MLAlgorithms.Utils.ValueDifferenceMetric import ValueDifferenceMetric
 from MLAlgorithms.Utils.NumbaFunctions import calculate_euclid_distances
-from tqdm import tqdm
 import numpy as np
-import pandas as pd
 np.set_printoptions(threshold=np.inf)
 
+
+"""
+This class create a 2D matrix of scalar values representing the distance between two rows of data points
+
+Args:
+    testSet: Pandas DataFrame
+    trainSet: Pandas DataFrame
+    conAttr: List<String>
+    disAttr: List<String>
+    alpha: float
+    beta: float
+    predictionType: String
+    classifier: String
+
+"""
 class DistanceMatrix():
     def __init__(self, testSet, trainSet, contAttr, discAttr, alpha, beta, predictionType, classifier):
         self.testSet = testSet
@@ -28,17 +40,51 @@ class DistanceMatrix():
 
         self.distanceMatrix = self._createDistanceMatrix(self.contMatrix, self.discMatrix, testSet, trainSet, len(trainSet), len(testSet), alpha, beta, self.classifier, self.discAttr)
 
+    """
+    Private method to create the continuous distance matrix
+        
+    Args:
+        testSet: Pandas DataFrame
+        trainSet: Pandas DataFrame
+        contAttr: List<String>
+            
+    """
     def _createContMatrix(self, testSet, trainSet, contAttr):
         result = calculate_euclid_distances(testSet[contAttr].to_numpy(dtype=np.float64), trainSet[contAttr].to_numpy(dtype=np.float64))
         return result
 
+    """
+    Private method to create the categorical distance matrix
+
+    Args:
+        testSet: Pandas DataFrame
+        trainSet: Pandas DataFrame
+        classifier: String
+        discAttr: List<String>
+        predictionType: String
+
+    """
     def _createDiscMatrix(self, testSet, trainSet, classifier, discAttr, predictionType):
         dataMetric = ValueDifferenceMetric(trainSet[list(set(discAttr + [classifier]))], unknown_col=classifier, prediction_type=predictionType)
         dataMetric.train()
-        # dataMetric.calc_distance_matrix(testSet[set(discAttr)], trainSet[set(discAttr)])
-        # dataMetric = DistanceValueMetric(testSet, classifier, discAttr, predictionType)
         return dataMetric
 
+    """
+    Private method to create the distance matrix
+
+    Args:
+        contMatrix: 2D Numpy Array of float
+        discMatrix: 2D Numpy Array of float
+        testSet: Pandas DataFrame
+        trainSet: Pandas DataFrame
+        trainLen: int
+        testLen: int
+        alpha: float
+        beta: float
+        classifier: String
+        discAttr: List<String>
+
+    """
     def _createDistanceMatrix(self, contMatrix, discMatrix, testSet, trainSet, trainLen, testLen, alpha, beta, classifier, discAttr):
 
         distanceMatrix = np.zeros((testLen, trainLen))
@@ -48,13 +94,18 @@ class DistanceMatrix():
         distanceMatrix += alpha*contMatrix
         distanceMatrix += beta*discMatrix.distances
 
-        # something = pd.DataFrame(distanceMatrix)
-
         return distanceMatrix
 
+    """
+    A method to recalculate the distance between centroids and data points
+
+    Args:
+        centroids: Pandas DataFrame
+
+    """
     def recalculateCentriods(self, centroids):
         self.contMatrix = self._createContMatrix(self.testSet, centroids, self.contAttr)
         self.discMatrix = self._createDiscMatrix(self.testSet, centroids, self.classifier, self.discAttr, self.predictionType)
         self.distanceMatrix = self._createDistanceMatrix(self.contMatrix, self.discMatrix, self.testSet, centroids, len(self.trainSet), len(self.testSet), self.alpha, self.beta, self.classifier, self.discAttr)
-        # print(self.distanceMatrix)
+
 
