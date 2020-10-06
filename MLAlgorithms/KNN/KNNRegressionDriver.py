@@ -13,7 +13,7 @@ from tqdm import tqdm
 #Regression Sets: Forest Fire, Hardware, computerHardwaree
 
 dataRetriever = DataRetriever("../Datasets/metadata.json")
-dataRetriever.retrieveData("computerHardware")
+dataRetriever.retrieveData("abalone")
 data = dataRetriever.getDataSet()
 data = data.dropna()
 data = data.sample(frac=1.0, random_state=93)
@@ -23,8 +23,8 @@ data = data.reset_index(drop=True)
 class_col = dataRetriever.getDataClass()
 # data[class_col] = np.log(data[class_col] + 0.001)
 
-centroidsTrain = pd.read_csv("CSVOutput/normalizedcomputerHardwareKMeansClustered.csv")
-medoidsTrain = pd.read_csv("CSVOutput/normalizedcomputerHardwareMedoidsClustered.csv")
+centroidsTrain = pd.read_csv("CSVOutput/normalizedabaloneKMeansClustered.csv")
+medoidsTrain = pd.read_csv("CSVOutput/normalizedabaloneMedoidsClustered.csv")
 
 contAttr = dataRetriever.getContinuousAttributes()
 discAttr = dataRetriever.getDescreteAttributes()
@@ -35,7 +35,7 @@ iter_num = 0
 
 
 
-for test, train in tqdm(KFolds(data, 10)):
+for test, train in tqdm(KFolds(data, 10), total=1):
     k_vals = [1,3,5,7, int(np.floor(np.sqrt(len(train))))]
 
     #Normalize data
@@ -86,6 +86,7 @@ for test, train in tqdm(KFolds(data, 10)):
             "R2"   : 1 - ((uRes**2).sum()/(uRes**2).sum())
         }
     iter_num += 1
+    break
 
-with open("PerformanceOutput/computerHardwarePerfWClust.json", 'w') as f:
+with open("PerformanceOutput/abaloneVideoPerfWClust.json", 'w') as f:
     f.write(json.dumps(output_json, indent=2))
