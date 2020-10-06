@@ -1,10 +1,14 @@
 from MLAlgorithms.Utils.DataRetriever import DataRetriever
 from MLAlgorithms.KNN.KMediods import KMediods
 from MLAlgorithms.Utils.StandardNormalizer import StandardNormalizer
-import math as m
 
-import numpy as np
 
+"""
+This is the driver we used to create the medoids CSVs. We went with the archaic route and manually
+changed the data set for each generation. This was the method chosen since some data sets took longer to calculate
+
+There are a couple of lines that are data set specific 
+"""
 
 data = DataRetriever("../Datasets/metadata.json")
 
@@ -16,6 +20,8 @@ data.retrieveData(dataSetName)
 
 maxItter = 100
 kValue = 78
+
+# These are only used for image segmentation and abalone
 # frac = .25
 # random_state = 69
 # kValue = m.floor(frac * kValue)
