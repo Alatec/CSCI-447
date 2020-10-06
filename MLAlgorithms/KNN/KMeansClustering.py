@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 
 """
-Clusters the data to be used for the various KNN algorithms
+Clusters the data to be used for the various KNN algorithms with centroids
 
 Ensure that the DataFrame has been preprocessed before being inputted
 
@@ -35,10 +35,12 @@ def KMeans(dataSet, classifier, discreteAttr, continAttr, predictionType, k, max
     distanceMatrix = DistanceMatrix(dataSet, centroids, continAttr, discreteAttr, percentCon, percentDis, predictionType, classifier)
 
 
+    # Recalculate centroids until no change in the centroids
     while iteration < maxIter:
+        print(iteration)
         flag = False
 
-        # ============================================================================================= Assign each point to a cluster
+        # =================================================================== Assign each point to a cluster
         assignedClusters = {}
 
         for index, row in tqdm(enumerate(dataSet.to_numpy()), total=len(dataSet)):
@@ -49,7 +51,7 @@ def KMeans(dataSet, classifier, discreteAttr, continAttr, predictionType, k, max
                 assignedClusters[centroids.iloc[[closestCentroidIndex]].index[0]] = []
             assignedClusters[centroids.iloc[[closestCentroidIndex]].index[0]].append(index)
 
-        # ============================================================================================= Recalculate our centroids
+        # ================================================================ Recalculate our centroids
 
         for centroidId, assignedPoints in assignedClusters.items():
             for cAttr in continAttr:
@@ -63,7 +65,7 @@ def KMeans(dataSet, classifier, discreteAttr, continAttr, predictionType, k, max
 
                 centroids.at[centroidId, cAttr] = newVal
 
-            for dAttr in discreteAttr:                                      # If we have a new categorical value, we need to iterate again
+            for dAttr in discreteAttr:                  # If we have a new categorical value, we need to iterate again
                 oldVal = centroids.loc[[centroidId]][dAttr].values
                 newVal = dataSet.iloc[assignedPoints][dAttr].mode().head().values
                 if oldVal[0] == newVal[0]:
@@ -72,7 +74,7 @@ def KMeans(dataSet, classifier, discreteAttr, continAttr, predictionType, k, max
                     flag = True
                     centroids.at[centroidId, dAttr] = dataSet.iloc[assignedPoints][dAttr].mode().head().values[0]
 
-        # ============================================================================================= If the flag has been tripped (centroids changed), iterate again
+        # ============================================= If the flag has been tripped (centroids changed), iterate again
         iteration += 1
         if not flag:
             break
