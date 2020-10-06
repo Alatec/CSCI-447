@@ -87,5 +87,5 @@ for test, train in tqdm(KFolds(data, 10)):
         }
     iter_num += 1
 
-with open("computerHardwarePerfWClust.json", 'w') as f:
+with open("PerformanceOutput/computerHardwarePerfWClust.json", 'w') as f:
     f.write(json.dumps(output_json, indent=2))

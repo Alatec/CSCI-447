@@ -12,11 +12,14 @@ classification_files = [
     "PerformanceOutput/abalonePerfWClust.json",
     "PerformanceOutput/forestFiresPerfWClust.json",
     "PerformanceOutput/computerHardwarePerfWClust.json",
+    "PerformanceOutput/computerHardwarePerfHighRes.json",
+    "PerformanceOutput/forestFiresPerfHighRes.json",
+    "PerformanceOutput/abalonePerfHighRes.json"
     ]
 
 output_data = {}
 
-for f, name in zip(classification_files, ["abalone","forestFires","Hardware"]):
+for f, name in zip(classification_files, ["Abalone","Forest Fires","Computer Hardware","HHires","FHires","AHires"]):
     f1 = open(f,'r')
     classification_sets[name] = json.load(f1)
 
@@ -33,32 +36,34 @@ for key, value in classification_sets.items():
                     "dataset":key,
                     "k": k,
                     "alg":alg,
-                    "R2": metrics["R2"]
+                    "RMSE": metrics["RMSE"]
                 }
                 rows_list.append(row_dict)
 
-dataset_name = "Hardware"
+dataset_name = "Computer Hardware"
 perf_data = pd.DataFrame(rows_list)
-perf_pivot = pd.pivot_table(perf_data[perf_data["dataset"]==dataset_name], "R2", ["k", "alg"], aggfunc=np.mean)
+perf_pivot = pd.pivot_table(perf_data[perf_data["dataset"]==dataset_name], "RMSE", ["k", "alg"], aggfunc=np.mean)
 
 graph_data = {}
 
 for index, row in perf_pivot.iterrows():
     if index[1] not in graph_data:
         graph_data[index[1]] = {}
-        graph_data[index[1]]["R2"] = [row["R2"]]
+        graph_data[index[1]]["RMSE"] = [row["RMSE"]]
         graph_data[index[1]]["k"] = [int(index[0])]
     else:
-        graph_data[index[1]]["R2"].append(row["R2"])
+        graph_data[index[1]]["RMSE"].append(row["RMSE"])
         graph_data[index[1]]["k"].append(int(index[0]))
 
 for key, value in graph_data.items():
     x = np.asarray(value["k"])
-    y = np.asarray(value["R2"])[np.argsort(x)]
+    y = np.asarray(value["RMSE"])[np.argsort(x)]
     x = np.sort(x)
-    plt.plot(x, y, label=key)
+    plt.plot(x, (y-y.min())/(y.max()-y.min()), label=key)
 
-plt.title(dataset_name)
+plt.title(dataset_name + " Range Normalized RMSE by k")
 plt.ylim([0,1])
 plt.legend()
-plt.show()
+plt.xlabel("K value")
+plt.ylabel("Range Normalized RMSE")
+plt.savefig(f"Figures/{dataset_name}_RNRMSE.png")
