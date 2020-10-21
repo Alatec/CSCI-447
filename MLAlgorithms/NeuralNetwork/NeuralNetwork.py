@@ -4,12 +4,11 @@ import pandas as pd
 class NeuralNetwork:
 
     def __init__(self, train_data, number_of_hidden_layers, nodes_per_hidden_layer, prediction_type, unknown_col='class'):
-        # self.test_data = test
+
         self.train_data = train_data
-        # self.k = k
+
         self.predictionType = prediction_type
-        # self.contAttr = contAttr
-        # self.discAttr = discAttr
+
 
         
         #This way the unknowns can be passed in as either part of the data frame or as a separate list
@@ -22,22 +21,50 @@ class NeuralNetwork:
             self.unknown_col = self.train_data[unknown_col][:]
             self.train_data = self.train_data.drop(unknown_col, axis=1)
 
-        #Training the VDM requires the unknown column to be part of the set, so it is added to a temporary data frame
+
         self.unknown_col.reset_index(drop=True)
         self.train_data.reset_index(drop=True)
-        # temp_train_with_unknown = self.train_data.copy(deep=True)
-        # temp_train_with_unknown["unknown_col"] = self.unknown_col.values
-
-        #Distance matrix is a tool for creating a weighted sum discrete and continous distances
-        # self.distance_matrix = DistanceMatrix(self.test_data, temp_train_with_unknown, contAttr, discAttr, len(contAttr), len(discAttr), predictionType, "unknown_col")
         
-        #self.neigbors is a len(test)xlen(train) array containing the distance from each point in test to each point in train
-        # self.neighbors = self.distance_matrix.distanceMatrix 
-        self._create_network( train_data, number_of_hidden_layers, nodes_per_hidden_layer, prediction_type)
+
+        self._create_network(self.train_data, number_of_hidden_layers, nodes_per_hidden_layer, prediction_type)
 
 
 
+    def _feed_forward(self):
+        """
+        docstring
+        """
+
+        input_data = self.train_data.to_numpy()
+        layer_input = input_data
+
+        total_layers = len(self.layerDict.keys())
+
+        for layer_num in range(1,total_layers):
+            prev_layer_indices = [node.index for node in self.layerDict[layer_num-1]]
+            layer_indices = [node.index for node in self.layerDict[layer_num]]
+
+            weights = self.weight_matrix[min(prev_layer_indices):max(prev_layer_indices)+1, min(layer_indices):max(layer_indices)+1]
+
+            layer_input = layer_input@weights
+            print(layer_input.shape[1])
+ 
+
+            for i, node in enumerate(self.layerDict[layer_num]):
+                layer_input[:,i] = node.activate(layer_input[:,i])
+
+
+        return layer_input
+                
+            
+        # for each layer:
+
+        #     temp = temp * weights[slicing_logic]
+        #     for each node:
+        #         temp[node] = node.activate(temp[node])
     
+
+
     def _create_network(self, input_data, number_of_hidden_layers, nodes_per_hidden_layer, prediction_type):
         """
         input_data: Pandas DataFrame
@@ -54,14 +81,14 @@ class NeuralNetwork:
         self.layerDict[0] = []
 
         for node in range(input_data.shape[1]):
-            self.layerDict[0].append(Node(node_index, (0, node), "ree"))
+            self.layerDict[0].append(Node(node_index, (0, node), "logistic"))
             node_index += 1
         
         #Handles Hidden Layers
         for layer in range(number_of_hidden_layers):
             self.layerDict[layer+1] = []
             for node_num in range(nodes_per_hidden_layer[layer]):
-                self.layerDict[layer+1].append(Node(node_index, (layer+1, node_num), "ree"))
+                self.layerDict[layer+1].append(Node(node_index, (layer+1, node_num), "logistic"))
                 node_index += 1
         
         #Handle Output
@@ -69,11 +96,11 @@ class NeuralNetwork:
         self.layerDict[curr_layer] = []
         if prediction_type == "classification":
             for unk in enumerate(self.unknown_col.unique()):
-                self.layerDict[curr_layer].append(Node(node_index, (curr_layer, unk[0]), "ree"))
+                self.layerDict[curr_layer].append(Node(node_index, (curr_layer, unk[0]), "logistic"))
                 node_index += 1
         else:
-            self.layerDict[curr_layer].append(Node(node_index, (curr_layer, 0), "ree"))
+            self.layerDict[curr_layer].append(Node(node_index, (curr_layer, 0), "logistic"))
                                     
 
         #Initializing Weights:
-        self.weight_matrix = np.random.uniform(-0.1, 0.1, size=(node_index, node_index))
+        self.weight_matrix = np.triu(np.random.uniform(-0.1, 0.1, size=(node_index, node_index)), 1)
