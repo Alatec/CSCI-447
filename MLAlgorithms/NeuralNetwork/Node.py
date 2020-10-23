@@ -1,4 +1,9 @@
 import numpy as np
+
+
+
+
+
 class Node:
 
     def __init__(self, index, cordinate, activation_function):
@@ -9,16 +14,19 @@ class Node:
         """
         self.index = index
         self.cordinate = cordinate
-        self.activation_function = activation_function
+        self.activation_function = activation_function[0]
+        self.activation_function_derivative = activation_function[1]
+        self.input_data = None
 
     def __str__(self):
         return f"Index: {self.index}\nCordinate: {self.cordinate}\nActivation Function: {self.activation_function}"
 
     
-# TODO
-    def activate(self, input_value):
-        if self.activation_function == "logistic":
-            return 1/(1+np.exp(-input_value))
-        else:
-            return input_value
-        
+
+    
+    """
+    attr List<List<double>>: input_matrix
+        Each element is a datapoint
+            (Saving Activation Step) Each data point needs an array of derivatives of the input weights
+
+    """

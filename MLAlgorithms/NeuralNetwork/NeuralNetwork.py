@@ -1,3 +1,4 @@
+import MLAlgorithms.Utils.Numba.logistic_activation as la
 from MLAlgorithms.NeuralNetwork.Node import Node
 import numpy as np
 import pandas as pd
@@ -6,10 +7,12 @@ class NeuralNetwork:
     def __init__(self, train_data, number_of_hidden_layers, nodes_per_hidden_layer, prediction_type, unknown_col='class'):
 
         self.train_data = train_data
-
         self.predictionType = prediction_type
 
+        self.activation_dict = {}
+        self.activation_dict["logistic"] = (la.activate, la.activation_derivative)
 
+        
         
         #This way the unknowns can be passed in as either part of the data frame or as a separate list
         #If the unknowns are part of the training set, they are split into their own Series
@@ -46,22 +49,21 @@ class NeuralNetwork:
 
             weights = self.weight_matrix[min(prev_layer_indices):max(prev_layer_indices)+1, min(layer_indices):max(layer_indices)+1]
 
-            layer_input = layer_input@weights
+            temp = layer_input@weights
             print(layer_input.shape[1])
  
 
             for i, node in enumerate(self.layerDict[layer_num]):
-                layer_input[:,i] = node.activate(layer_input[:,i])
+                derivatives = node.activation_function_derivative(layer_input[:, i])
+                self.derivative_matrix[:, min(prev_layer_indices):max(prev_layer_indices)+1, min(layer_indices):max(layer_indices)+1] = np.ones((derivatives.shape[0], weights.shape[0], weights.shape[1])) * derivatives
+                temp[:,i] = node.activation_function(temp[:,i])
+
+            layer_input = temp  
 
 
         return layer_input
                 
-            
-        # for each layer:
-
-        #     temp = temp * weights[slicing_logic]
-        #     for each node:
-        #         temp[node] = node.activate(temp[node])
+        
     
 
 
@@ -81,14 +83,14 @@ class NeuralNetwork:
         self.layerDict[0] = []
 
         for node in range(input_data.shape[1]):
-            self.layerDict[0].append(Node(node_index, (0, node), "logistic"))
+            self.layerDict[0].append(Node(node_index, (0, node), self.activation_dict["logistic"]))
             node_index += 1
         
         #Handles Hidden Layers
         for layer in range(number_of_hidden_layers):
             self.layerDict[layer+1] = []
             for node_num in range(nodes_per_hidden_layer[layer]):
-                self.layerDict[layer+1].append(Node(node_index, (layer+1, node_num), "logistic"))
+                self.layerDict[layer+1].append(Node(node_index, (layer+1, node_num), self.activation_dict["logistic"]))
                 node_index += 1
         
         #Handle Output
@@ -96,11 +98,13 @@ class NeuralNetwork:
         self.layerDict[curr_layer] = []
         if prediction_type == "classification":
             for unk in enumerate(self.unknown_col.unique()):
-                self.layerDict[curr_layer].append(Node(node_index, (curr_layer, unk[0]), "logistic"))
+                self.layerDict[curr_layer].append(Node(node_index, (curr_layer, unk[0]), self.activation_dict["logistic"]))
                 node_index += 1
         else:
-            self.layerDict[curr_layer].append(Node(node_index, (curr_layer, 0), "logistic"))
+            self.layerDict[curr_layer].append(Node(node_index, (curr_layer, 0), self.activation_dict["logistic"]))
                                     
 
         #Initializing Weights:
         self.weight_matrix = np.triu(np.random.uniform(-0.1, 0.1, size=(node_index, node_index)), 1)
+        self.derivative_matrix = np.ones((input_data.shape[0], self.weight_matrix.shape[0], self.weight_matrix.shape[1]))
+
