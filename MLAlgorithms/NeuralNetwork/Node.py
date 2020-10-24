@@ -19,7 +19,7 @@ class Node:
         self.input_data = None
 
     def __str__(self):
-        return f"Index: {self.index}\nCordinate: {self.cordinate}\nActivation Function: {self.activation_function}\n"
+        return f"Index: {self.index}\nCordinate: {self.cordinate}\n"
 
     
 

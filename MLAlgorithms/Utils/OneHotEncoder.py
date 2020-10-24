@@ -1,41 +1,50 @@
 import numpy as np
 
-"""
-Encodes the categorical data with the One-Hot Encoding method
 
-Args:
-    dataFrame: Pandas DataFrame
-    categoricalData: NumpyArray<String>
+class OneHotEncoder():
+    
+    def __init__(self):
+        """
+        docstring
+        """
+        self.encodedDict = None
+        
+    """
+    Encodes the categorical data with the One-Hot Encoding method
 
-Returns:
-    dataFrameEncoded: Pandas DataFrame
-"""
-def oneHotEncoder(dataFrame, categoricalData):
-    if len(categoricalData) < 1:
-        return dataFrame
+    Args:
+        dataFrame: Pandas DataFrame
+        categoricalData: NumpyArray<String>
 
-    dataFrameEncoded = dataFrame.copy()
+    Returns:
+        dataFrameEncoded: Pandas DataFrame
+    """
+    def oneHotEncoder(self, dataFrame, categoricalData):
+        if len(categoricalData) < 1:
+            return dataFrame
 
-
-    # Will encode each discrete attribute
-    for attr in categoricalData:
-        attrDict = {}
-        allVals = dataFrameEncoded[attr].unique()
-        allValsLen = len(allVals)
-
-        # Integer encoding
-        for i, val in enumerate(allVals):
-            array = np.zeros(allValsLen, dtype=int)
-            array[i] = 1
-            attrDict[val] = array
-
-        dataFrameEncoded[attr] = _encoderHelper(dataFrameEncoded[attr], attrDict)
-
-    return dataFrameEncoded
+        dataFrameEncoded = dataFrame.copy()
 
 
-def _encoderHelper(data, attrDict):
+        # Will encode each discrete attribute
+        for attr in categoricalData:
+            attrDict = {}
+            allVals = dataFrameEncoded[attr].unique()
+            allValsLen = len(allVals)
 
-    data = data.apply(lambda x: attrDict[x])
+            # Integer encoding
+            for i, val in enumerate(allVals):
+                array = np.zeros(allValsLen, dtype=int)
+                array[i] = 1
+                attrDict[val] = array
 
-    return data
+            dataFrameEncoded[attr] = self._encoderHelper(dataFrameEncoded[attr], attrDict)
+
+        self.encodedDict = attrDict
+        return dataFrameEncoded
+
+
+    def _encoderHelper(self, data, attrDict):
+        data = data.apply(lambda x: attrDict[x])
+
+        return data

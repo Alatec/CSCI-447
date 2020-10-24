@@ -1,14 +1,14 @@
 {
     "breastCancer": {
-        "dataPath": "breast-cancer-wisconsin.data",
-        "attributes": ["sampleCodeNumber", "clumpThickness", "uniformityOfCellSize", "uniformityOfCellShape",
+        "dataPath": "breast-cancer-wisconsin.csv",
+        "attributes": ["clumpThickness", "uniformityOfCellSize", "uniformityOfCellShape",
                       "marginalAdhesion", "singleEpithelialCellSize", "bareNuclei", "blandChromatin", "normalNucleoli", "mitoses", "class"],
         "class": "class",
         "continuous": ["clumpThickness", "uniformityOfCellSize", "uniformityOfCellShape",
                       "marginalAdhesion", "singleEpithelialCellSize", "bareNuclei", "blandChromatin", "normalNucleoli", "mitoses"],
-        "discrete": ["sampleCodeNumber"],
+        "discrete": ["class"],
         "NAValues":["?"],
-        "rowsToDrop": ["sampleCodeNumber"],
+        "rowsToDrop": [],
         "predictionType": "classification"
     },
     "glass": {

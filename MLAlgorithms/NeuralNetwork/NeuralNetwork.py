@@ -39,7 +39,7 @@ class NeuralNetwork:
         """
 
         input_data = self.train_data.to_numpy()
-        layer_input = input_data
+        layer_input = input_data # layer_input initally contains a 2D array of every value for each attribute
 
         total_layers = len(self.layerDict.keys())
 
@@ -70,7 +70,40 @@ class NeuralNetwork:
         return layer_input
                 
         
-    
+    def _backpropagate(self):
+        """
+        Runs one iteration of backprop
+        """
+        predicted = self._feed_forward()
+        print(predicted.shape)
+        cost_function = (predicted - self.unknown_col)**2
+        dCost_function = -2*(predicted-self.unknown_col)
+
+        update_matrix = np.ones_like(self.weight_matrix)
+
+        total_layers = len(self.layerDict.keys())
+        right_layer_cost = dCost_function
+        
+        for layer_num in reversed(range(1,total_layers)):
+            left_layer_indices = [node.index for node in self.layerDict[layer_num-1]]
+            layer_indices = [node.index for node in self.layerDict[layer_num]]
+            
+
+            for i, node in enumerate(self.layerDict[layer_num]):
+                partial_derivative = self.derivative_matrix[:, left_layer_indices, node.index]
+                print("RightLayer: ", right_layer_cost.shape)
+                print("Partial: ", partial_derivative.shape)
+                print("Weights: ", self.weight_matrix[left_layer_indices, node.index].shape)
+                print("Update: ", update_matrix[min(left_layer_indices):max(left_layer_indices)+1, min(layer_indices):max(layer_indices)+1].shape)
+                # print("Inner 1: ", np.inner(right_layer_cost.T, partial_derivative.T).shape)
+                # print("Inner 2: ", np.inner(self.weight_matrix[left_layer_indices, node.index], np.inner(right_layer_cost.T, partial_derivative.T)).shape)
+                update_matrix[left_layer_indices, node.index] = self.weight_matrix[min(left_layer_indices):max(left_layer_indices)+1, node.index] * np.inner(right_layer_cost[:,i].T, partial_derivative.T)
+                
+
+            #Update right_layer_cost
+            right_layer_cost = np.inner(update_matrix[min(left_layer_indices):max(left_layer_indices)+1, min(layer_indices):max(layer_indices)+1], right_layer_cost.T)
+
+
 
 
     def _create_network(self, input_data, number_of_hidden_layers, nodes_per_hidden_layer, prediction_type):
@@ -103,9 +136,14 @@ class NeuralNetwork:
         curr_layer = number_of_hidden_layers + 1
         self.layerDict[curr_layer] = []
         if prediction_type == "classification":
-            for unk in enumerate(self.unknown_col.unique()):
+            for unk in enumerate(self.unknown_col.iloc[0]):
                 self.layerDict[curr_layer].append(Node(node_index, (curr_layer, unk[0]), self.activation_dict["logistic"]))
                 node_index += 1
+            temp_unk = np.zeros((len(self.unknown_col), len(self.unknown_col.iloc[0])), dtype=np.float64)
+            for i, row in enumerate(temp_unk):
+                temp_unk[i] = self.unknown_col.iloc[i]
+            
+            self.unknown_col = temp_unk
         else:
             self.layerDict[curr_layer].append(Node(node_index, (curr_layer, 0), self.activation_dict["logistic"]))
                                     

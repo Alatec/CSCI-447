@@ -1,16 +1,21 @@
 from MLAlgorithms.Utils.DataRetriever import DataRetriever
-from MLAlgorithms.Utils.OneHotEncoder import oneHotEncoder
+from MLAlgorithms.Utils.OneHotEncoder import OneHotEncoder
 import unittest
 import os
 
 
-class OneHotEncoder(unittest.TestCase):
+class OneHotEncoderTest(unittest.TestCase):
 
     def testOneHotEncoder(self):
         dataRetriver = DataRetriever("../Datasets/metadata.json")
-        glassData = dataRetriver.retrieveData("imageSegmentation")
+        glassData = dataRetriver.retrieveData("breastCancer")
 
-        print(oneHotEncoder(glassData.getDataSet(), glassData.getDescreteAttributes()))
+        ohe = OneHotEncoder()
+        encodedDataFrame = ohe.oneHotEncoder(glassData.getDataSet(), glassData.getDescreteAttributes())
+        encodedDict = ohe.encodedDict
+
+        print(encodedDataFrame)
+        print(encodedDict)
 
 
 

@@ -68,10 +68,12 @@ class DataRetriever():
         continuousAttributes = jsonData['continuous']
         discreteAttributes = jsonData['discrete']
 
-        dataSet = pd.read_csv(self.dataSetPath + "/" + dataPath, names=header, na_values=naValues)
+        dataSet = pd.read_csv(self.dataSetPath + "/" + dataPath, names=header, na_values=naValues, )
 
-        if jsonData["rowsToDrop"] in list(dataSet.columns):
-            dataSet = dataSet.drop(jsonData["rowsToDrop"], axis=1)
+        # if jsonData["rowsToDrop"] in list(dataSet.columns):
+        #     dataSet = dataSet.drop(jsonData["rowsToDrop"], axis=1)
+
+        dataSet = dataSet.drop(jsonData["rowsToDrop"], axis=1)
 
         self.predictionType = jsonData["predictionType"]
         self.rowsToDrop = jsonData["rowsToDrop"]
