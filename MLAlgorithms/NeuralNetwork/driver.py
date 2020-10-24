@@ -8,7 +8,7 @@ dataset = dataRetriever.getDataSet().dropna()
 dataset = (dataset-dataset.mean())/dataset.std()
 
 
-nn = NeuralNetwork(dataset, 5, [7,2,4,5,8], dataRetriever.getPredictionType(), dataRetriever.getDataClass())
+nn = NeuralNetwork(dataset, 5, [7,3,4,5,8], dataRetriever.getPredictionType(), dataRetriever.getDataClass())
 
 final_output = nn._feed_forward()
 print("Mean: ", final_output.mean())

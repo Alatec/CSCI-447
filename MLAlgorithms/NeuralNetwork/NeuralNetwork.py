@@ -43,19 +43,25 @@ class NeuralNetwork:
 
         total_layers = len(self.layerDict.keys())
 
+        
         for layer_num in range(1,total_layers):
             prev_layer_indices = [node.index for node in self.layerDict[layer_num-1]]
             layer_indices = [node.index for node in self.layerDict[layer_num]]
 
             weights = self.weight_matrix[min(prev_layer_indices):max(prev_layer_indices)+1, min(layer_indices):max(layer_indices)+1]
 
-            temp = layer_input@weights
+            temp = (layer_input@weights)[:] # Used to apply the activation function in the next layer 
+            
             print(layer_input.shape[1])
  
 
             for i, node in enumerate(self.layerDict[layer_num]):
-                derivatives = node.activation_function_derivative(layer_input[:, i])
-                self.derivative_matrix[:, min(prev_layer_indices):max(prev_layer_indices)+1, min(layer_indices):max(layer_indices)+1] = np.ones((derivatives.shape[0], weights.shape[0], weights.shape[1])) * derivatives
+                print(node)
+                print(i)
+                print(temp.shape)
+                print(layer_input.shape)
+                derivatives = node.activation_function_derivative(temp[:, i])
+                self.derivative_matrix[:, min(prev_layer_indices):max(prev_layer_indices)+1, min(layer_indices):max(layer_indices)+1] = np.outer(weights, derivatives).reshape(weights.shape[0], -1, len(derivatives)).transpose(2,0,1)
                 temp[:,i] = node.activation_function(temp[:,i])
 
             layer_input = temp  
