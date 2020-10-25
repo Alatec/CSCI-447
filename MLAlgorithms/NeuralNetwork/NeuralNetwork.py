@@ -2,6 +2,7 @@ import MLAlgorithms.Utils.Numba.logistic_activation as la
 from MLAlgorithms.NeuralNetwork.Node import Node
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 class NeuralNetwork:
 
     def __init__(self, train_data, number_of_hidden_layers, nodes_per_hidden_layer, prediction_type, unknown_col='class'):
@@ -25,23 +26,26 @@ class NeuralNetwork:
             self.train_data = self.train_data.drop(unknown_col, axis=1)
 
 
-        self.unknown_col.reset_index(drop=True)
-        self.train_data.reset_index(drop=True)
+        # self.unknown_col.reset_index(drop=True)
+        # self.train_data.reset_index(drop=True)
         
 
         self._create_network(self.train_data, number_of_hidden_layers, nodes_per_hidden_layer, prediction_type)
+        self.prev_update = np.zeros_like(self.weight_matrix)
 
 
 
-    def _feed_forward(self):
+    def _feed_forward(self, batch):
         """
         docstring
         """
 
-        input_data = self.train_data.to_numpy()
+        input_data = batch.to_numpy(dtype=np.longdouble)
         layer_input = input_data # layer_input initally contains a 2D array of every value for each attribute
 
         total_layers = len(self.layerDict.keys())
+
+        self.derivative_matrix = np.ones((batch.shape[0], self.weight_matrix.shape[0], self.weight_matrix.shape[1]), dtype=np.longdouble)
 
         
         for layer_num in range(1,total_layers):
@@ -52,32 +56,39 @@ class NeuralNetwork:
 
             temp = (layer_input@weights)[:] # Used to apply the activation function in the next layer 
             
-            print(layer_input.shape[1])
  
 
             for i, node in enumerate(self.layerDict[layer_num]):
-                print(node)
-                print(i)
-                print(temp.shape)
-                print(layer_input.shape)
+                # print(layer_num, i)
                 derivatives = node.activation_function_derivative(temp[:, i])
                 self.derivative_matrix[:, min(prev_layer_indices):max(prev_layer_indices)+1, min(layer_indices):max(layer_indices)+1] = np.outer(weights, derivatives).reshape(weights.shape[0], -1, len(derivatives)).transpose(2,0,1)
                 temp[:,i] = node.activation_function(temp[:,i])
 
             layer_input = temp  
 
-
-        return layer_input
+        if self.predictionType == "classification":
+            output = np.zeros_like(layer_input)
+            for i, row in enumerate(output):
+                exp_arr = np.exp(layer_input[i])
+                output[i] = exp_arr/(exp_arr.sum())
+            return output
+        else:
+            return layer_input
                 
         
-    def _backpropagate(self):
+    def _backpropagate(self, learning_rate=0.01, batch_size=0.1):
         """
         Runs one iteration of backprop
         """
-        predicted = self._feed_forward()
-        print(predicted.shape)
-        cost_function = (predicted - self.unknown_col)**2
-        dCost_function = -2*(predicted-self.unknown_col)
+        batch = self.train_data.sample(n=batch_size)
+        predicted = self._feed_forward(batch)
+        # print(predicted.shape)
+        cost_function = (predicted - self.unknown_col[batch.index])**2
+        # return cost_function
+        dCost_function = -2*(predicted-self.unknown_col[batch.index])
+        if self.predictionType == "classification":
+            dCost_function *= predicted
+        
 
         update_matrix = np.ones_like(self.weight_matrix)
 
@@ -85,23 +96,43 @@ class NeuralNetwork:
         right_layer_cost = dCost_function
         
         for layer_num in reversed(range(1,total_layers)):
+            # print("\nCurrent Layer Num: ",layer_num)
             left_layer_indices = [node.index for node in self.layerDict[layer_num-1]]
             layer_indices = [node.index for node in self.layerDict[layer_num]]
+            # print("Layer Indices: ", layer_indices)
+            # print("Left Indices: ", left_layer_indices)
             
 
+
             for i, node in enumerate(self.layerDict[layer_num]):
-                partial_derivative = self.derivative_matrix[:, left_layer_indices, node.index]
-                print("RightLayer: ", right_layer_cost.shape)
-                print("Partial: ", partial_derivative.shape)
-                print("Weights: ", self.weight_matrix[left_layer_indices, node.index].shape)
-                print("Update: ", update_matrix[min(left_layer_indices):max(left_layer_indices)+1, min(layer_indices):max(layer_indices)+1].shape)
+                # print(f"============= Node {node.cordinate} - Index {node.index} ===========")
+                partial_derivative = self.derivative_matrix[:, min(left_layer_indices):max(left_layer_indices)+1, node.index]
+                # print("RightLayer: ", right_layer_cost.shape)
+                # print("Partial: ", partial_derivative.shape)
+                # print("Weights: ", self.weight_matrix[left_layer_indices, node.index].shape)
+                # print("Update: ", update_matrix[min(left_layer_indices):max(left_layer_indices)+1, node.index].shape)
                 # print("Inner 1: ", np.inner(right_layer_cost.T, partial_derivative.T).shape)
                 # print("Inner 2: ", np.inner(self.weight_matrix[left_layer_indices, node.index], np.inner(right_layer_cost.T, partial_derivative.T)).shape)
-                update_matrix[left_layer_indices, node.index] = self.weight_matrix[min(left_layer_indices):max(left_layer_indices)+1, node.index] * np.inner(right_layer_cost[:,i].T, partial_derivative.T)
+                update_matrix[min(left_layer_indices):max(left_layer_indices)+1, 
+                node.index] = self.weight_matrix[min(left_layer_indices):max(left_layer_indices)+1, node.index] * np.inner(right_layer_cost[:,i].T, partial_derivative.T)
+                # print("======================")
                 
 
             #Update right_layer_cost
-            right_layer_cost = np.inner(update_matrix[min(left_layer_indices):max(left_layer_indices)+1, min(layer_indices):max(layer_indices)+1], right_layer_cost.T)
+            #print(update_matrix[min(left_layer_indices):max(left_layer_indices)+1, min(layer_indices):max(layer_indices)+1])
+            # print("Layer Update Shape: ", update_matrix[min(left_layer_indices):max(left_layer_indices)+1, min(layer_indices):max(layer_indices)+1].shape)
+            right_layer_cost = np.matmul(right_layer_cost, update_matrix[min(left_layer_indices):max(left_layer_indices)+1, min(layer_indices):max(layer_indices)+1].T)
+        
+        # print("Previous Matrix")
+        # print(self.weight_matrix)
+        self.weight_matrix = ((1.0*learning_rate)*update_matrix + (0.5*learning_rate)*self.prev_update) + self.weight_matrix
+        # print("Current Matrix")
+        # print(self.weight_matrix)    
+        
+        self.prev_update = update_matrix
+        
+
+
 
 
 
