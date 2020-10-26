@@ -1,10 +1,12 @@
 import MLAlgorithms.Utils.Numba.logistic_activation as lga
 import MLAlgorithms.Utils.Numba.linear_activation as lia
 from MLAlgorithms.NeuralNetwork.Node import Node
+from MLAlgorithms.Utils.OneHotEncoder import OneHotEncoder
+
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-np.random.seed(69)
+np.random.seed(420)
 
 """ Questions
 
@@ -37,6 +39,7 @@ class NeuralNetwork:
         self.activation_dict["linear"] = (lia.activate, lia.activation_derivative)
         self.is_binary_class = is_binary_class
 
+
         
         
         # This way, the unknowns can be passed in as either part of the data frame or as a separate list
@@ -48,6 +51,16 @@ class NeuralNetwork:
             self.unknown_col = self.train_data[unknown_col][:]
             self.train_data = self.train_data.drop(unknown_col, axis=1)
         
+        self.unknown_df = pd.DataFrame()
+        self.unknown_df['unknown'] = self.unknown_col
+        self.unknown_df = self.unknown_df.reset_index(drop=True)
+        if prediction_type == 'classification':
+            self.ohe = OneHotEncoder()
+            self.unknown_df = self.ohe.train_fit(self.unknown_df, ["unknown"])
+            if self.unknown_df.shape[1] == 1:
+                self.unknown_col = self.unknown_df["unknown"]
+        
+            
         # On object creation, create a graph to resemble the Neural Network
         self._create_network(self.train_data, number_of_hidden_layers, nodes_per_hidden_layer, prediction_type)
         
@@ -162,8 +175,6 @@ class NeuralNetwork:
 
                 partial_derivative = self.derivative_matrix[:, min(left_layer_indices):max(left_layer_indices)+1, node.index]
                 if len(self.layerDict[layer_num]) == 1:
-                    # print("Length 1")
-                    # print(right_layer_cost.shape)
                     update_matrix[min(left_layer_indices):max(left_layer_indices)+1,  node.index] =  right_layer_cost.T @ partial_derivative
                 else:
                     update_matrix[min(left_layer_indices):max(left_layer_indices)+1,  node.index] =  np.inner(right_layer_cost[:,i].T, partial_derivative.T)
@@ -223,22 +234,16 @@ class NeuralNetwork:
         curr_layer = number_of_hidden_layers + 1
         self.layerDict[curr_layer] = []
         if prediction_type == "classification":
+            
             if self.is_binary_class:
                 self.layerDict[curr_layer].append(Node(node_index, (curr_layer, 0), self.activation_dict["logistic"]))
                 node_index += 1
-                temp_unk = np.ones(len(self.unknown_col), dtype=np.float64)
-
                 
-                temp_unk[self.unknown_col == self.unknown_col.unique()[0]] = 0
-                
-                self.unknown_col = temp_unk
             else:
                 for unk in enumerate(self.unknown_col.iloc[0]):
-                    self.layerDict[curr_layer].append(Node(node_index, (curr_layer, unk[0]), self.activation_dict["logistic"]))
+                    self.layerDict[curr_layer].append(Node(node_index, (curr_layer, unk[0]), self.activation_dict["linear"]))
                     node_index += 1
-                temp_unk = np.zeros((len(self.unknown_col), len(self.unknown_col.iloc[0])), dtype=np.float64)
-                for i, row in enumerate(temp_unk):
-                    temp_unk[i] = self.unknown_col.iloc[i]
+
                 
                 self.unknown_col = temp_unk
         else:

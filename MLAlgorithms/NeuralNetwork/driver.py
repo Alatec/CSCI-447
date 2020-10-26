@@ -3,6 +3,7 @@ from MLAlgorithms.NeuralNetwork.NeuralNetwork import NeuralNetwork
 from MLAlgorithms.Utils.OneHotEncoder import OneHotEncoder
 from tqdm import tqdm
 import numpy as np
+import matplotlib.pyplot as plt
 
 # ================ Data pre-processing =================================================
 
@@ -11,7 +12,7 @@ dataRetriever.retrieveData("breastCancer")
 dataset = dataRetriever.getDataSet().dropna()
 
 dataset = dataset.reset_index(drop=True)
-dataset = (dataset-dataset.mean())/dataset.std()
+dataset[dataRetriever.getContinuousAttributes()] = (dataset[dataRetriever.getContinuousAttributes()]-dataset[dataRetriever.getContinuousAttributes()].mean())/dataset[dataRetriever.getContinuousAttributes()].std()
 
 test_set = dataset.sample(frac=0.1)
 train_set = dataset.drop(test_set.index)
@@ -19,21 +20,25 @@ test_set = test_set.reset_index(drop=True)
 train_set = test_set.reset_index(drop=True)
 
 ohe = OneHotEncoder()
-datasetEncoded = ohe.oneHotEncoder(dataset, dataRetriever.getDescreteAttributes())
+discrete_attr = dataRetriever.getDescreteAttributes()
+if dataRetriever.getDataClass() in discrete_attr:
+    discrete_attr.remove(dataRetriever.getDataClass())
 
-unique = ohe.encodedDict.keys()
+datasetEncoded = ohe.train_fit(train_set, dataRetriever.getDescreteAttributes())
+testEncoded = ohe.fit(test_set)
+
 
 # =======================================================================================
 
 # ====================== Adjustable Variables ==============================
 learning_rate = 0.01
-maxItter = 40
-batch_size = 10
+maxItter = 100
+batch_size = 50
 # ===========================================================================
 
 # ============== Create Neural Network ===========================
 # NOTE: As of right now, the Neural Network only works for classification data sets
-nn = NeuralNetwork(train_set, 2, [5, 2], dataRetriever.getPredictionType(), dataRetriever.getDataClass(), is_binary_class=True)
+nn = NeuralNetwork(datasetEncoded, 2, [5, 2], dataRetriever.getPredictionType(), dataRetriever.getDataClass(), is_binary_class=True)
 
 # ================================================================
 
@@ -46,7 +51,7 @@ for i in range(maxItter):
     # We don't call an inital feedforward because backpropagate starts with a feedforward call
     # batch_size represents the number of data points per batch
     output = nn._back_propagate(learning_rate=learning_rate, batch_size=batch_size)
-    # print(output.sum().sum())
+    print(output.sum().sum())
     # max_weight = nn.weight_matrix.max()
     # if np.isnan(max_weight):
     #     break
@@ -56,9 +61,9 @@ for i in range(maxItter):
 # ===============================================================
 
 # ============= Final Neural Network Output ======
-final = nn._feed_forward(test_set.drop('class', axis=1), testing=True)
+final = nn._feed_forward(testEncoded.drop('class', axis=1), testing=True)
 
-actual = test_set['class']
+actual = testEncoded['class']
 
 
 #  ================================================
@@ -69,9 +74,9 @@ actual = test_set['class']
 correct = 0
 thresh = np.mean(final)
 for i, row in enumerate(final):
-    if row[0] < thresh and 0 == actual[i]:
+    if row[0] < thresh and 1 == actual[i]:
         correct += 1
-    elif row[0] >= thresh and 1 == actual[i]:
+    elif row[0] >= thresh and 0 == actual[i]:
         correct += 1
 acc = correct/len(nn.train_data)
 # ============================================

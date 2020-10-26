@@ -9,13 +9,25 @@ class OneHotEncoderTest(unittest.TestCase):
     def testOneHotEncoder(self):
         dataRetriver = DataRetriever("../Datasets/metadata.json")
         glassData = dataRetriver.retrieveData("breastCancer")
+        data = glassData.getDataSet()
+        unknown = glassData.getDataClass()
+        train = data.sample(n=6, random_state=69)
+        test = data.sample(n=6, random_state=420)
 
         ohe = OneHotEncoder()
-        encodedDataFrame = ohe.oneHotEncoder(glassData.getDataSet(), glassData.getDescreteAttributes())
+        encodedDataFrame = ohe.train_fit(train, glassData.getDescreteAttributes())
         encodedDict = ohe.encodedDict
 
-        print(encodedDataFrame)
-        print(encodedDict)
+        encodedTest = ohe.fit(test)
+
+        # print(encodedDataFrame)
+        # print(encodedDict)
+        print("=============Train============")
+        print(encodedDataFrame[unknown])
+        print(train[unknown])
+        print("=============Test=============")
+        print(encodedTest[unknown])
+        print(test[unknown])
 
 
 

@@ -7,24 +7,19 @@ class OneHotEncoder():
         """
         docstring
         """
-        self.encodedDict = None
+        self.encodedDict = {}
     
-    def train(self):
-        pass
+    def train_fit(self, dataFrame, categoricalData):
+        """
+        Encodes the categorical data with the One-Hot Encoding method
 
-    def fit(self, data):
-        pass
-    """
-    Encodes the categorical data with the One-Hot Encoding method
+        Args:
+            dataFrame: Pandas DataFrame
+            categoricalData: NumpyArray<String>
 
-    Args:
-        dataFrame: Pandas DataFrame
-        categoricalData: NumpyArray<String>
-
-    Returns:
-        dataFrameEncoded: Pandas DataFrame
-    """
-    def oneHotEncoder(self, dataFrame, categoricalData):
+        Returns:
+            dataFrameEncoded: Pandas DataFrame
+        """
         if len(categoricalData) < 1:
             return dataFrame
 
@@ -33,26 +28,67 @@ class OneHotEncoder():
 
         # Will encode each discrete attribute
         for attr in categoricalData:
-            attrDict = {}
+            self.encodedDict[attr] = []
             allVals = dataFrameEncoded[attr].unique()
             allValsLen = len(allVals)
 
-            # Integer encoding
-            for i, val in enumerate(allVals):
-                array = np.zeros(allValsLen, dtype=int)
-                array[i] = 1
-                attrDict[val] = array
+            if allValsLen > 2:
+                one_hot_cols = np.zeros((len(dataFrameEncoded), allValsLen+1))
+                for i, val in enumerate(allVals):
+                    self.encodedDict[attr].append((val, f'{attr}_{val}'))
+                    one_hot_cols[dataFrameEncoded[attr]==val,i] = 1
+                    dataFrameEncoded[self.encodedDict[attr][i][1]] = one_hot_cols[:,i]
+                self.encodedDict[attr].append((f'{attr}_catchall',))
+                dataFrameEncoded[self.encodedDict[attr][-1][0]] = one_hot_cols[:,-1]
+                dataFrameEncoded = dataFrameEncoded.drop(attr, axis=1)
+            else:
+                one_hot_col = np.zeros(len(dataFrameEncoded), dtype=np.float64)
+                self.encodedDict[attr].append((allVals[0], attr))
+                one_hot_col[dataFrameEncoded[attr]==allVals[0]] = 1
+                dataFrameEncoded = dataFrameEncoded.drop(attr, axis=1)
+                dataFrameEncoded[attr] = one_hot_col
 
-            dataFrameEncoded[attr] = self._encoderHelper(dataFrameEncoded[attr], attrDict)
-
-        self.encodedDict = attrDict
         return dataFrameEncoded
 
+    def fit(self, dataFrame):
+        
+        for attr, value in self.encodedDict.items():
+            
+            if len(value) > 1:
+                one_hot_cols = np.zeros((len(dataFrame), len(value)))
+                col_order = []
+                catchall_col = None
+                for i, val in enumerate(value):
+                    if len(val) == 1: 
+                        catchall_col = val[0]
+                    else:
+                        col_order.append(val[1])
+                        one_hot_cols[:, len(col_order)-1] = (dataFrame[attr]==val[0])
+                        dataFrame[col_order[-1]] = one_hot_cols[:,len(col_order)-1]
+                
+                one_hot_cols[:,-1] = one_hot_cols.sum(axis=1)
+                one_hot_cols[:,-1] = np.logical_not(one_hot_cols[:,-1] > 0)
+                dataFrame[catchall_col] = one_hot_cols[:,-1]
+                dataFrame = dataFrame.drop(attr, axis=1)
+            else:
+                one_hot_col = np.zeros(len(dataFrame), dtype=np.float64)
+                val = self.encodedDict[attr][0]
+                one_hot_col[dataFrame[attr]==val[0]] = 1
+                dataFrame = dataFrame.drop(attr, axis=1)
+                dataFrame[attr] = one_hot_col
+        return dataFrame
 
-    def _encoderHelper(self, data, attrDict):
-        data = data.apply(lambda x: attrDict[x])
 
-        return data
+
+    
+
+
+
+            
+
+        
+        
+
 
 
 ## OG Column name
