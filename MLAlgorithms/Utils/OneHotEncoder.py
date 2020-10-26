@@ -8,7 +8,12 @@ class OneHotEncoder():
         docstring
         """
         self.encodedDict = None
-        
+    
+    def train(self):
+        pass
+
+    def fit(self, data):
+        pass
     """
     Encodes the categorical data with the One-Hot Encoding method
 
@@ -48,3 +53,12 @@ class OneHotEncoder():
         data = data.apply(lambda x: attrDict[x])
 
         return data
+
+
+## OG Column name
+##      New Column Names OG_red OG_green
+##          Associtiated Values red green
+
+## OG_red[OG==red] = 1
+
+## OG = red, green, green, red

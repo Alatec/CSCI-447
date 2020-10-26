@@ -21,7 +21,7 @@ np.random.seed(69)
 
 class NeuralNetwork:
 
-    def __init__(self, train_data, number_of_hidden_layers, nodes_per_hidden_layer, prediction_type, unknown_col='class', is_binary_class=False):
+    def __init__(self, train_data, number_of_hidden_layers, nodes_per_hidden_layer, prediction_type, unknown_col='class', is_binary_class=False, is_regression_data=False):
         """
         self.train_data: Encoded Pandas DataFrame (unknown column included)
         self.predictionType: String representing the prediction type (regression || classification)
@@ -53,7 +53,7 @@ class NeuralNetwork:
         
 
 
-    def _feed_forward(self, batch):
+    def _feed_forward(self, batch, testing=False):
         """
         batch: Sampled Pandas DataFrame
 
@@ -66,8 +66,9 @@ class NeuralNetwork:
         layer_input = input_data # layer_input initally contains a 2D array of every value for each attribute
         total_layers = len(self.layerDict.keys())
         
-        # Create a 3D matrix containing the partial derivative information of the weight matrix for each data point
-        self.derivative_matrix = np.ones((batch.shape[0], self.weight_matrix.shape[0], self.weight_matrix.shape[1]), dtype=np.longdouble)
+        if not testing:
+            # Create a 3D matrix containing the partial derivative information of the weight matrix for each data point
+            self.derivative_matrix = np.ones((batch.shape[0], self.weight_matrix.shape[0], self.weight_matrix.shape[1]), dtype=np.longdouble)
 
         # Iterate through each layer 
         for layer_num in range(1,total_layers):
@@ -86,19 +87,20 @@ class NeuralNetwork:
                 # Apply the activation function to the input data
                 layer_input[:,i] = node.activation_function(layer_input[:,i])
 
-                # This block of code is used to calculate the derivates for the upcoming back propagation step
-                # A(Input_layer*Weight)
-                # dA(Input_Layer*Weight)*Weight
-                # =================================================================================================================================
-                # Apply the derivative of the activation function to the input data
-                derivatives = node.activation_function_derivative(layer_input[:, i])
+                if not testing:
+                    # This block of code is used to calculate the derivates for the upcoming back propagation step
+                    # A(Input_layer*Weight)
+                    # dA(Input_Layer*Weight)*Weight
+                    # =================================================================================================================================
+                    # Apply the derivative of the activation function to the input data
+                    derivatives = node.activation_function_derivative(layer_input[:, i])
 
-                # Save paritial derivatives in the derivative matrix
-                derivatives = np.outer(weights[:,i], derivatives).T
-        
-                # Update the selected portion of the derivative_matrix 
-                self.derivative_matrix[:, min(left_layer_indices):max(left_layer_indices)+1, node.index] = derivatives
-                # ==================================================================================================================================
+                    # Save paritial derivatives in the derivative matrix
+                    derivatives = np.outer(weights[:,i], derivatives).T
+            
+                    # Update the selected portion of the derivative_matrix 
+                    self.derivative_matrix[:, min(left_layer_indices):max(left_layer_indices)+1, node.index] = derivatives
+                    # ==================================================================================================================================
                 
 
         # If classification, apply softmax

@@ -12,6 +12,12 @@ dataset = dataRetriever.getDataSet().dropna()
 
 dataset = dataset.reset_index(drop=True)
 dataset = (dataset-dataset.mean())/dataset.std()
+
+test_set = dataset.sample(frac=0.1)
+train_set = dataset.drop(test_set.index)
+test_set = test_set.reset_index(drop=True)
+train_set = test_set.reset_index(drop=True)
+
 ohe = OneHotEncoder()
 datasetEncoded = ohe.oneHotEncoder(dataset, dataRetriever.getDescreteAttributes())
 
@@ -27,14 +33,14 @@ batch_size = 10
 
 # ============== Create Neural Network ===========================
 # NOTE: As of right now, the Neural Network only works for classification data sets
-nn = NeuralNetwork(dataset, 2, [5, 2], dataRetriever.getPredictionType(), dataRetriever.getDataClass(), is_binary_class=True)
+nn = NeuralNetwork(train_set, 2, [5, 2], dataRetriever.getPredictionType(), dataRetriever.getDataClass(), is_binary_class=True)
 
 # ================================================================
 
 
 # ======================= Train Neural Network ================
 
-# Train the Neural Network 1000 times
+
 cost_func = []
 for i in range(maxItter):
     # We don't call an inital feedforward because backpropagate starts with a feedforward call
@@ -50,10 +56,10 @@ for i in range(maxItter):
 # ===============================================================
 
 # ============= Final Neural Network Output ======
-final = nn._feed_forward(nn.train_data)
+final = nn._feed_forward(test_set.drop('class', axis=1), testing=True)
 
-actual = nn.unknown_col[nn.train_data.index]
-# print(initial[0])
+actual = test_set['class']
+
 
 #  ================================================
 
