@@ -1,13 +1,15 @@
-import MLAlgorithms.Utils.Numba.logistic_activation as la
+import MLAlgorithms.Utils.Numba.logistic_activation as lga
+import MLAlgorithms.Utils.Numba.linear_activation as lia
 from MLAlgorithms.NeuralNetwork.Node import Node
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+np.random.seed(69)
 
 """ Questions
 
-We are experiencing an overflow error with our sigmoid functions. How do we avoid this?
-Currently, our Neural Network is learning to predict the most common classifcation. Why?
+    Ask Giorgio if our backprop logic is okay
+    
 
 """
 
@@ -19,7 +21,7 @@ Currently, our Neural Network is learning to predict the most common classifcati
 
 class NeuralNetwork:
 
-    def __init__(self, train_data, number_of_hidden_layers, nodes_per_hidden_layer, prediction_type, unknown_col='class'):
+    def __init__(self, train_data, number_of_hidden_layers, nodes_per_hidden_layer, prediction_type, unknown_col='class', is_binary_class=False):
         """
         self.train_data: Encoded Pandas DataFrame (unknown column included)
         self.predictionType: String representing the prediction type (regression || classification)
@@ -28,11 +30,12 @@ class NeuralNetwork:
         self.activation_dict: A containing the activation functions and activation function derivatives for a given activation function type
         """
 
-
         self.train_data = train_data
         self.predictionType = prediction_type
         self.activation_dict = {}
-        self.activation_dict["logistic"] = (la.activate, la.activation_derivative)
+        self.activation_dict["logistic"] = (lga.activate, lga.activation_derivative)
+        self.activation_dict["linear"] = (lia.activate, lia.activation_derivative)
+        self.is_binary_class = is_binary_class
 
         
         
@@ -98,18 +101,19 @@ class NeuralNetwork:
                 # ==================================================================================================================================
                 
 
-        #If classification, apply softmax
-        if self.predictionType == "classification":
-            output = np.zeros_like(layer_input)
-            for i, row in enumerate(output):
-                exp_arr = np.exp(layer_input[i])
-                output[i] = exp_arr/(exp_arr.sum())
-            return output
-        else:
-            return layer_input
+        # If classification, apply softmax
+        # if self.predictionType == "classification":
+        #     output = np.zeros_like(layer_input, dtype=np.float64)
+        #     for i, row in enumerate(output):
+        #         exp_arr = np.exp(layer_input[i])
+        #         output[i] = exp_arr/(exp_arr.sum())
+        #     return output
+        # else:
+        #     return layer_input
+        return layer_input
                 
         
-    def _back_propagate(self, learning_rate=0.01, batch_size=10):
+    def _back_propagate(self, learning_rate=0.1, batch_size=10, cost_func='bin_cross'):
         """
         learning_rate: float - Used to describe the rate the Neural Network runs
         batch_size: int - Number of points grabbed from the data set
@@ -120,17 +124,25 @@ class NeuralNetwork:
         returns output of cost_function
         """
         batch = self.train_data.sample(n=batch_size)
-        predicted = self._feed_forward(batch)
-        
-        #Quadratic Loss 
-        cost_function = (predicted - self.unknown_col[batch.index])**2
         
         
-        dCost_function = -2*(predicted-self.unknown_col[batch.index]) #*dPredicted w.r.t weights
-        # if self.predictionType == "classification":
-        #     dCost_function *= predicted
+        # Binary Cross Entropy Loss
+        if cost_func == 'bin_cross':
+            predicted = self._feed_forward(batch).T
+            cost_function = (1/len(batch)) * (self.unknown_col[batch.index]*np.log(predicted+0.0001) + (1-self.unknown_col[batch.index])*np.log((1.0-predicted)+0.001))
+            dCost_function = (1/len(batch))* (np.divide(self.unknown_col[batch.index],(predicted+0.0001)) + np.divide(1-self.unknown_col[batch.index],(1.0001-predicted))).T
+        else:
+            #Quadratic Loss 
+            predicted = self._feed_forward(batch)
+            cost_function = (predicted - self.unknown_col[batch.index])**2
+            
+            
+            dCost_function = 1*np.abs(predicted-self.unknown_col[batch.index]) #*dPredicted w.r.t weights
+            
+            # if self.predictionType == "classification":
+            #     dCost_function *= predicted
         
-
+        # return dCost_function
         update_matrix = np.zeros_like(self.weight_matrix)
 
         total_layers = len(self.layerDict.keys())
@@ -147,16 +159,21 @@ class NeuralNetwork:
             for i, node in enumerate(self.layerDict[layer_num]):
 
                 partial_derivative = self.derivative_matrix[:, min(left_layer_indices):max(left_layer_indices)+1, node.index]
-
-                update_matrix[min(left_layer_indices):max(left_layer_indices)+1, 
-                node.index] =  np.inner(right_layer_cost[:,i].T, partial_derivative.T)
+                if len(self.layerDict[layer_num]) == 1:
+                    # print("Length 1")
+                    # print(right_layer_cost.shape)
+                    update_matrix[min(left_layer_indices):max(left_layer_indices)+1,  node.index] =  right_layer_cost.T @ partial_derivative
+                else:
+                    update_matrix[min(left_layer_indices):max(left_layer_indices)+1,  node.index] =  np.inner(right_layer_cost[:,i].T, partial_derivative.T)
 
             
             #Update right_layer_cost
             right_layer_cost = np.matmul(right_layer_cost, update_matrix[min(left_layer_indices):max(left_layer_indices)+1, min(layer_indices):max(layer_indices)+1].T)
         
 
-        self.weight_matrix = ((1.0*learning_rate)*update_matrix + (0.1*learning_rate)*self.prev_update) + self.weight_matrix
+        update_matrix = (update_matrix-update_matrix-update_matrix.min())/(update_matrix.max()-update_matrix.min())
+        self.weight_matrix = ((0.9*learning_rate)*update_matrix + (0.1*learning_rate)*self.prev_update) + self.weight_matrix
+        
 
         
         self.prev_update = update_matrix[:]
@@ -204,14 +221,24 @@ class NeuralNetwork:
         curr_layer = number_of_hidden_layers + 1
         self.layerDict[curr_layer] = []
         if prediction_type == "classification":
-            for unk in enumerate(self.unknown_col.iloc[0]):
-                self.layerDict[curr_layer].append(Node(node_index, (curr_layer, unk[0]), self.activation_dict["logistic"]))
+            if self.is_binary_class:
+                self.layerDict[curr_layer].append(Node(node_index, (curr_layer, 0), self.activation_dict["logistic"]))
                 node_index += 1
-            temp_unk = np.zeros((len(self.unknown_col), len(self.unknown_col.iloc[0])), dtype=np.float64)
-            for i, row in enumerate(temp_unk):
-                temp_unk[i] = self.unknown_col.iloc[i]
-            
-            self.unknown_col = temp_unk
+                temp_unk = np.ones(len(self.unknown_col), dtype=np.float64)
+
+                
+                temp_unk[self.unknown_col == self.unknown_col.unique()[0]] = 0
+                
+                self.unknown_col = temp_unk
+            else:
+                for unk in enumerate(self.unknown_col.iloc[0]):
+                    self.layerDict[curr_layer].append(Node(node_index, (curr_layer, unk[0]), self.activation_dict["logistic"]))
+                    node_index += 1
+                temp_unk = np.zeros((len(self.unknown_col), len(self.unknown_col.iloc[0])), dtype=np.float64)
+                for i, row in enumerate(temp_unk):
+                    temp_unk[i] = self.unknown_col.iloc[i]
+                
+                self.unknown_col = temp_unk
         else:
             self.layerDict[curr_layer].append(Node(node_index, (curr_layer, 0), self.activation_dict["logistic"]))
                                     

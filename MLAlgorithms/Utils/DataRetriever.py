@@ -38,7 +38,8 @@ class DataRetriever():
         return self.dataClass
 
     def getDataSet(self):
-        return self.dataSet.sample(frac=1, random_state=69)
+        self.dataSet = self.dataSet.sample(frac=1, random_state=69)
+        return self.dataSet.reset_index(drop=True)
 
     def getRowsToDrop(self):
         return self.rowsToDrop
