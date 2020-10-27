@@ -43,7 +43,7 @@ class OneHotEncoder():
                 dataFrameEncoded = dataFrameEncoded.drop(attr, axis=1)
             else:
                 one_hot_col = np.zeros(len(dataFrameEncoded), dtype=np.float64)
-                self.encodedDict[attr].append((allVals[0], attr))
+                self.encodedDict[attr].append((allVals[0], allVals[1]))
                 one_hot_col[dataFrameEncoded[attr]==allVals[0]] = 1
                 dataFrameEncoded = dataFrameEncoded.drop(attr, axis=1)
                 dataFrameEncoded[attr] = one_hot_col

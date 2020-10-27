@@ -23,7 +23,7 @@ np.random.seed(420)
 
 class NeuralNetwork:
 
-    def __init__(self, train_data, number_of_hidden_layers, nodes_per_hidden_layer, prediction_type, unknown_col='class', is_binary_class=False, is_regression_data=False):
+    def __init__(self, train_data, number_of_hidden_layers, nodes_per_hidden_layer, prediction_type, unknown_col='class', is_regression_data=False):
         """
         self.train_data: Encoded Pandas DataFrame (unknown column included)
         self.predictionType: String representing the prediction type (regression || classification)
@@ -37,7 +37,7 @@ class NeuralNetwork:
         self.activation_dict = {}
         self.activation_dict["logistic"] = (lga.activate, lga.activation_derivative)
         self.activation_dict["linear"] = (lia.activate, lia.activation_derivative)
-        self.is_binary_class = is_binary_class
+        
 
 
         
@@ -64,7 +64,41 @@ class NeuralNetwork:
         # On object creation, create a graph to resemble the Neural Network
         self._create_network(self.train_data, number_of_hidden_layers, nodes_per_hidden_layer, prediction_type)
         
+    def test(self, dataset, thresh="mean"):
+        """
+        docstring
+        """
+        output = self._feed_forward(dataset, testing=True)
+        if self.predictionType == 'classification':
+            
+            # Binary Classification
+            if output.shape[1] == 1:
+                ret_array = np.zeros(output.shape[0])
+                output = output.reshape(output.shape[0])
+                if thresh == "median": thresh = np.median(output)
+                elif thresh == "mean": thresh = np.mean(output)
+                ret_array[output<thresh] = self.ohe.encodedDict["unknown"][0][0]
+                ret_array[output>=thresh] = self.ohe.encodedDict["unknown"][0][1]
+                return ret_array
+            else:
+                output_cols = output.argmax(axis=1)
+                unknown_cols = self.unknown_df.columns
+                ret_array = []
+                for val in output_cols:
+                    col = unknown_cols[val]
 
+                    
+
+                    for x in self.ohe.encodedDict["unknown"]:
+                        if len(x) > 1:
+                            if x[1] == col:
+                                ret_array.append(x[0])
+                                break
+                            continue
+                        ret_array.append("unknown")
+                return ret_array
+        
+    
 
     def _feed_forward(self, batch, testing=False):
         """
@@ -117,18 +151,18 @@ class NeuralNetwork:
                 
 
         # If classification, apply softmax
-        # if self.predictionType == "classification":
-        #     output = np.zeros_like(layer_input, dtype=np.float64)
-        #     for i, row in enumerate(output):
-        #         exp_arr = np.exp(layer_input[i])
-        #         output[i] = exp_arr/(exp_arr.sum())
-        #     return output
-        # else:
-        #     return layer_input
-        return layer_input
+        if self.predictionType == "classification" and self.unknown_df.shape[1] > 1:
+            output = np.zeros_like(layer_input, dtype=np.float64)
+            for i, row in enumerate(output):
+                exp_arr = np.exp(layer_input[i])
+                output[i] = exp_arr/(exp_arr.sum())
+            return output
+        else:
+            return layer_input
+        # return layer_input
                 
         
-    def _back_propagate(self, learning_rate=0.1, batch_size=10, cost_func='bin_cross'):
+    def _back_propagate(self, learning_rate=0.1, batch_size=10, cost_func='multi_cross'):
         """
         learning_rate: float - Used to describe the rate the Neural Network runs
         batch_size: int - Number of points grabbed from the data set
@@ -144,15 +178,24 @@ class NeuralNetwork:
         # Binary Cross Entropy Loss
         if cost_func == 'bin_cross':
             predicted = self._feed_forward(batch).T
-            cost_function = (1/len(batch)) * (self.unknown_col[batch.index]*np.log(predicted+0.0001) + (1-self.unknown_col[batch.index])*np.log((1.0-predicted)+0.001))
-            dCost_function = (1/len(batch))* (np.divide(self.unknown_col[batch.index],(predicted+0.0001)) + np.divide(1-self.unknown_col[batch.index],(1.0001-predicted))).T
+            truths = self.unknown_col[batch.index].to_numpy()
+            cost_function = (1/len(batch)) * (truths*np.log(predicted+0.0001) + (1-truths)*np.log((1.0-predicted)+0.001))
+            dCost_function = (1/len(batch))* (np.divide(truths,(predicted+0.0001)) + np.divide(1-truths,(1.0001-predicted))).T
+        elif cost_func == 'multi_cross':
+            predicted = self._feed_forward(batch)
+            truths = self.unknown_df.loc[batch.index].to_numpy()
+            cost_function = 1
+            # print(predicted)
+            dCost_function = ((truths * predicted) - 1) + predicted*np.logical_not(truths)
+            # print(dCost_function)
         else:
             #Quadratic Loss 
-            predicted = self._feed_forward(batch)
-            cost_function = (predicted - self.unknown_col[batch.index])**2
+            predicted = self._feed_forward(batch).T
+            # cost_function = (predicted - self.unknown_col[batch.index])**2
+            cost_function = 1
             
-            
-            dCost_function = 1*np.abs(predicted-self.unknown_col[batch.index]) #*dPredicted w.r.t weights
+            dCost_function = 1*np.abs(predicted-self.unknown_col[batch.index])
+             #*dPredicted w.r.t weights
             
             # if self.predictionType == "classification":
             #     dCost_function *= predicted
@@ -177,6 +220,7 @@ class NeuralNetwork:
                 if len(self.layerDict[layer_num]) == 1:
                     update_matrix[min(left_layer_indices):max(left_layer_indices)+1,  node.index] =  right_layer_cost.T @ partial_derivative
                 else:
+                    # print(update_matrix)
                     update_matrix[min(left_layer_indices):max(left_layer_indices)+1,  node.index] =  np.inner(right_layer_cost[:,i].T, partial_derivative.T)
 
             
@@ -235,17 +279,15 @@ class NeuralNetwork:
         self.layerDict[curr_layer] = []
         if prediction_type == "classification":
             
-            if self.is_binary_class:
+            if self.unknown_df.shape[1] == 1:
                 self.layerDict[curr_layer].append(Node(node_index, (curr_layer, 0), self.activation_dict["logistic"]))
                 node_index += 1
                 
             else:
-                for unk in enumerate(self.unknown_col.iloc[0]):
-                    self.layerDict[curr_layer].append(Node(node_index, (curr_layer, unk[0]), self.activation_dict["linear"]))
+                for unk in enumerate(self.unknown_df.iloc[0]):
+                    self.layerDict[curr_layer].append(Node(node_index, (curr_layer, unk[0]), self.activation_dict["logistic"]))
                     node_index += 1
 
-                
-                self.unknown_col = temp_unk
         else:
             self.layerDict[curr_layer].append(Node(node_index, (curr_layer, 0), self.activation_dict["logistic"]))
                                     
