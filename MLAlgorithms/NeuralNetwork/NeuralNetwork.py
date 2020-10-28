@@ -37,6 +37,7 @@ class NeuralNetwork:
         self.activation_dict = {}
         self.activation_dict["logistic"] = (lga.activate, lga.activation_derivative)
         self.activation_dict["linear"] = (lia.activate, lia.activation_derivative)
+        self.activation_dict["bias"] = (lambda x: 1, lambda x: 1)
         
 
 
@@ -87,8 +88,6 @@ class NeuralNetwork:
                 for val in output_cols:
                     col = unknown_cols[val]
 
-                    
-
                     for x in self.ohe.encodedDict["unknown"]:
                         if len(x) > 1:
                             if x[1] == col:
@@ -97,7 +96,9 @@ class NeuralNetwork:
                             continue
                         ret_array.append("unknown")
                 return ret_array
-        
+        else:
+            return output
+
     
 
     def _feed_forward(self, batch, testing=False):
@@ -174,33 +175,34 @@ class NeuralNetwork:
         """
         batch = self.train_data.sample(n=batch_size)
         
-        
+        # These are all the different loss functions we use
+
         # Binary Cross Entropy Loss
         if cost_func == 'bin_cross':
             predicted = self._feed_forward(batch).T
             truths = self.unknown_col[batch.index].to_numpy()
             cost_function = (1/len(batch)) * (truths*np.log(predicted+0.0001) + (1-truths)*np.log((1.0-predicted)+0.001))
             dCost_function = (1/len(batch))* (np.divide(truths,(predicted+0.0001)) + np.divide(1-truths,(1.0001-predicted))).T
+        # Multi-Class Cross Entropy Loss
         elif cost_func == 'multi_cross':
             predicted = self._feed_forward(batch)
             truths = self.unknown_df.loc[batch.index].to_numpy()
             cost_function = 1
-            # print(predicted)
             dCost_function = ((truths * predicted) - 1) + predicted*np.logical_not(truths)
-            # print(dCost_function)
+
         else:
             #Quadratic Loss 
-            predicted = self._feed_forward(batch).T
+            predicted = self._feed_forward(batch)
             # cost_function = (predicted - self.unknown_col[batch.index])**2
             cost_function = 1
             
-            dCost_function = 1*np.abs(predicted-self.unknown_col[batch.index])
+            dCost_function = -1*np.abs(predicted-self.unknown_df.loc[batch.index].to_numpy())
              #*dPredicted w.r.t weights
             
             # if self.predictionType == "classification":
             #     dCost_function *= predicted
         
-        # return dCost_function
+        # return dCost_function -> used for testing
         update_matrix = np.zeros_like(self.weight_matrix)
 
         total_layers = len(self.layerDict.keys())
@@ -211,16 +213,12 @@ class NeuralNetwork:
             left_layer_indices = [node.index for node in self.layerDict[layer_num-1]]
             layer_indices = [node.index for node in self.layerDict[layer_num]]
 
-            
-
-
             for i, node in enumerate(self.layerDict[layer_num]):
 
                 partial_derivative = self.derivative_matrix[:, min(left_layer_indices):max(left_layer_indices)+1, node.index]
                 if len(self.layerDict[layer_num]) == 1:
                     update_matrix[min(left_layer_indices):max(left_layer_indices)+1,  node.index] =  right_layer_cost.T @ partial_derivative
                 else:
-                    # print(update_matrix)
                     update_matrix[min(left_layer_indices):max(left_layer_indices)+1,  node.index] =  np.inner(right_layer_cost[:,i].T, partial_derivative.T)
 
             
@@ -229,7 +227,7 @@ class NeuralNetwork:
         
 
         update_matrix = (update_matrix-update_matrix-update_matrix.min())/(update_matrix.max()-update_matrix.min())
-        self.weight_matrix = ((0.9*learning_rate)*update_matrix + (0.1*learning_rate)*self.prev_update) + self.weight_matrix
+        self.weight_matrix = ((0.7*learning_rate)*update_matrix + (0.3*learning_rate)*self.prev_update) + self.weight_matrix
         
 
         
@@ -264,32 +262,36 @@ class NeuralNetwork:
         self.layerDict[0] = []
 
         for node in range(input_data.shape[1]):
-            self.layerDict[0].append(Node(node_index, (0, node), self.activation_dict["logistic"]))
+            self.layerDict[0].append(Node(node_index, (0, node), self.activation_dict["linear"]))
             node_index += 1
         
         #Handles Hidden Layers
         for layer in range(number_of_hidden_layers):
             self.layerDict[layer+1] = []
             for node_num in range(nodes_per_hidden_layer[layer]):
-                self.layerDict[layer+1].append(Node(node_index, (layer+1, node_num), self.activation_dict["logistic"]))
+                self.layerDict[layer+1].append(Node(node_index, (layer+1, node_num), self.activation_dict["linear"]))
                 node_index += 1
+            # This is the bias node
+            # self.layerDict[layer+1].append(Node(node_index, (layer+1, node_num), self.activation_dict["bias"]))
+            # node_index += 1
         
         #Handle Output
         curr_layer = number_of_hidden_layers + 1
         self.layerDict[curr_layer] = []
         if prediction_type == "classification":
-            
+            # If the dataset is a binary classification
             if self.unknown_df.shape[1] == 1:
                 self.layerDict[curr_layer].append(Node(node_index, (curr_layer, 0), self.activation_dict["logistic"]))
                 node_index += 1
                 
             else:
                 for unk in enumerate(self.unknown_df.iloc[0]):
-                    self.layerDict[curr_layer].append(Node(node_index, (curr_layer, unk[0]), self.activation_dict["logistic"]))
+                    self.layerDict[curr_layer].append(Node(node_index, (curr_layer, unk[0]), self.activation_dict["linear"]))
                     node_index += 1
 
         else:
-            self.layerDict[curr_layer].append(Node(node_index, (curr_layer, 0), self.activation_dict["logistic"]))
+            self.layerDict[curr_layer].append(Node(node_index, (curr_layer, 0), self.activation_dict["linear"]))
+            node_index += 1
                                     
 
         #Initializing Weights:

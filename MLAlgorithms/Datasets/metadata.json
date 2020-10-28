@@ -44,7 +44,8 @@
         "stem", "lodging", "stemCankers", "cankerLesion", "fruitingBodies", "externalDecay", "mycelium", "intDiscolor", "sclerotia", "fruitPods",
         "fruitSpots", "seed", "moldGrowth", "seedDiscolor", "seedSize", "shriveling", "roots"],
         "NAValues":[],
-        "rowsToDrop": ["date"],
+        "rowsToDrop": ["date", "fruitPods", "leafMild", "fruitSpots", "seed", "leafMalf", "leafspotsMarg", "germination", "leaves", "leafspotsHalo", "leafspotSize", "leafShread", "moldGrowth",
+        "seedDiscolor", "seedSize"],
         "predictionType": "classification"
     },
     "vote": {

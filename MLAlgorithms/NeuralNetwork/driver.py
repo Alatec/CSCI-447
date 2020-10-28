@@ -8,10 +8,15 @@ import matplotlib.pyplot as plt
 # ================ Data pre-processing =================================================
 
 dataRetriever = DataRetriever("../Datasets/metadata.json")
-dataRetriever.retrieveData("glass")
+dataRetriever.retrieveData("breastCancer")
 dataset = dataRetriever.getDataSet().dropna()
 
+
 dataset = dataset.reset_index(drop=True)
+
+# This line is used to normalize the data for Forest Fires
+# dataset[dataRetriever.getDataClass()] = np.log(dataset[dataRetriever.getDataClass()]+0.1)
+
 dataset[dataRetriever.getContinuousAttributes()] = (dataset[dataRetriever.getContinuousAttributes()]-dataset[dataRetriever.getContinuousAttributes()].mean())/dataset[dataRetriever.getContinuousAttributes()].std()
 
 test_set = dataset.sample(frac=0.1)
@@ -31,20 +36,19 @@ testEncoded = ohe.fit(test_set)
 # =======================================================================================
 
 # ====================== Adjustable Variables ==============================
-learning_rate = 0.5
-maxItter = 200
-batch_size = 50
+learning_rate = 0.1
+maxItter = 500
+batch_size = 150
 # ===========================================================================
 
 # ============== Create Neural Network ===========================
 # NOTE: As of right now, the Neural Network only works for classification data sets
-nn = NeuralNetwork(datasetEncoded, 2, [5,7], dataRetriever.getPredictionType(), dataRetriever.getDataClass())
+nn = NeuralNetwork(datasetEncoded, 2, [5, 13], dataRetriever.getPredictionType(), dataRetriever.getDataClass())
 
 # ================================================================
 
 
 # ======================= Train Neural Network ================
-
 
 cost_func = []
 for i in range(maxItter):
@@ -75,19 +79,52 @@ actual = testEncoded[dataRetriever.getDataClass()]
 
 # correct = (actual==np.asarray(final)).sum()
 
+## ===================== Classification =================
 correct = 0
 for i, row in enumerate(final):
     if row == actual.iloc[i]: correct += 1
 
 acc = correct/len(test_set)
-# ============================================
+# # ============================================
 
-# ============ Compare Acc to Most Common Class
+# # ============ Compare Acc to Most Common Class
 
-values = train_set[dataRetriever.getDataClass()].value_counts()
+values = test_set[dataRetriever.getDataClass()].value_counts()
 
 print(f'Accuracy: {acc}')
 print(f'Max Class Prior: {values.max()/values.sum()}')
 print(f"Class Distribution:\n{values}")
 # plt.hist(output)
 # plt.show()
+
+
+# for i, ax in enumerate(axs):
+#     ax.hist(output[:,i])
+
+# plt.show()
+
+## ===================== Regression =================
+# fig, axs = plt.subplots(3)
+# output = output.reshape(output.shape[0])
+# # output = ((output - output.mean())/output.std())
+# # actual = (actual - actual.mean())/actual.std()
+# rmse =(actual-output)
+
+
+# # plt.hist(rmse)
+# axs[0].hist(actual, label="Actual", alpha=0.5)
+# axs[1].hist(output, label="Predicted", alpha=0.5)
+# # axs[1].hist(rmse)
+# # axs[0].legend()
+# axs[2].scatter(actual, output-actual)
+# plt.show()
+
+
+# This section of the driver is used to store parameters that seemed to perform well
+
+#Forest Fires
+# learning_rate = 0.17
+# maxItter = 500
+# batch_size = 40
+
+# nn = NeuralNetwork(datasetEncoded, 3, [3,16,20], dataRetriever.getPredictionType(), dataRetriever.getDataClass())
