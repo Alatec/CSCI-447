@@ -1,0 +1,47 @@
+Abalone
+    Best Architecture: 
+        0 Layers
+        learning_rate = 0.01
+        maxItter = 50
+        batch_size = .1
+
+computerHardware
+    Best Architecture: 
+        0 Layers 
+        learning_rate = 0.01
+        maxItter = 50
+        batch_size = .1
+
+Forest Fires
+    Best Architecture: 
+        2 Layers [1, 1]
+        learning_rate = 0.01
+        maxItter = 50
+        batch_size = .1
+
+Breast Cancer 
+    Best Architecture: 
+        2 Layer [7,1] Node
+        learning_rate = 0.01
+        maxItter = 50
+        batch_size = .1
+
+Glass 
+    Best Architecture: 
+        1 Layer [1] Node
+        learning_rate = 0.01
+        maxItter = 50
+        batch_size = .1
+
+SoyBean Small 
+    Best Architecture: 
+        2 Layer [1, 1] Node
+        learning_rate = 0.01
+        maxItter = 50
+        batch_size = .1
+
+
+
+
+
+

@@ -6,7 +6,7 @@ from MLAlgorithms.Utils.OneHotEncoder import OneHotEncoder
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-np.random.seed(420)
+np.random.seed(seed=420)
 
 """ Questions
 
@@ -32,12 +32,14 @@ class NeuralNetwork:
         self.activation_dict: A containing the activation functions and activation function derivatives for a given activation function type
         """
 
+        np.random.seed(69)
         self.train_data = train_data
         self.predictionType = prediction_type
         self.activation_dict = {}
         self.activation_dict["logistic"] = (lga.activate, lga.activation_derivative)
         self.activation_dict["linear"] = (lia.activate, lia.activation_derivative)
         self.activation_dict["bias"] = (lambda x: 1, lambda x: 1)
+        self.random_constant = 0
         
 
 
@@ -99,7 +101,9 @@ class NeuralNetwork:
         else:
             return output
 
-    
+    def train(self, maxIter, learning_rate, batch_size):
+        for i in range(maxIter):
+            self._back_propagate(learning_rate=learning_rate, batch_size=batch_size)
 
     def _feed_forward(self, batch, testing=False):
         """
@@ -163,7 +167,7 @@ class NeuralNetwork:
         # return layer_input
                 
         
-    def _back_propagate(self, learning_rate=0.1, batch_size=10, cost_func='multi_cross'):
+    def _back_propagate(self, learning_rate=0.1, batch_size=0.69, cost_func='multi_cross'):
         """
         learning_rate: float - Used to describe the rate the Neural Network runs
         batch_size: int - Number of points grabbed from the data set
@@ -173,7 +177,9 @@ class NeuralNetwork:
 
         returns output of cost_function
         """
-        batch = self.train_data.sample(n=batch_size)
+        batch = self.train_data.sample(frac=batch_size, random_state=(69+self.random_constant))
+        self.random_constant += 1
+
         
         # These are all the different loss functions we use
 
@@ -186,9 +192,14 @@ class NeuralNetwork:
         # Multi-Class Cross Entropy Loss
         elif cost_func == 'multi_cross':
             predicted = self._feed_forward(batch)
-            truths = self.unknown_df.loc[batch.index].to_numpy()
+            truths = self.unknown_df.loc[batch.index].to_numpy().argmax(axis=1)
+            #https://deepnotes.io/softmax-crossentropy
+            m = truths.shape[0]
+            predicted[range(m),truths] -= 1
             cost_function = 1
-            dCost_function = ((truths * predicted) - 1) + predicted*np.logical_not(truths)
+            dCost_function = -(predicted/m)
+            
+
 
         else:
             #Quadratic Loss 

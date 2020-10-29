@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 # ================ Data pre-processing =================================================
 
 dataRetriever = DataRetriever("../Datasets/metadata.json")
-dataRetriever.retrieveData("breastCancer")
+dataRetriever.retrieveData("abalone")
 dataset = dataRetriever.getDataSet().dropna()
 
 
@@ -19,15 +19,15 @@ dataset = dataset.reset_index(drop=True)
 
 dataset[dataRetriever.getContinuousAttributes()] = (dataset[dataRetriever.getContinuousAttributes()]-dataset[dataRetriever.getContinuousAttributes()].mean())/dataset[dataRetriever.getContinuousAttributes()].std()
 
-test_set = dataset.sample(frac=0.1)
+test_set = dataset.sample(frac=0.1, random_state=69)
 train_set = dataset.drop(test_set.index)
 test_set = test_set.reset_index(drop=True)
 train_set = train_set.reset_index(drop=True)
 
 ohe = OneHotEncoder()
 discrete_attr = dataRetriever.getDescreteAttributes()
-if dataRetriever.getDataClass() in discrete_attr:
-    discrete_attr.remove(dataRetriever.getDataClass())
+# if dataRetriever.getDataClass() in discrete_attr:
+#     discrete_attr.remove(dataRetriever.getDataClass())
 
 datasetEncoded = ohe.train_fit(train_set, dataRetriever.getDescreteAttributes())
 testEncoded = ohe.fit(test_set)
@@ -36,14 +36,14 @@ testEncoded = ohe.fit(test_set)
 # =======================================================================================
 
 # ====================== Adjustable Variables ==============================
-learning_rate = 0.1
-maxItter = 500
-batch_size = 150
+learning_rate = 0.01
+maxItter = 50
+batch_size = .1
 # ===========================================================================
 
 # ============== Create Neural Network ===========================
 # NOTE: As of right now, the Neural Network only works for classification data sets
-nn = NeuralNetwork(datasetEncoded, 2, [5, 13], dataRetriever.getPredictionType(), dataRetriever.getDataClass())
+nn = NeuralNetwork(datasetEncoded, 2, [3, 3], dataRetriever.getPredictionType(), dataRetriever.getDataClass())
 
 # ================================================================
 
@@ -55,12 +55,7 @@ for i in range(maxItter):
     # We don't call an inital feedforward because backpropagate starts with a feedforward call
     # batch_size represents the number of data points per batch
     output = nn._back_propagate(learning_rate=learning_rate, batch_size=batch_size)
-    # print(output.sum().sum())
-    # max_weight = nn.weight_matrix.max()
-    # if np.isnan(max_weight):
-    #     break
-    # else:
-    #     print(f'{i} : {max_weight}')
+    
 
 # ===============================================================
 
