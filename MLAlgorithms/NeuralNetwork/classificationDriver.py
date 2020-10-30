@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from scipy.stats import norm
+from scipy.stats import norm # Used for P score
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 

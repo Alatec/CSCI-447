@@ -171,7 +171,7 @@ class NeuralNetwork:
             return output
         else:
             return layer_input
-        # return layer_input
+
                 
         
     def _back_propagate(self, learning_rate=0.1, batch_size=0.69, cost_func='multi_cross'):
@@ -214,10 +214,6 @@ class NeuralNetwork:
             dCost_function = -1*np.abs(predicted-self.unknown_df.loc[batch.index].to_numpy())
              #*dPredicted w.r.t weights
             
-            # if self.predictionType == "classification":
-            #     dCost_function *= predicted
-        
-        # return dCost_function -> used for testing
         update_matrix = np.zeros_like(self.weight_matrix)
 
         total_layers = len(self.layerDict.keys())
@@ -228,12 +224,10 @@ class NeuralNetwork:
             left_layer_indices = [node.index for node in self.layerDict[layer_num-1]]
             layer_indices = []
             layer_indices = [node.index for node in self.layerDict[layer_num]]
-            # print(left_layer_indices)
-            # print(layer_indices)
+
             for i, node in enumerate(self.layerDict[layer_num]):
 
                 partial_derivative = self.derivative_matrix[:, min(left_layer_indices):max(left_layer_indices)+1, node.index]
-                # print(node)
 
                 # Matrix slicing notation changes if there is only 1 node in a layer
                 if len(self.layerDict[layer_num]) == 1:
@@ -254,12 +248,6 @@ class NeuralNetwork:
         self.prev_update = update_matrix[:]
         
         
-
-
-
-
-
-
     def _create_network(self, input_data, number_of_hidden_layers, nodes_per_hidden_layer, prediction_type):
         """
         input_data: Pandas DataFrame
@@ -288,9 +276,9 @@ class NeuralNetwork:
         for layer in range(number_of_hidden_layers):
             self.layerDict[layer+1] = []
             for node_num in range(nodes_per_hidden_layer[layer]):
-                self.layerDict[layer+1].append(Node(node_index, (layer+1, node_num), self.activation_dict["linear"]))
+                self.layerDict[layer+1].append(Node(node_index, (layer+1, node_num), self.activation_dict["logistic"]))
                 node_index += 1
-            # This is the bias node
+            # This is the bias node - Not Used in project 3
             # self.layerDict[layer+1].append(Node(node_index, (layer+1, node_num), self.activation_dict["bias"]))
             # node_index += 1
         
