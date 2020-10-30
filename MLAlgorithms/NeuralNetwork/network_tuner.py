@@ -8,23 +8,28 @@ import itertools
 
 
 def network_tuner(*nodes_per_hidden_layer):
+    """
+    This function is used to calcuate the optimal network architecture
+    The user should input the dataset they would like to operate with and change the performance metric in accordance to the data set type IE regression or classification 
+
+    """
     
     MSEs = []
 
     bestNetwork = {}
-    learning_rate = 0.01
-    maxItter = 50
-    batch_size = .1
+    learning_rate = 0.0001
+    maxItter = 500
+    batch_size = .5
 
     dataRetriever = DataRetriever("../Datasets/metadata.json")
-    dataRetriever.retrieveData("forestFires")
+    dataRetriever.retrieveData("glass")
     dataset = dataRetriever.getDataSet().dropna()
 
 
     dataset = dataset.reset_index(drop=True)
 
     # This line is used to normalize the data for Forest Fires
-    dataset[dataRetriever.getDataClass()] = np.log(dataset[dataRetriever.getDataClass()]+0.1)
+    # dataset[dataRetriever.getDataClass()] = np.log(dataset[dataRetriever.getDataClass()]+0.1)
 
     dataset[dataRetriever.getContinuousAttributes()] = (dataset[dataRetriever.getContinuousAttributes()]-dataset[dataRetriever.getContinuousAttributes()].mean())/dataset[dataRetriever.getContinuousAttributes()].std()
 
@@ -48,12 +53,7 @@ def network_tuner(*nodes_per_hidden_layer):
         # We don't call an inital feedforward because backpropagate starts with a feedforward call
         # batch_size represents the number of data points per batch
         output = nn._back_propagate(learning_rate=learning_rate, batch_size=batch_size)
-        # print(output.sum().sum())
-        # max_weight = nn.weight_matrix.max()
-        # if np.isnan(max_weight):
-        #     break
-        # else:
-        #     print(f'{i} : {max_weight}')
+
 
     final = nn.test(testEncoded.drop(dataRetriever.getDataClass(), axis=1))
     output = nn._feed_forward(testEncoded.drop(dataRetriever.getDataClass(), axis=1), testing=True)
@@ -61,24 +61,24 @@ def network_tuner(*nodes_per_hidden_layer):
 
 
     ## ===================== Classification =================
-    # correct = 0
-    # acc = 0
-    # for i, row in enumerate(final):
-    #     if row == actual.iloc[i]: correct += 1
+    correct = 0
+    acc = 0
+    for i, row in enumerate(final):
+        if row == actual.iloc[i]: correct += 1
 
 
-    final = final.reshape(final.shape[0])
+    # final = final.reshape(final.shape[0])
 
-    MSE = ((actual-final)**2).mean()
-    MSEs.append(MSE)
+    # MSE = ((actual-final)**2).mean()
+    # MSEs.append(MSE)
     bestNetwork['network'] = nn
-    bestNetwork['acc'] = MSE
+    bestNetwork['acc'] = acc
     bestNetwork['arc'] = [0]
     # # ============================================
 
     # # ============ Compare Acc to Most Common Class
 
-    # values = test_set[dataRetriever.getDataClass()].value_counts()
+    values = test_set[dataRetriever.getDataClass()].value_counts()
 
 
     # USED FOR CLASSIFICATION
@@ -108,150 +108,61 @@ def network_tuner(*nodes_per_hidden_layer):
                 # We don't call an inital feedforward because backpropagate starts with a feedforward call
                 # batch_size represents the number of data points per batch
                 output = nn._back_propagate(learning_rate=learning_rate, batch_size=batch_size)
-                # print(output.sum().sum())
-                # max_weight = nn.weight_matrix.max()
-                # if np.isnan(max_weight):
-                #     break
-                # else:
-                #     print(f'{i} : {max_weight}')
 
             final = nn.test(testEncoded.drop(dataRetriever.getDataClass(), axis=1))
             output = nn._feed_forward(testEncoded.drop(dataRetriever.getDataClass(), axis=1), testing=True)
             actual = testEncoded[dataRetriever.getDataClass()]
 
             ## ===================== Classification =================
-            # correct = 0
-            # acc = 0
-            # for i, row in enumerate(final):
-            #     if row == actual.iloc[i]: correct += 1
+            correct = 0
+            acc = 0
+            for i, row in enumerate(final):
+                if row == actual.iloc[i]: correct += 1
 
-            # acc = correct/len(test_set)
+            acc = correct/len(test_set)
             # # # ============================================
 
             # # # ============ Compare Acc to Most Common Class
 
-            # values = test_set[dataRetriever.getDataClass()].value_counts()
+            values = test_set[dataRetriever.getDataClass()].value_counts()
 
             # USED FOR CLASSIFICATION
             # print(f'Accuracy: {acc}')
             # print(f'Max Class Prior: {values.max()/values.sum()}')
-            # print(f"Class Distribution:\n{values}")
+            # # print(f"Class Distribution:\n{values}")
             # print("Final: ", final)
             # print("Actual: ", list(actual))
             # print()
 
-            # if acc > bestNetwork['acc']:
-            #     bestNetwork['network'] = nn
-            #     bestNetwork['acc'] = acc
-            #     bestNetwork['arc'] = combo
-
-            final = final.reshape(final.shape[0])
-
-            MSE = ((actual-final)**2).mean()
-            MSEs.append(MSE)
-            if MSE < bestNetwork['acc']:
+            if acc > bestNetwork['acc']:
                 bestNetwork['network'] = nn
-                bestNetwork['acc'] = MSE
+                bestNetwork['acc'] = acc
                 bestNetwork['arc'] = combo
+
+            # final = final.reshape(final.shape[0])
+
+            # MSE = ((actual-final)**2).mean()
+            # MSEs.append(MSE)
+            # if MSE < bestNetwork['acc']:
+            #     bestNetwork['network'] = nn
+            #     bestNetwork['acc'] = MSE
+            #     bestNetwork['arc'] = combo
 
             
 
 
 
-    return bestNetwork, MSEs
+    return bestNetwork#, MSEs
 
 
 arr1 = [*range(1, 11, 1)]
 arr2 = [*range(1, 11, 1)]
-# learning_rates = np.linspace(0.01, 0.3, 25)
-# test = [arr1, arr1]
-# combinations = list(itertools.product(*test))
 
-
-# print(combinations)
-# combinations = itertools.product(*test[:2])
-
-
-
-# print(combinations)
-
-bestArchitecture, MSEs = network_tuner(arr1, arr2)
-
-MSEs = np.asarray(MSEs)
-
-# learning_rate = 0.01
-# maxItter = 50
-# batch_size = .1
-
-# dataRetriever = DataRetriever("../Datasets/metadata.json")
-# dataRetriever.retrieveData("glass")
-# dataset = dataRetriever.getDataSet().dropna()
-
-
-# dataset = dataset.reset_index(drop=True)
-
-# # This line is used to normalize the data for Forest Fires
-# # dataset[dataRetriever.getDataClass()] = np.log(dataset[dataRetriever.getDataClass()]+0.1)
-
-# dataset[dataRetriever.getContinuousAttributes()] = (dataset[dataRetriever.getContinuousAttributes()]-dataset[dataRetriever.getContinuousAttributes()].mean())/dataset[dataRetriever.getContinuousAttributes()].std()
-
-# test_set = dataset.sample(frac=0.1, random_state=69)
-# train_set = dataset.drop(test_set.index)
-# test_set = test_set.reset_index(drop=True)
-# train_set = train_set.reset_index(drop=True)
-
-# ohe = OneHotEncoder()
-# discrete_attr = dataRetriever.getDescreteAttributes()
-# if dataRetriever.getDataClass() in discrete_attr:
-#     discrete_attr.remove(dataRetriever.getDataClass())
-
-# datasetEncoded = ohe.train_fit(train_set, dataRetriever.getDescreteAttributes())
-# testEncoded = ohe.fit(test_set)
-
-
-# nn = NeuralNetwork(datasetEncoded, 1, [2], dataRetriever.getPredictionType(), dataRetriever.getDataClass())
-# for i in range(maxItter):
-#     # We don't call an inital feedforward because backpropagate starts with a feedforward call
-#     # batch_size represents the number of data points per batch
-#     output = nn._back_propagate(learning_rate=learning_rate, batch_size=batch_size)
-#     # print(output.sum().sum())
-#     # max_weight = nn.weight_matrix.max()
-#     # if np.isnan(max_weight):
-#     #     break
-#     # else:
-#     #     print(f'{i} : {max_weight}')
-
-# # final = nn.test(testEncoded.drop(dataRetriever.getDataClass(), axis=1))
-# # output = nn._feed_forward(testEncoded.drop(dataRetriever.getDataClass(), axis=1), testing=True)
-# # print(len(trained))
-# final = bestArchitecture['network'].test(testEncoded.drop(dataRetriever.getDataClass(), axis=1))
-# output = bestArchitecture['network']._feed_forward(testEncoded.drop(dataRetriever.getDataClass(), axis=1), testing=True)
-# actual = testEncoded[dataRetriever.getDataClass()]
-
-# ## ===================== Classification =================
-# correct = 0
-# acc = 0
-# for i, row in enumerate(final):
-#     if row == actual.iloc[i]: correct += 1
-
-# acc = correct/len(test_set)
-# # # ============================================
-
-# # # ============ Compare Acc to Most Common Class
-
-# values = test_set[dataRetriever.getDataClass()].value_counts()
+bestArchitecture = network_tuner(arr1, arr2)
 
 print(bestArchitecture)
 
-# print(actual.T)
-# print(final)
-# print("FINAL FINAL")
-# print(f'Accuracy: {acc}')
-# print(f'Max Class Prior: {values.max()/values.sum()}')
-# print(f"Class Distribution:\n{values}")
-# print("Final: ", final)
-# print("Actual: ", list(actual))
-# print()
+
 
 
 

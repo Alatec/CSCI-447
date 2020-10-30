@@ -69,7 +69,8 @@ class NeuralNetwork:
         
     def test(self, dataset, thresh="mean"):
         """
-        docstring
+        dataset: Pandas DataFrame to predict with
+        thresh: (str or float) threshold to determine positive class
         """
         output = self._feed_forward(dataset, testing=True)
         if self.predictionType == 'classification':
@@ -102,6 +103,12 @@ class NeuralNetwork:
             return output
 
     def train(self, maxIter, learning_rate, batch_size):
+        """
+        maxIter: Number of times to run backprop
+        learning_rate: Learning rate of backprop
+        batch_size: The size of batch to use as a percentage of training set size
+        """
+        # Run Backprop maxIter number of times
         for i in range(maxIter):
             self._back_propagate(learning_rate=learning_rate, batch_size=batch_size)
 
@@ -159,7 +166,7 @@ class NeuralNetwork:
         if self.predictionType == "classification" and self.unknown_df.shape[1] > 1:
             output = np.zeros_like(layer_input, dtype=np.float64)
             for i, row in enumerate(output):
-                exp_arr = np.exp(layer_input[i])
+                exp_arr = np.exp(layer_input[i]-layer_input[i].max())
                 output[i] = exp_arr/(exp_arr.sum())
             return output
         else:
@@ -187,7 +194,7 @@ class NeuralNetwork:
         if cost_func == 'bin_cross':
             predicted = self._feed_forward(batch).T
             truths = self.unknown_col[batch.index].to_numpy()
-            cost_function = (1/len(batch)) * (truths*np.log(predicted+0.0001) + (1-truths)*np.log((1.0-predicted)+0.001))
+            
             dCost_function = (1/len(batch))* (np.divide(truths,(predicted+0.0001)) + np.divide(1-truths,(1.0001-predicted))).T
         # Multi-Class Cross Entropy Loss
         elif cost_func == 'multi_cross':
@@ -196,7 +203,7 @@ class NeuralNetwork:
             #https://deepnotes.io/softmax-crossentropy
             m = truths.shape[0]
             predicted[range(m),truths] -= 1
-            cost_function = 1
+
             dCost_function = -(predicted/m)
             
 
@@ -204,9 +211,6 @@ class NeuralNetwork:
         else:
             #Quadratic Loss 
             predicted = self._feed_forward(batch)
-            # cost_function = (predicted - self.unknown_col[batch.index])**2
-            cost_function = 1
-            
             dCost_function = -1*np.abs(predicted-self.unknown_df.loc[batch.index].to_numpy())
              #*dPredicted w.r.t weights
             
@@ -220,13 +224,18 @@ class NeuralNetwork:
         right_layer_cost = dCost_function
         
         for layer_num in reversed(range(1,total_layers)):
-
+            left_layer_indices = []
             left_layer_indices = [node.index for node in self.layerDict[layer_num-1]]
+            layer_indices = []
             layer_indices = [node.index for node in self.layerDict[layer_num]]
-
+            # print(left_layer_indices)
+            # print(layer_indices)
             for i, node in enumerate(self.layerDict[layer_num]):
 
                 partial_derivative = self.derivative_matrix[:, min(left_layer_indices):max(left_layer_indices)+1, node.index]
+                # print(node)
+
+                # Matrix slicing notation changes if there is only 1 node in a layer
                 if len(self.layerDict[layer_num]) == 1:
                     update_matrix[min(left_layer_indices):max(left_layer_indices)+1,  node.index] =  right_layer_cost.T @ partial_derivative
                 else:
@@ -236,15 +245,14 @@ class NeuralNetwork:
             #Update right_layer_cost
             right_layer_cost = np.matmul(right_layer_cost, update_matrix[min(left_layer_indices):max(left_layer_indices)+1, min(layer_indices):max(layer_indices)+1].T)
         
-
+        self.update_matrix = (update_matrix-update_matrix-update_matrix.min())/(update_matrix.max()-update_matrix.min()) # This line is for video purposes only
         update_matrix = (update_matrix-update_matrix-update_matrix.min())/(update_matrix.max()-update_matrix.min())
-        self.weight_matrix = ((0.7*learning_rate)*update_matrix + (0.3*learning_rate)*self.prev_update) + self.weight_matrix
+        self.weight_matrix = ((0.9*learning_rate)*update_matrix + (0.1*learning_rate)*self.prev_update) + self.weight_matrix
         
 
         
         self.prev_update = update_matrix[:]
         
-        return cost_function
         
 
 
@@ -296,11 +304,13 @@ class NeuralNetwork:
                 node_index += 1
                 
             else:
+                #Apply Linear activation function to output layer of multi classification datasets
                 for unk in enumerate(self.unknown_df.iloc[0]):
                     self.layerDict[curr_layer].append(Node(node_index, (curr_layer, unk[0]), self.activation_dict["linear"]))
                     node_index += 1
 
         else:
+            #Apply Linear activation to the output of regression datasets
             self.layerDict[curr_layer].append(Node(node_index, (curr_layer, 0), self.activation_dict["linear"]))
             node_index += 1
                                     

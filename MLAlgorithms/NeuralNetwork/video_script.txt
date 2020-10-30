@@ -1,0 +1,25 @@
+Block Format:
+    Is this okay?
+
+Provide sample outputs from one test set showing performance on your networks. 
+Show results for each of the cases where you have no hidden layers, one hidden layer, and two hidden layer
+    Put a break in 10-fold
+    test for 0, 1, and 2 hidden layer networks
+
+Show a sample model for the smallest of each of your neural network types. 
+This will consist of showing the weight matrices with the inputs/outputs of the layer labeled in some way.
+    Does this mean a model for each layer or just for the one neural network we have to implement
+
+ Demonstrate and explain how an example is propagated through a two hidden layer network. 
+ Besure to show the activations at each layer being calculated correctly.
+    Show that we end up going backwards
+    Print which node's acivation layer is being called
+
+Demonstrate the weight updates occurring on a two-layer network for each of the layers
+    print before and after
+
+Demonstrate the gradient calculation at the output for any one of your networks.
+    print gradient
+
+Show the average performance over the ten folds for one of the data sets for each of the types of networks
+    Does this mean a print for each layer or just for the one neural network we have to implement

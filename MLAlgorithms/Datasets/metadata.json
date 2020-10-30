@@ -79,8 +79,8 @@
         "dataPath": "abalone.data",
         "attributes": ["sex", "length", "diameter", "height", "wholeWeight", "shuckedWeight", "visceraWeight", "shellWeight", "rings"],
         "class": "rings",
-        "continuous": ["length", "diameter", "height", "wholeWeight", "shuckedWeight", "visceraWeight", "shellWeight"],
-        "discrete": ["sex", "rings"],
+        "continuous": ["length", "diameter", "height", "wholeWeight", "shuckedWeight", "visceraWeight", "shellWeight", "rings"],
+        "discrete": ["sex"],
         "NAValues": [],
         "rowsToDrop": [],
         "predictionType": "regression"
@@ -89,8 +89,8 @@
         "dataPath": "machine.data",
         "attributes": ["venderName", "modelName", "myct", "mmin", "mmax", "cach", "chmin", "chmax", "prp", "erp"],
         "class": "prp",
-        "continuous": [],
-        "discrete": ["venderName", "modelName", "myct", "mmin", "mmax", "cach", "chmin", "chmax", "prp", "erp"],
+        "continuous": ["prp"],
+        "discrete": ["venderName", "modelName", "myct", "mmin", "mmax", "cach", "chmin", "chmax", "erp"],
         "NAValues": [],
         "rowsToDrop": ["erp"],
         "predictionType": "regression"

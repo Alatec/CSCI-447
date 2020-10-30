@@ -11,10 +11,8 @@ from MLAlgorithms.Utils.DataRetriever import DataRetriever
 from MLAlgorithms.Utils.ClassifierAnalyzer import ClassifierAnalyzer
 from MLAlgorithms.Utils.OneHotEncoder import OneHotEncoder
 
-
-
 dataRetriever = DataRetriever("../Datasets/metadata.json")
-dataRetriever.retrieveData("breastCancer")
+dataRetriever.retrieveData("abalone")
 dataset = dataRetriever.getDataSet().dropna()
 dataset = dataset.reset_index(drop=True)
 
@@ -48,32 +46,24 @@ for test_set, train_set in KFolds(dataset, 10):
     test_set[dataRetriever.getContinuousAttributes()] = sn.fit(test_set[dataRetriever.getContinuousAttributes()])
 
     # Train network and change architecture in respect to data set
-    nn = NeuralNetwork(train_set, 0, [], dataRetriever.getPredictionType(), dataRetriever.getDataClass())
+    nn = NeuralNetwork(train_set, 2, [4,7], dataRetriever.getPredictionType(), dataRetriever.getDataClass())
     nn.train(maxIter, learning_rate, batch_size)
 
     predictions = nn.test(test_set.drop(dataRetriever.getDataClass(), axis=1))
-
-    # ca = ClassifierAnalyzer(test_set[dataRetriever.getDataClass()], predictions)
-    correct = 0
+    predictions = predictions.reshape(predictions.shape[0])
     actual = test_set[dataRetriever.getDataClass()]
-    for i, row in enumerate(predictions):
-        if row == actual.iloc[i]: correct += 1
-    metrics.append(correct/len(actual))
+    res = predictions-actual
+    tot_ss = ((actual-actual.mean())**2).sum()
+    res_ss = ((actual-predictions)**2).sum()
+    R2 = 1-(res_ss/tot_ss)
+    
+    metrics.append(R2)
+
     
 
 metrics = np.asarray(metrics)
-prior = 1/dataset[dataRetriever.getDataClass()].nunique()
-sampling_sd = np.sqrt((prior*(1-prior))/(10))
-
-
-# p_score = 1-norm.cdf(np.median(metrics),loc=prior,scale=sampling_sd)
-
-print(f"Average Accuracy: {np.asarray(metrics).mean()} ± {metrics.std()}")
-print("Final Fold:")
-print("Predicted Output: ",)
-print(predictions)
-print("Actual Output: ")
-print(actual.to_numpy())
 
 
 
+
+print(f"Average R2: {np.asarray(metrics).mean()} ± me")

@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 # ================ Data pre-processing =================================================
 
 dataRetriever = DataRetriever("../Datasets/metadata.json")
-dataRetriever.retrieveData("abalone")
+dataRetriever.retrieveData("breastCancer")
 dataset = dataRetriever.getDataSet().dropna()
 
 
@@ -26,8 +26,8 @@ train_set = train_set.reset_index(drop=True)
 
 ohe = OneHotEncoder()
 discrete_attr = dataRetriever.getDescreteAttributes()
-# if dataRetriever.getDataClass() in discrete_attr:
-#     discrete_attr.remove(dataRetriever.getDataClass())
+if dataRetriever.getDataClass() in discrete_attr:
+    discrete_attr.remove(dataRetriever.getDataClass())
 
 datasetEncoded = ohe.train_fit(train_set, dataRetriever.getDescreteAttributes())
 testEncoded = ohe.fit(test_set)
@@ -36,25 +36,41 @@ testEncoded = ohe.fit(test_set)
 # =======================================================================================
 
 # ====================== Adjustable Variables ==============================
-learning_rate = 0.01
-maxItter = 50
-batch_size = .1
+learning_rate = 1e-3
+maxItter = 500
+
+batch_size = .2
 # ===========================================================================
 
 # ============== Create Neural Network ===========================
 # NOTE: As of right now, the Neural Network only works for classification data sets
-nn = NeuralNetwork(datasetEncoded, 2, [3, 3], dataRetriever.getPredictionType(), dataRetriever.getDataClass())
+nn = NeuralNetwork(datasetEncoded, 2, [6, 16], dataRetriever.getPredictionType(), dataRetriever.getDataClass())
 
 # ================================================================
 
 
 # ======================= Train Neural Network ================
 
-cost_func = []
-for i in range(maxItter):
+perf = []
+actual = testEncoded[dataRetriever.getDataClass()]
+for i in tqdm(range(maxItter)):
     # We don't call an inital feedforward because backpropagate starts with a feedforward call
     # batch_size represents the number of data points per batch
-    output = nn._back_propagate(learning_rate=learning_rate, batch_size=batch_size)
+    nn._back_propagate(learning_rate=learning_rate, batch_size=batch_size)
+    final = nn.test(testEncoded.drop(dataRetriever.getDataClass(), axis=1))
+    correct = 0
+    for i, row in enumerate(final):
+        if row == actual.iloc[i]: correct += 1
+
+    # acc = correct/len(test_set)
+    # final = final.reshape(final.shape[0])
+    # output = ((output - output.mean())/output.std())
+    # actual = (actual - actual.mean())/actual.std()
+    # tot_ss = ((actual-actual.mean())**2).sum()
+    # res_ss = ((actual-final)**2).sum()
+    # R2 = 1-(res_ss/tot_ss)
+    # rmse = np.sqrt(((actual-final)**2).mean())
+    perf.append(correct/len(testEncoded))
     
 
 # ===============================================================
@@ -66,6 +82,8 @@ output = nn._feed_forward(testEncoded.drop(dataRetriever.getDataClass(), axis=1)
 actual = testEncoded[dataRetriever.getDataClass()]
 
 
+
+
 #  ================================================
 
 
@@ -75,22 +93,38 @@ actual = testEncoded[dataRetriever.getDataClass()]
 # correct = (actual==np.asarray(final)).sum()
 
 ## ===================== Classification =================
-correct = 0
-for i, row in enumerate(final):
-    if row == actual.iloc[i]: correct += 1
+# correct = 0
+# for i, row in enumerate(final):
+#     if row == actual.iloc[i]: correct += 1
 
-acc = correct/len(test_set)
+# acc = correct/len(test_set)
 # # ============================================
 
 # # ============ Compare Acc to Most Common Class
 
-values = test_set[dataRetriever.getDataClass()].value_counts()
+# values = test_set[dataRetriever.getDataClass()].value_counts()
 
-print(f'Accuracy: {acc}')
-print(f'Max Class Prior: {values.max()/values.sum()}')
-print(f"Class Distribution:\n{values}")
-# plt.hist(output)
-# plt.show()
+# print(f'Accuracy: {acc}')
+# print(f'Max Class Prior: {values.max()/values.sum()}')
+# print(f"Class Distribution:\n{values}")
+# fig, axes = plt.subplots(2)
+final = final.reshape(final.shape[0])
+res = final-actual
+perf = np.asarray(perf)
+plt.plot(np.arange(len(perf)), perf)
+plt.title("Accuracy by Iteration for Breast Cancer")
+plt.xlabel("Iterations")
+plt.ylabel("Accuracy")
+# axes[0].set_xlabel("Iterations")
+# axes[0].set_ylabel("Acc")
+# axes[0].set_ylim([0,1])
+
+# axes[1].plot([0,len(res)],[0,0],linestyle='--',color='black')
+# axes[1].scatter(np.arange(len(res)), res)
+
+# axes[1].set_ylabel("Error")
+plt.show()
+
 
 
 # for i, ax in enumerate(axs):
