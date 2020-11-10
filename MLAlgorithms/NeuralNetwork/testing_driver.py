@@ -5,10 +5,30 @@ from tqdm import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
 
+import os
+
+
+# Grabs the location of the unit test file and sets cwd
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
+
+
+# ====================== Adjustable Variables ==============================
+learning_rate = 1e-5
+maxItter = 4000
+batch_size = 100
+victimDataset = "breastCancer"
+
+
 # ================ Data pre-processing =================================================
+DS_DICT = {"breastCancer": "bin_cross", 
+            "glass": "multi_cross",
+            "abalone": "gibgib"}
+
 
 dataRetriever = DataRetriever("../Datasets/metadata.json")
-dataRetriever.retrieveData("breastCancer")
+dataRetriever.retrieveData(victimDataset)
 dataset = dataRetriever.getDataSet().dropna()
 
 
@@ -35,16 +55,12 @@ testEncoded = ohe.fit(test_set)
 
 # =======================================================================================
 
-# ====================== Adjustable Variables ==============================
-learning_rate = 1e-3
-maxItter = 500
 
-batch_size = .2
 # ===========================================================================
 
 # ============== Create Neural Network ===========================
 # NOTE: As of right now, the Neural Network only works for classification data sets
-nn = NeuralNetwork(datasetEncoded, 2, [6, 16], dataRetriever.getPredictionType(), dataRetriever.getDataClass())
+nn = NeuralNetwork(datasetEncoded, 2, [3,2], dataRetriever.getPredictionType(), dataRetriever.getDataClass())
 
 # ================================================================
 
@@ -53,10 +69,10 @@ nn = NeuralNetwork(datasetEncoded, 2, [6, 16], dataRetriever.getPredictionType()
 
 perf = []
 actual = testEncoded[dataRetriever.getDataClass()]
-for i in tqdm(range(maxItter)):
+for i in range(maxItter):
     # We don't call an inital feedforward because backpropagate starts with a feedforward call
     # batch_size represents the number of data points per batch
-    nn._back_propagate(learning_rate=learning_rate, batch_size=batch_size)
+    nn._back_propagate(learning_rate=learning_rate, batch_size=batch_size, cost_func = DS_DICT[victimDataset])
     final = nn.test(testEncoded.drop(dataRetriever.getDataClass(), axis=1))
     correct = 0
     for i, row in enumerate(final):
@@ -92,27 +108,29 @@ actual = testEncoded[dataRetriever.getDataClass()]
 
 # correct = (actual==np.asarray(final)).sum()
 
-## ===================== Classification =================
-# correct = 0
-# for i, row in enumerate(final):
-#     if row == actual.iloc[i]: correct += 1
+# ===================== Classification =================
+correct = 0
+for i, row in enumerate(final):
+    if row == actual.iloc[i]: correct += 1
 
-# acc = correct/len(test_set)
+acc = correct/len(test_set)
+
+print(acc)
 # # ============================================
 
 # # ============ Compare Acc to Most Common Class
 
-# values = test_set[dataRetriever.getDataClass()].value_counts()
+values = test_set[dataRetriever.getDataClass()].value_counts()
 
-# print(f'Accuracy: {acc}')
-# print(f'Max Class Prior: {values.max()/values.sum()}')
-# print(f"Class Distribution:\n{values}")
+print(f'Accuracy: {acc}')
+print(f'Max Class Prior: {values.max()/values.sum()}')
+print(f"Class Distribution:\n{values}")
 # fig, axes = plt.subplots(2)
-final = final.reshape(final.shape[0])
-res = final-actual
+# final = final.reshape(final.shape[0])
+# res = final-actual
 perf = np.asarray(perf)
 plt.plot(np.arange(len(perf)), perf)
-plt.title("Accuracy by Iteration for Breast Cancer")
+# plt.title("Accuracy by Iteration for Breast Cancer")
 plt.xlabel("Iterations")
 plt.ylabel("Accuracy")
 # axes[0].set_xlabel("Iterations")

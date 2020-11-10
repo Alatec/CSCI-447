@@ -3,6 +3,7 @@ import MLAlgorithms.Utils.Numba.linear_activation as lia
 from MLAlgorithms.NeuralNetwork.Node import Node
 from MLAlgorithms.Utils.OneHotEncoder import OneHotEncoder
 
+import copy
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -184,7 +185,7 @@ class NeuralNetwork:
 
         returns output of cost_function
         """
-        batch = self.train_data.sample(frac=batch_size, random_state=(69+self.random_constant))
+        batch = self.train_data.sample(n=batch_size, random_state=(69+self.random_constant))
         self.random_constant += 1
 
         
@@ -205,8 +206,6 @@ class NeuralNetwork:
             predicted[range(m),truths] -= 1
 
             dCost_function = -(predicted/m)
-            
-
 
         else:
             #Quadratic Loss 
@@ -219,10 +218,9 @@ class NeuralNetwork:
         total_layers = len(self.layerDict.keys())
         right_layer_cost = dCost_function
         
+        
         for layer_num in reversed(range(1,total_layers)):
-            left_layer_indices = []
             left_layer_indices = [node.index for node in self.layerDict[layer_num-1]]
-            layer_indices = []
             layer_indices = [node.index for node in self.layerDict[layer_num]]
 
             for i, node in enumerate(self.layerDict[layer_num]):
@@ -239,13 +237,14 @@ class NeuralNetwork:
             #Update right_layer_cost
             right_layer_cost = np.matmul(right_layer_cost, update_matrix[min(left_layer_indices):max(left_layer_indices)+1, min(layer_indices):max(layer_indices)+1].T)
         
-        self.update_matrix = (update_matrix-update_matrix-update_matrix.min())/(update_matrix.max()-update_matrix.min()) # This line is for video purposes only
-        update_matrix = (update_matrix-update_matrix-update_matrix.min())/(update_matrix.max()-update_matrix.min())
+        # self.update_matrix = (update_matrix-update_matrix-update_matrix.min())/(update_matrix.max()-update_matrix.min()) # This line is for video purposes only
+        # update_matrix = (update_matrix-update_matrix-update_matrix.min())/(update_matrix.max()-update_matrix.min())
+        
         self.weight_matrix = ((0.9*learning_rate)*update_matrix + (0.1*learning_rate)*self.prev_update) + self.weight_matrix
         
 
         
-        self.prev_update = update_matrix[:]
+        self.prev_update = copy.deepcopy(update_matrix)
         
         
     def _create_network(self, input_data, number_of_hidden_layers, nodes_per_hidden_layer, prediction_type):
@@ -304,7 +303,7 @@ class NeuralNetwork:
                                     
 
         #Initializing Weights:
-        self.weight_matrix = np.random.uniform(-0.1, 0.1, size=(node_index, node_index))
+        self.weight_matrix = np.random.uniform(-.1, .1, size=(node_index, node_index))
         self.derivative_matrix = np.ones((input_data.shape[0], self.weight_matrix.shape[0], self.weight_matrix.shape[1]))
         self.prev_update = np.zeros_like(self.weight_matrix)
 
