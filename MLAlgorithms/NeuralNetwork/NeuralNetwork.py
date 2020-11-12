@@ -6,14 +6,9 @@ from MLAlgorithms.Utils.OneHotEncoder import OneHotEncoder
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-np.random.seed(seed=420)
+# np.random.seed(seed=420)
 
-""" Questions
 
-    Ask Giorgio if our backprop logic is okay
-    
-
-"""
 
 """ Neural Network Notes:
     Currently, this Network does not have any bias.
@@ -32,7 +27,7 @@ class NeuralNetwork:
         self.activation_dict: A containing the activation functions and activation function derivatives for a given activation function type
         """
 
-        np.random.seed(69)
+        # np.random.seed(69)
         self.train_data = train_data
         self.predictionType = prediction_type
         self.activation_dict = {}
@@ -247,6 +242,25 @@ class NeuralNetwork:
         
         self.prev_update = update_matrix[:]
         
+
+    def differential_evolution_fitness(self, learning_rate=0.1, batch_size=0.69, cost_func='multi_cross'):
+        batch = self.train_data.sample(frac=batch_size, random_state=(69+self.random_constant))
+        self.random_constant += 1
+
+        # Binary Cross Entropy Loss
+        if cost_func == 'bin_cross':
+            predicted = self._feed_forward(batch).T
+            truths = self.unknown_col[batch.index].to_numpy()
+            
+            dCost_function = (1/len(batch))* (np.divide(truths,(predicted+0.0001)) + np.divide(1-truths,(1.0001-predicted))).T
+        
+        else:
+            #Quadratic Loss 
+            predicted = self._feed_forward(batch)
+            dCost_function = -1*np.abs(predicted-self.unknown_df.loc[batch.index].to_numpy())
+             #*dPredicted w.r.t weights
+
+        return dCost_function
         
     def _create_network(self, input_data, number_of_hidden_layers, nodes_per_hidden_layer, prediction_type):
         """
