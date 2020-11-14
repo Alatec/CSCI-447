@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from scipy.stats import norm
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 from MLAlgorithms.NeuralNetwork.NeuralNetwork import NeuralNetwork
@@ -20,9 +20,9 @@ dataset = dataset.reset_index(drop=True)
 
 # This line is used to normalize the data for Forest Fires
 # dataset[dataRetriever.getDataClass()] = np.log(dataset[dataRetriever.getDataClass()]+0.1)
-maxIter = 1000
+maxIter = 1
 learning_rate = 1e-3
-batch_size = 0.2
+batch_size = 0.01
 
 metrics = []
 fold = 0
@@ -48,17 +48,18 @@ for test_set, train_set in KFolds(dataset, 10):
     test_set[dataRetriever.getContinuousAttributes()] = sn.fit(test_set[dataRetriever.getContinuousAttributes()])
 
     # Train network and change architecture in respect to data set
-    nn = NeuralNetwork(train_set, 0, [], dataRetriever.getPredictionType(), dataRetriever.getDataClass())
+    nn = NeuralNetwork(train_set, 2, [2,2], dataRetriever.getPredictionType(), dataRetriever.getDataClass())
     nn.train(maxIter, learning_rate, batch_size)
 
-    predictions = nn.test(test_set.drop(dataRetriever.getDataClass(), axis=1))
+    # predictions = nn.test(test_set.drop(dataRetriever.getDataClass(), axis=1))
 
-    # ca = ClassifierAnalyzer(test_set[dataRetriever.getDataClass()], predictions)
-    correct = 0
-    actual = test_set[dataRetriever.getDataClass()]
-    for i, row in enumerate(predictions):
-        if row == actual.iloc[i]: correct += 1
-    metrics.append(correct/len(actual))
+    # # ca = ClassifierAnalyzer(test_set[dataRetriever.getDataClass()], predictions)
+    # correct = 0
+    # actual = test_set[dataRetriever.getDataClass()]
+    # for i, row in enumerate(predictions):
+    #     if row == actual.iloc[i]: correct += 1
+    # metrics.append(correct/len(actual))
+    break
     
 
 metrics = np.asarray(metrics)
@@ -68,12 +69,12 @@ sampling_sd = np.sqrt((prior*(1-prior))/(10))
 
 # p_score = 1-norm.cdf(np.median(metrics),loc=prior,scale=sampling_sd)
 
-print(f"Average Accuracy: {np.asarray(metrics).mean()} ± {metrics.std()}")
-print("Final Fold:")
-print("Predicted Output: ",)
-print(predictions)
-print("Actual Output: ")
-print(actual.to_numpy())
+# print(f"Average Accuracy: {np.asarray(metrics).mean()} ± {metrics.std()}")
+# print("Final Fold:")
+# print("Predicted Output: ",)
+# print(predictions)
+# print("Actual Output: ")
+# print(actual.to_numpy())
 
 
 
