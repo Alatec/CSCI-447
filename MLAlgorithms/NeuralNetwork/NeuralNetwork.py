@@ -269,8 +269,10 @@ class NeuralNetwork:
         best_fit = 1e6
         global_best = np.zeros_like(self.weight_matrix)
         fitness_matrix = np.zeros((max_iter,4))
+        average_fitness = np.zeros(max_iter)
         new_best_count = 0
         for i in tqdm(range(max_iter)):
+            average = 0
             batch = self.train_data.sample(frac=batch_size, random_state=(69+self.random_constant))
             self.random_constant += 1
             truths = self.unknown_col[batch.index].to_numpy()
@@ -278,9 +280,10 @@ class NeuralNetwork:
                 self.weight_matrix = part.position
                 predicted = self._feed_forward(batch, testing=True)
                 fitness = part.evalutate(predicted, truths, cost_func)
-                if part.index == 7: fitness_matrix[i,0] = part.pbest_fitness
-                if part.index == 8: fitness_matrix[i,1] = part.pbest_fitness
-                if part.index == 9: fitness_matrix[i,2] = part.pbest_fitness
+                average += fitness
+                if part.index == 1: fitness_matrix[i,0] = fitness#part.pbest_fitness
+                if part.index == 34: fitness_matrix[i,1] = fitness#part.pbest_fitness
+                if part.index == 68: fitness_matrix[i,2] = fitness#part.pbest_fitness
 
                 if fitness < best_fit:
                     best_fit = fitness
@@ -288,13 +291,14 @@ class NeuralNetwork:
                     new_best_count += 1
                 
                 fitness_matrix[i,3] = best_fit
+                average_fitness[i] = average/particle_count
             
             for part in particles:
                 part.accelerate(global_best)
         
         self.weight_matrix = global_best
         print(f"New Best Count: {new_best_count}")
-        return fitness_matrix
+        return fitness_matrix, average_fitness
 
 
 
