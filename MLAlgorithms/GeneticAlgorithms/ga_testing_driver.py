@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random as rand
 
-cost_func = {"breastCancer": "bin_cross"}
+cost_func = {"breastCancer": "bin_crosss", "glass": "bin_cross", "soybeanSmall": "bin_crosss", "abalone": "smoe", "forestFires": "amas"}
 
 title_text = """ 
    ______                    __   _          ___     __                     _  __   __                    
@@ -22,14 +22,15 @@ title_text = """
 
 
 # ====================== Adjustable Variables ==============================
-current_data_set = "breastCancer"
-mutation_rate = .5
-cross_over_prob = .5
-learning_rate = 1e-3
-maxItter = 1
-batch_size = .2
-population_size = 20
+current_data_set = "abalone"
+mutation_rate = .3
+cross_over_prob = .7
+learning_rate = 1e-6
+maxItter = 100
+batch_size = .1
+population_size = 10
 # ===========================================================================
+
 
 
 # ================ Data pre-processing =================================================
@@ -37,6 +38,8 @@ dataRetriever = DataRetriever("../Datasets/metadata.json")
 dataRetriever.retrieveData(current_data_set)
 dataset = dataRetriever.getDataSet().dropna()
 
+# # This line is used to normalize the data for Forest Fires
+# dataset[dataRetriever.getDataClass()] = np.log(dataset[dataRetriever.getDataClass()]+0.1)
 
 dataset = dataset.reset_index(drop=True)
 dataset[dataRetriever.getContinuousAttributes()] = (dataset[dataRetriever.getContinuousAttributes()]
@@ -60,8 +63,8 @@ testEncoded = ohe.fit(test_set)
 
 # ============== Create Neural Network ===========================
 # NOTE: As of right now, the Neural Network only works for classification data sets
-nn = NeuralNetwork(datasetEncoded, 2,
-                   [6, 16], dataRetriever.getPredictionType(), dataRetriever.getDataClass())
+# nn = NeuralNetwork(datasetEncoded, 2,
+#                    [2, 16], dataRetriever.getPredictionType(), dataRetriever.getDataClass())
 
 # ================================================================
 
@@ -87,16 +90,20 @@ actual = testEncoded[dataRetriever.getDataClass()]
 def stopping_cond():
     return True
 
-population = [NeuralNetwork(datasetEncoded, 0, [], dataRetriever.getPredictionType(), 
-                        dataRetriever.getDataClass()) for i in range(population_size)]
+population = [NeuralNetwork(datasetEncoded, 2, [2, 3], dataRetriever.getPredictionType(), 
+                        dataRetriever.getDataClass(), seed=i) for i in range(population_size)]
 
 
 i = 0
-while stopping_cond() and i < maxItter:
+prev_result = 0
+seed_counter = 0
+for i in tqdm(range(maxItter)):
+    current_result = 0
+
     for i in range(len(population)):
         random_individual_index = rand.sample([x for x in range(population_size) if x != i], 3)
         # Check fitness
-        parent_fitness = population[i].differential_evolution_fitness()
+        parent_fitness = population[i].differential_evolution_fitness(batch_size=batch_size, cost_func=cost_func[current_data_set])
         # Create Trial
         trial_matrix = differential_mutation(population[i].weight_matrix, 
                                             population[random_individual_index[0]].weight_matrix, 
@@ -105,54 +112,92 @@ while stopping_cond() and i < maxItter:
                                             mutation_rate)
 
         # Create offspring
-        offspring_matrix = differential_binomial_crossover(population[i].weight_matrix, trial_matrix, cross_over_prob)
-        child = NeuralNetwork(datasetEncoded, 0, [], dataRetriever.getPredictionType(), 
+        offspring_matrix = differential_binomial_crossover(population[i].weight_matrix, trial_matrix, cross_over_prob, seed=seed_counter)
+        seed_counter += 1
+        child = NeuralNetwork(datasetEncoded, 2, [2, 3], dataRetriever.getPredictionType(), 
                         dataRetriever.getDataClass())
         child.weight_matrix = offspring_matrix
-        child_fitness = child.differential_evolution_fitness()
+        child_fitness = child.differential_evolution_fitness(batch_size=batch_size, cost_func=cost_func[current_data_set])
 
         # exit()
-        # if parent_fitness < child_fitness:
-        #     population[i] = child
+        final_parent_fitness = parent_fitness.sum().sum()
+        final_child_fitness = child_fitness.sum().sum()
+        if final_child_fitness < final_parent_fitness:
+            population[i] = child
 
-    print(population[i].weight_matrix - trial_matrix)
-
-
-
-i += 1
-
+        final_fitness = final_child_fitness if final_child_fitness < final_parent_fitness else final_parent_fitness
+        current_result += final_fitness
 
 
+    # print((abs(current_result - prev_result) / abs(current_result + prev_result)))
+    if ((abs(current_result - prev_result) / abs(current_result + prev_result)) > .0000001):
+        prev_result = current_result
+    else: 
+        break
+    # prev_result = current_result if ((abs(current_result - prev_result) / abs(current_result + prev_result)) > .00001) else return 
 
 
-# for i in tqdm(range(maxItter)):
-#     # We don't call an inital feedforward because backpropagate starts with a feedforward call
-#     # batch_size represents the number of data points per batch
-#     nn._back_propagate(learning_rate=learning_rate, batch_size=batch_size, cost_func=cost_func[current_data_set])
-#     final = nn.test(testEncoded.drop(dataRetriever.getDataClass(), axis=1))
-#     correct = 0
-#     for i, row in enumerate(final):
-#         if row == actual.iloc[i]:
-#             correct += 1
-
-#     perf.append(correct/len(testEncoded))
-
-# # ===============================================================
-
-# # ============= Final Neural Network Output ======
-# final = nn.test(testEncoded.drop(dataRetriever.getDataClass(), axis=1))
-# output = nn._feed_forward(testEncoded.drop(
-#     dataRetriever.getDataClass(), axis=1), testing=True)
-
-# actual = testEncoded[dataRetriever.getDataClass()]
+best = population[0]
+for individual in population:
+    # print(individual)
+    if individual.differential_evolution_fitness().sum() > best.differential_evolution_fitness().sum():
+        print('CHANGED')
+        best = individual
 
 
-# #  ========== Calculate Accuracy ===========
-# final = final.reshape(final.shape[0])
-# res = final-actual
-# perf = np.asarray(perf)
-# plt.plot(np.arange(len(perf)), perf)
-# plt.title("Accuracy by Iteration for Breast Cancer")
-# plt.xlabel("Iterations")
-# plt.ylabel("Accuracy")
-# plt.show()
+
+
+# print("Best")
+final = best.test(testEncoded.drop(dataRetriever.getDataClass(), axis=1))
+output = best._feed_forward(testEncoded.drop(dataRetriever.getDataClass(), axis=1), testing=True)
+actual = testEncoded[dataRetriever.getDataClass()]
+if dataRetriever.getPredictionType() == "classification":
+    # ## ===================== Classification =================
+    print("Best")
+    correct = 0
+    for i, row in enumerate(final):
+        if row == actual.iloc[i]: correct += 1
+
+    acc = correct/len(test_set)
+
+    print(final)
+    print(np.array(actual))
+    print(acc)
+
+    print()
+    print("Everyone")
+    for j in range(len(population)):
+        be = population[j]
+        final = be.test(testEncoded.drop(dataRetriever.getDataClass(), axis=1))
+        output = be._feed_forward(testEncoded.drop(dataRetriever.getDataClass(), axis=1), testing=True)
+
+        actual = testEncoded[dataRetriever.getDataClass()]
+
+
+        ## ===================== Classification =================
+        correct = 0
+        for i, row in enumerate(final):
+            if row == actual.iloc[i]: correct += 1
+
+        acc = correct/len(test_set)
+
+        print(final)
+        print(np.array(actual))
+        print(acc)
+
+else:
+    # ===================== Regression =================
+    fig, axs = plt.subplots(3)
+    output = output.reshape(output.shape[0])
+    # output = ((output - output.mean())/output.std())
+    # actual = (actual - actual.mean())/actual.std()
+    rmse =(actual-output)
+
+
+    # plt.hist(rmse)
+    axs[0].hist(actual, label="Actual", alpha=0.5)
+    axs[1].hist(output, label="Predicted", alpha=0.5)
+    # axs[1].hist(rmse)
+    # axs[0].legend()
+    axs[2].scatter(actual, output-actual)
+    plt.show()

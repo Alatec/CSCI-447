@@ -6,8 +6,6 @@ from MLAlgorithms.Utils.OneHotEncoder import OneHotEncoder
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-# np.random.seed(seed=420)
-
 
 
 """ Neural Network Notes:
@@ -18,7 +16,7 @@ from tqdm import tqdm
 
 class NeuralNetwork:
 
-    def __init__(self, train_data, number_of_hidden_layers, nodes_per_hidden_layer, prediction_type, unknown_col='class', is_regression_data=False):
+    def __init__(self, train_data, number_of_hidden_layers, nodes_per_hidden_layer, prediction_type, unknown_col='class', is_regression_data=False, seed=0):
         """
         self.train_data: Encoded Pandas DataFrame (unknown column included)
         self.predictionType: String representing the prediction type (regression || classification)
@@ -27,7 +25,7 @@ class NeuralNetwork:
         self.activation_dict: A containing the activation functions and activation function derivatives for a given activation function type
         """
 
-        # np.random.seed(69)
+        np.random.seed(seed)
         self.train_data = train_data
         self.predictionType = prediction_type
         self.activation_dict = {}
@@ -243,7 +241,7 @@ class NeuralNetwork:
         self.prev_update = update_matrix[:]
         
 
-    def differential_evolution_fitness(self, learning_rate=0.1, batch_size=0.69, cost_func='multi_cross'):
+    def differential_evolution_fitness(self, batch_size=0.69, cost_func='multi_cross'):
         batch = self.train_data.sample(frac=batch_size, random_state=(69+self.random_constant))
         self.random_constant += 1
 
@@ -257,7 +255,8 @@ class NeuralNetwork:
         else:
             #Quadratic Loss 
             predicted = self._feed_forward(batch)
-            dCost_function = -1*np.abs(predicted-self.unknown_df.loc[batch.index].to_numpy())
+             #*dPredicted w.r.t weights)
+            dCost_function = -1*np.abs(predicted-self.unknown_df.loc[batch.index].to_numpy())**2
              #*dPredicted w.r.t weights
 
         return dCost_function

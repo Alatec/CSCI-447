@@ -12,7 +12,8 @@ def differential_mutation(target_vector, x1, x2, x3, beta):
     return trial_vector
 
 
-def differential_binomial_crossover(target_vector, trial_vector, cross_over_prob):
+def differential_binomial_crossover(target_vector, trial_vector, cross_over_prob, seed=0):
+    rand.seed(seed)
     if len(target_vector) != len(trial_vector):
         print("The length of the target vector and trial vector must be equal")
         exit(-1)
@@ -34,7 +35,7 @@ def differential_binomial_crossover(target_vector, trial_vector, cross_over_prob
 
 
 if __name__ == "__main__":
-    rand.seed(69)
+
 
     cross_over_prob = .5
     beta = 1

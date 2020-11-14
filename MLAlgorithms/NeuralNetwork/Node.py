@@ -21,7 +21,8 @@ class Node:
     def __str__(self):
         return f"Index: {self.index}\nCordinate: {self.cordinate}\n"
 
-    
+    def __repr__(self):
+        return str(self)
 
     
     """
