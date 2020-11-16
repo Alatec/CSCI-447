@@ -2,7 +2,7 @@ import MLAlgorithms.Utils.Numba.logistic_activation as lga
 import MLAlgorithms.Utils.Numba.linear_activation as lia
 from MLAlgorithms.NeuralNetwork.Node import Node
 from MLAlgorithms.Utils.OneHotEncoder import OneHotEncoder
-from MLAlgorithms.NeuralNetwork.particle import Particle
+from MLAlgorithms.GeneticAlgorithms.particle import Particle
 
 import copy
 import numpy as np
