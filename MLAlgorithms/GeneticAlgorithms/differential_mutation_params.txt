@@ -1,0 +1,8 @@
+Breast Cancer
+    current_data_set = "breastCancer"
+    mutation_rate = .3
+    cross_over_prob = .7
+    learning_rate = 1e-3
+    maxItter = 100
+    batch_size = .1
+    population_size = 100
