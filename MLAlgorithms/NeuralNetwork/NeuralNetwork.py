@@ -2,7 +2,9 @@ import MLAlgorithms.Utils.Numba.logistic_activation as lga
 import MLAlgorithms.Utils.Numba.linear_activation as lia
 from MLAlgorithms.NeuralNetwork.Node import Node
 from MLAlgorithms.Utils.OneHotEncoder import OneHotEncoder
+from MLAlgorithms.NeuralNetwork.particle import Particle
 
+import copy
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -132,7 +134,10 @@ class NeuralNetwork:
             weights = self.weight_matrix[min(left_layer_indices):max(left_layer_indices)+1, min(layer_indices):max(layer_indices)+1]
 
             # Used to apply the activation function in the next layer 
+            # print(f"Layer {layer_num}")
             layer_input = layer_input@weights
+            # print(f"Weights: \n{weights}")
+            
             
             # Iterate through each node in current layer
             for i, node in enumerate(self.layerDict[layer_num]):
@@ -145,6 +150,7 @@ class NeuralNetwork:
                     # dA(Input_Layer*Weight)*Weight
                     # =================================================================================================================================
                     # Apply the derivative of the activation function to the input data
+
                     derivatives = node.activation_function_derivative(layer_input[:, i])
 
                     # Save paritial derivatives in the derivative matrix
@@ -153,7 +159,7 @@ class NeuralNetwork:
                     # Update the selected portion of the derivative_matrix 
                     self.derivative_matrix[:, min(left_layer_indices):max(left_layer_indices)+1, node.index] = derivatives
                     # ==================================================================================================================================
-                
+            # print(f"\n\nLayer {layer_num} output: \n{layer_input}\n\n")
 
         # If classification, apply softmax
         if self.predictionType == "classification" and self.unknown_df.shape[1] > 1:
@@ -177,7 +183,7 @@ class NeuralNetwork:
 
         returns output of cost_function
         """
-        batch = self.train_data.sample(frac=batch_size, random_state=(69+self.random_constant))
+        batch = self.train_data.sample(n=batch_size, random_state=(69+self.random_constant))
         self.random_constant += 1
 
         
@@ -198,24 +204,28 @@ class NeuralNetwork:
             predicted[range(m),truths] -= 1
 
             dCost_function = -(predicted/m)
-            
-
 
         else:
             #Quadratic Loss 
             predicted = self._feed_forward(batch)
             dCost_function = -1*np.abs(predicted-self.unknown_df.loc[batch.index].to_numpy())
-             #*dPredicted w.r.t weights
+            #*dPredicted w.r.t weights
             
+
+            # if self.predictionType == "classification":
+            #     dCost_function *= predicted
+        
+        # return dCost_function -> used for testing
+        print(f"Cost function:\n{dCost_function}")
+
         update_matrix = np.zeros_like(self.weight_matrix)
 
         total_layers = len(self.layerDict.keys())
         right_layer_cost = dCost_function
         
+        
         for layer_num in reversed(range(1,total_layers)):
-            left_layer_indices = []
             left_layer_indices = [node.index for node in self.layerDict[layer_num-1]]
-            layer_indices = []
             layer_indices = [node.index for node in self.layerDict[layer_num]]
 
             for i, node in enumerate(self.layerDict[layer_num]):
@@ -232,13 +242,14 @@ class NeuralNetwork:
             #Update right_layer_cost
             right_layer_cost = np.matmul(right_layer_cost, update_matrix[min(left_layer_indices):max(left_layer_indices)+1, min(layer_indices):max(layer_indices)+1].T)
         
-        self.update_matrix = (update_matrix-update_matrix-update_matrix.min())/(update_matrix.max()-update_matrix.min()) # This line is for video purposes only
-        update_matrix = (update_matrix-update_matrix-update_matrix.min())/(update_matrix.max()-update_matrix.min())
+        # self.update_matrix = (update_matrix-update_matrix-update_matrix.min())/(update_matrix.max()-update_matrix.min()) # This line is for video purposes only
+        # update_matrix = (update_matrix-update_matrix-update_matrix.min())/(update_matrix.max()-update_matrix.min())
+        
         self.weight_matrix = ((0.9*learning_rate)*update_matrix + (0.1*learning_rate)*self.prev_update) + self.weight_matrix
         
 
         
-        self.prev_update = update_matrix[:]
+        self.prev_update = copy.deepcopy(update_matrix)
         
 
     def differential_evolution_fitness(self, batch_size=0.69, cost_func='multi_cross'):
@@ -261,6 +272,51 @@ class NeuralNetwork:
 
         return dCost_function
         
+
+
+    def _particle_swarm_optimize(self, particle_count, max_iter=1000, batch_size=0.1, cost_func="321654"):
+        print("Initializing Particles:")
+        particles = [Particle(self.weight_matrix, index=i) for i in range(particle_count)]
+
+        print("Calculating Fitness")
+        best_fit = 1e6
+        global_best = np.zeros_like(self.weight_matrix)
+        fitness_matrix = np.zeros((max_iter,4))
+        average_fitness = np.zeros(max_iter)
+        new_best_count = 0
+        for i in tqdm(range(max_iter)):
+            average = 0
+            batch = self.train_data.sample(frac=batch_size, random_state=(69+self.random_constant))
+            self.random_constant += 1
+            truths = self.unknown_col[batch.index].to_numpy()
+            for part in particles:
+                self.weight_matrix = part.position
+                predicted = self._feed_forward(batch, testing=True)
+                fitness = part.evalutate(predicted, truths, cost_func)
+                average += fitness
+                if part.index == 1: fitness_matrix[i,0] = fitness#part.pbest_fitness
+                if part.index == 34: fitness_matrix[i,1] = fitness#part.pbest_fitness
+                if part.index == 68: fitness_matrix[i,2] = fitness#part.pbest_fitness
+
+                if fitness < best_fit:
+                    best_fit = fitness
+                    global_best = part.position[:]
+                    new_best_count += 1
+                
+                fitness_matrix[i,3] = best_fit
+                average_fitness[i] = average/particle_count
+            
+            for part in particles:
+                part.accelerate(global_best)
+        
+        self.weight_matrix = global_best
+        print(f"New Best Count: {new_best_count}")
+        return fitness_matrix, average_fitness
+
+
+
+
+
     def _create_network(self, input_data, number_of_hidden_layers, nodes_per_hidden_layer, prediction_type):
         """
         input_data: Pandas DataFrame
@@ -317,7 +373,7 @@ class NeuralNetwork:
                                     
 
         #Initializing Weights:
-        self.weight_matrix = np.random.uniform(-0.1, 0.1, size=(node_index, node_index))
+        self.weight_matrix = np.random.uniform(-.1, .1, size=(node_index, node_index))
         self.derivative_matrix = np.ones((input_data.shape[0], self.weight_matrix.shape[0], self.weight_matrix.shape[1]))
         self.prev_update = np.zeros_like(self.weight_matrix)
 
