@@ -261,7 +261,7 @@ class NeuralNetwork:
         
         
 
-    def _particle_swarm_optimize(self, particle_count, max_iter=1000, batch_size=0.1, cost_func="bin_cross"):
+    def _particle_swarm_optimize(self, particle_count, max_iter=1000, batch_size=0.1, cost_func="321654"):
         print("Initializing Particles:")
         particles = [Particle(self.weight_matrix, index=i) for i in range(particle_count)]
 

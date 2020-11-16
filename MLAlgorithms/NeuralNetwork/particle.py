@@ -3,7 +3,7 @@ import numpy as np
 
 class Particle:
 
-    def __init__(self, initial_vector, vel_bound=.5, pos_bound=1.0, momentum=(2.05,2.05), index=0, vel_max = 0.5):
+    def __init__(self, initial_vector, vel_bound=.05, pos_bound=1.0, momentum=(2.05,2.05), index=0, vel_max = 0.05):
         self.position = np.random.uniform(-pos_bound, pos_bound, initial_vector.shape)
         self.velocity = np.random.uniform(-vel_bound, vel_bound, initial_vector.shape)
         self.pbest_vector = self.position[:]
@@ -28,7 +28,7 @@ class Particle:
             output = np.zeros_like(predicted)
             output[truths==1] = -np.log(predicted[truths==1]+0.001)
             output[truths==0] = -np.log(1.001-predicted[truths==0])
-            fitness = np.median(output)
+            fitness = np.mean(output)
         # Multi-Class Cross Entropy Loss
         elif cost_func == 'multi_cross':
             # https://deepnotes.io/softmax-crossentropy
@@ -42,7 +42,7 @@ class Particle:
         else:
             #Quadratic Loss 
             output = ((predicted-truths)**2).flatten()
-            fitness = np.median(output)
+            fitness = np.mean(output)
             #*dPredicted w.r.t weights
             
             # if self.predictionType == "classification":

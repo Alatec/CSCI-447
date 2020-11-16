@@ -34,7 +34,7 @@ happiness = r"""
 
 print(happiness)
 dataRetriever = DataRetriever("../Datasets/metadata.json")
-dataRetriever.retrieveData("breastCancer")
+dataRetriever.retrieveData("abalone")
 dataset = dataRetriever.getDataSet().dropna()
 dataset = dataset.reset_index(drop=True)
 
@@ -69,7 +69,7 @@ train_set[dataRetriever.getContinuousAttributes()] = sn.train_fit()
 test_set[dataRetriever.getContinuousAttributes()] = sn.fit(test_set[dataRetriever.getContinuousAttributes()])
 
 # Train network and change architecture in respect to data set
-nn = NeuralNetwork(train_set, 2, [4,7], dataRetriever.getPredictionType(), dataRetriever.getDataClass())
+nn = NeuralNetwork(train_set, 2, [6,16], dataRetriever.getPredictionType(), dataRetriever.getDataClass())
 fitness_matrix, average_fitness = nn._particle_swarm_optimize(70, max_iter=500)
 
 
@@ -80,8 +80,8 @@ predictions = nn._feed_forward(test_set.drop(dataRetriever.getDataClass(), axis=
 actual = test_set[dataRetriever.getDataClass()]
 # thresh = np.mean(predictions)
 # for i, row in enumerate(predictions):
-#     guess = 0
-#     if row >= thresh: guess = 1
+#     guess = 4
+#     if row >= thresh: guess = 2
 #     if guess == actual.iloc[i]: correct += 1
 # metrics.append(correct/len(actual))
 
@@ -105,10 +105,11 @@ print("Predicted Output: ",)
 print(predictions)
 print("Actual Output: ")
 print(actual.to_numpy())
-# predictions = predictions.flatten()
-# ax[1].hist((predictions-predictions.mean())/predictions.std(), alpha=0.5, label='Predicted', density=True)
-# ax[1].hist((actual-actual.mean())/actual.std(), label='Actual', density=True, alpha=0.5)
-# ax[1].legend()
+predictions = predictions.flatten()
+# ax[1].hist(predictions)
+ax[1].hist((predictions-predictions.mean())/predictions.std(), alpha=0.5, label='Predicted', density=True)
+ax[1].hist((actual-actual.mean())/actual.std(), label='Actual', density=True, alpha=0.5)
+ax[1].legend()
 
-ax[2] = plt.plot(average_fitness)
+ax[2].plot(average_fitness)
 plt.show()
