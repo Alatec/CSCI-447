@@ -13,10 +13,6 @@ Here is the structure for Project 3 - Neural Networks
         Contains the driver for regression data.
         Must be tuned with respect to the data set wanting to be tested
 
-    driver.py
-        This is the testing driver we used when the algorithm was being created.
-        This file is not well commmented and only existed for testing purposes.
-
     network.py
         This is the testing driver we used when the algorithm was being created.
         This file is not well commmented and only existed for testing purposes.
