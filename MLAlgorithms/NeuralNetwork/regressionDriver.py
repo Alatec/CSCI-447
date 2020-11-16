@@ -18,9 +18,9 @@ dataset = dataset.reset_index(drop=True)
 
 # This line is used to normalize the data for Forest Fires
 # dataset[dataRetriever.getDataClass()] = np.log(dataset[dataRetriever.getDataClass()]+0.1)
-maxIter = 1000
+maxIter = 1
 learning_rate = 1e-3
-batch_size = 0.2
+batch_size = 0.01
 
 metrics = []
 fold = 0
@@ -46,24 +46,25 @@ for test_set, train_set in KFolds(dataset, 10):
     test_set[dataRetriever.getContinuousAttributes()] = sn.fit(test_set[dataRetriever.getContinuousAttributes()])
 
     # Train network and change architecture in respect to data set
-    nn = NeuralNetwork(train_set, 2, [4,7], dataRetriever.getPredictionType(), dataRetriever.getDataClass())
+    nn = NeuralNetwork(train_set, 0, [], dataRetriever.getPredictionType(), dataRetriever.getDataClass())
     nn.train(maxIter, learning_rate, batch_size)
 
-    predictions = nn.test(test_set.drop(dataRetriever.getDataClass(), axis=1))
-    predictions = predictions.reshape(predictions.shape[0])
-    actual = test_set[dataRetriever.getDataClass()]
-    res = predictions-actual
-    tot_ss = ((actual-actual.mean())**2).sum()
-    res_ss = ((actual-predictions)**2).sum()
-    R2 = 1-(res_ss/tot_ss)
+    # predictions = nn.test(test_set.drop(dataRetriever.getDataClass(), axis=1))
+    # predictions = predictions.reshape(predictions.shape[0])
+    # actual = test_set[dataRetriever.getDataClass()]
+    # res = predictions-actual
+    # tot_ss = ((actual-actual.mean())**2).sum()
+    # res_ss = ((actual-predictions)**2).sum()
+    # R2 = 1-(res_ss/tot_ss)
     
-    metrics.append(R2)
+    # metrics.append(R2)
+    break
 
     
 
-metrics = np.asarray(metrics)
+# metrics = np.asarray(metrics)
 
 
 
 
-print(f"Average R2: {np.asarray(metrics).mean()} ± me")
+# print(f"Average R2: {np.asarray(metrics).mean()} ± {metrics.std()}")
