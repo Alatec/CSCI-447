@@ -3,7 +3,10 @@ import MLAlgorithms.Utils.Numba.linear_activation as lia
 from MLAlgorithms.NeuralNetwork.Node import Node
 from MLAlgorithms.Utils.OneHotEncoder import OneHotEncoder
 from MLAlgorithms.GeneticAlgorithms.particle import Particle
+from MLAlgorithms.GeneticAlgorithms.differential_mutation import differential_mutation
+from MLAlgorithms.GeneticAlgorithms.differential_mutation import differential_binomial_crossover
 
+import random as rand
 import copy
 import numpy as np
 import pandas as pd
@@ -251,26 +254,6 @@ class NeuralNetwork:
         
         self.prev_update = copy.deepcopy(update_matrix)
         
-
-    def differential_evolution_fitness(self, batch_size=0.69, cost_func='multi_cross'):
-        batch = self.train_data.sample(frac=batch_size, random_state=(69+self.random_constant))
-        self.random_constant += 1
-
-        # Binary Cross Entropy Loss
-        if cost_func == 'bin_cross':
-            predicted = self._feed_forward(batch).T
-            truths = self.unknown_col[batch.index].to_numpy()
-            
-            dCost_function = (1/len(batch))* (np.divide(truths,(predicted+0.0001)) + np.divide(1-truths,(1.0001-predicted))).T
-        
-        else:
-            #Quadratic Loss 
-            predicted = self._feed_forward(batch)
-             #*dPredicted w.r.t weights)
-            dCost_function = -1*np.abs(predicted-self.unknown_df.loc[batch.index].to_numpy())**2
-             #*dPredicted w.r.t weights
-
-        return dCost_function
         
 
 
@@ -315,6 +298,224 @@ class NeuralNetwork:
 
 
 
+    def genetic_algorithm(self, population_size, maxItter, batch_size, mutation_rate, num_cuts = 10, cost_func='bin_cross'):
+
+        # Create population of random weights
+        population = [np.random.uniform(-0.1, 0.1, self.weight_matrix.shape) for i in range(population_size)]
+        prev_result = 0
+
+        #List of indices to select as cutpoints
+        cutpoint_selection = np.arange(len(self.weight_matrix.flatten())-1)
+
+        # Initialize best fit parameters
+        best_fitness = 1e6
+        best_fit_matrix = self.weight_matrix[:]
+
+        fitnesses = np.zeros(maxItter)
+
+        # Main for loop for iterating through the generations
+        for i in tqdm(range(maxItter)):
+
+            # Create 1 batch for every organism to test with
+            batch = self.train_data.sample(frac=batch_size, random_state=(69+self.random_constant))
+            self.random_constant += 1
+            truths = self.unknown_col[batch.index].to_numpy()
+            current_result = 0
+            parent_fitness = np.zeros(len(population))
+
+            next_generation = []
+
+            # Evaluate fitness of Parents
+            for j, parent in enumerate(population):
+                self.weight_matrix = parent
+                
+                parent_fitness[j] = self._evolution_fitness(cost_func=cost_func).sum() #TODO
+
+                if parent_fitness[j] < best_fitness:
+                    best_fitness = parent_fitness[j]
+                    best_fit_matrix = parent[:]
+            fitnesses[i] = best_fitness
+            # Find the top performing 50%
+            chads = np.argsort(parent_fitness)[:len(population)//2]
+            parent_shape = population[0].shape
+
+            # Generate children
+            for j, chad in enumerate(chads[:-1]):
+                parent1 = population[chad].flatten()
+                parent2 = population[chads[j+1]].flatten()
+                
+                cutpoints = np.sort(np.random.choice(cutpoint_selection, num_cuts, replace=False).astype(np.int))
+
+                child1 = np.zeros_like(parent1)
+                child2 = np.zeros_like(parent1)
+
+                # Each child gets genetic material from parents up to the first cut point
+                child1[:cutpoints[0]] = parent2[:cutpoints[0]]
+                child2[:cutpoints[0]] = parent1[:cutpoints[0]]
+
+
+                # For each cut, give children chromosones. Alternate each itteration 
+                for k, cut in enumerate(cutpoints[:-1]):
+                    if k%2 == 0:
+                        child1[cut:cutpoints[k+1]] = parent1[cut:cutpoints[k+1]]
+                        child2[cut:cutpoints[k+1]] = parent2[cut:cutpoints[k+1]]
+                    else:
+                        child1[cut:cutpoints[k+1]] = parent2[cut:cutpoints[k+1]]
+                        child2[cut:cutpoints[k+1]] = parent1[cut:cutpoints[k+1]]
+
+                # Remaining genetic material is given to the children
+                child1[cutpoints[-1]:] = parent1[cutpoints[-1]:]
+                child2[cutpoints[-1]:] = parent2[cutpoints[-1]:]
+
+                # Mutate the children. 
+                child1_mutated_genes = np.random.choice([0,1], child1.shape, p=[1-mutation_rate,mutation_rate])
+                child1_mutation_amount = np.random.uniform(0.9,1.1,child1.shape)
+                child1[child1_mutated_genes==1] *= child1_mutation_amount[child1_mutated_genes==1]
+
+                child2_mutated_genes = np.random.choice([0,1], child2.shape, p=[1-mutation_rate,mutation_rate])
+                child2_mutation_amount = np.random.uniform(0.9,1.1,child2.shape)
+                child2[child2_mutated_genes==1] *= child1_mutation_amount[child2_mutated_genes==1]
+
+                # Add the children to the next generation
+                next_generation.append(np.reshape(child1, parent_shape))
+                next_generation.append(np.reshape(child2, parent_shape))
+            
+            #Edge Case for final set of parents
+            parent1 = population[chads[-1]].flatten()
+            parent2 = population[chads[0]].flatten()
+            
+            cutpoints = np.sort(np.random.choice(cutpoint_selection, num_cuts, replace=False))
+
+            child1 = np.zeros_like(parent1)
+            child2 = np.zeros_like(parent1)
+
+            child1[:cutpoints[0]] = parent1[:cutpoints[0]]
+            child2[:cutpoints[0]] = parent2[:cutpoints[0]]
+
+            for k, cut in enumerate(cutpoints[:-1]):
+                if k%2 == 0:
+                    child1[cut:cutpoints[k+1]] = parent1[cut:cutpoints[k+1]]
+                    child2[cut:cutpoints[k+1]] = parent2[cut:cutpoints[k+1]]
+                else:
+                    child1[cut:cutpoints[k+1]] = parent2[cut:cutpoints[k+1]]
+                    child2[cut:cutpoints[k+1]] = parent1[cut:cutpoints[k+1]]
+            
+            child1[cutpoints[-1]:] = parent1[cutpoints[-1]:]
+            child2[cutpoints[-1]:] = parent2[cutpoints[-1]:]
+
+            child1_mutated_genes = np.random.choice([0,1], child1.shape, p=[1-mutation_rate,mutation_rate])
+            child1_mutation_amount = np.random.uniform(0.9,1.1,child1.shape)
+            child1[child1_mutated_genes==1] *= child1_mutation_amount[child1_mutated_genes==1]
+
+            child2_mutated_genes = np.random.choice([0,1], child2.shape, p=[1-mutation_rate,mutation_rate])
+            child2_mutation_amount = np.random.uniform(0.9,1.1,child2.shape)
+            child2[child2_mutated_genes==1] *= child1_mutation_amount[child2_mutated_genes==1]
+
+            next_generation.append(np.reshape(child1, parent_shape))
+            next_generation.append(np.reshape(child2, parent_shape))
+
+            population = next_generation[:]
+
+                
+
+
+
+            # if ((abs(current_result - prev_result) / (abs(current_result + prev_result) + .000001)) > .0000001):
+            #     prev_result = current_result
+            # else: 
+            #     break
+
+
+        self.weight_matrix = best_fit_matrix
+        return fitnesses
+        
+
+    def _evolution_fitness(self, batch_size=0.69, cost_func='multi_cross'):
+        batch = self.train_data.sample(frac=batch_size, random_state=(69+self.random_constant))
+        predicted = self._feed_forward(batch)
+        truths = self.unknown_df.loc[batch.index].to_numpy()
+        delta = 1
+        # self.random_constant += 1
+
+        # Binary Cross Entropy Loss
+        if cost_func == 'bin_cross':
+      
+            output = np.zeros_like(predicted)
+            output[truths==1] = -np.log(predicted[truths==1]+0.001)
+            output[truths==0] = -np.log(1.001-predicted[truths==0])
+            Cost_function = output
+        
+        elif cost_func == 'MAE':
+            
+             #*dPredicted w.r.t weights)
+            Cost_function = np.abs(truths-predicted)
+        elif cost_func == 'huber':
+            Cost_function = np.where(np.abs(truths-predicted) < delta , 0.5*((truths-predicted)**2), delta*np.abs(truths - predicted) - 0.5*(delta**2))
+        elif cost_func == 'log_cosh':
+            Cost_function = np.log(np.cosh(predicted - truths))
+        else:
+            #Quadratic Loss 
+             #*dPredicted w.r.t weights)
+            Cost_function = (predicted-self.unknown_df.loc[batch.index].to_numpy())**2
+             #*dPredicted w.r.t weights
+
+        return Cost_function
+
+    def differential_evolution(self, population_size, maxItter, batch_size, mutation_rate, cross_over_prob, cost_func = 'bin_cross'):
+        # Create population of random weights
+        population = [np.random.uniform(-0.1, 0.1, self.weight_matrix.shape) for i in range(population_size)]
+        i = 0
+        prev_result = 0
+        seed_counter = 0
+        for i in tqdm(range(maxItter)):
+            current_result = 0
+
+            for j in range(len(population)):
+                random_individual_index = rand.sample([x for x in range(population_size) if x != j], 3)
+                # Check fitness
+                self.weight_matrix = population[j]
+                parent_fitness = self._evolution_fitness(cost_func=cost_func)
+                # Create Trial
+                trial_matrix = differential_mutation(population[j], 
+                                                    population[random_individual_index[0]], 
+                                                    population[random_individual_index[1]], 
+                                                    population[random_individual_index[2]],
+                                                    mutation_rate)
+
+                # Create offspring
+                child_matrix = differential_binomial_crossover(population[j], trial_matrix, cross_over_prob, seed=seed_counter)
+                seed_counter += 1
+
+                self.weight_matrix = child_matrix
+                child_fitness = self._evolution_fitness(cost_func=cost_func)
+
+                final_parent_fitness = parent_fitness.sum().sum()
+                final_child_fitness = child_fitness.sum().sum()
+                if final_child_fitness < final_parent_fitness:
+                    population[j] = child_matrix
+
+                final_fitness = final_child_fitness if final_child_fitness < final_parent_fitness else final_parent_fitness
+                current_result += final_fitness
+
+
+            if ((abs(current_result - prev_result) / abs(current_result + prev_result)) > .0000001):
+                prev_result = current_result
+            else: 
+                break
+
+        
+        best = population[0]
+        self.weight_matrix = best
+        best_fitness = self._evolution_fitness().sum()
+        for individual in population:
+
+            self.weight_matrix = individual
+            individual_fitness = self._evolution_fitness().sum()
+
+            if individual_fitness < best_fitness:
+                best = individual[:]
+                best_fitness = individual_fitness
+        
 
 
     def _create_network(self, input_data, number_of_hidden_layers, nodes_per_hidden_layer, prediction_type):

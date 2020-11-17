@@ -13,23 +13,23 @@ cost_func = {"breastCancer": "bin_crosss",
 "glass": "bin_cross", 
 "soybeanSmall": "bin_crosss", 
 "abalone": "hubers", 
-"forestFires": "amas",}
+"forestFires": "log_cosh",}
 
-title_text = """ 
-   ______                    __   _          ___     __                     _  __   __                    
-  / ____/___   ____   ___   / /_ (_)_____   /   |   / /____ _ ____   _____ (_)/ /_ / /_   ____ ___   _____
- / / __ / _ \ / __ \ / _ \ / __// // ___/  / /| |  / // __ `// __ \ / ___// // __// __ \ / __ `__ \ / ___/
-/ /_/ //  __// / / //  __// /_ / // /__   / ___ | / // /_/ // /_/ // /   / // /_ / / / // / / / / /(__  ) 
-\____/ \___//_/ /_/ \___/ \__//_/ \___/  /_/  |_|/_/ \__, / \____//_/   /_/ \__//_/ /_//_/ /_/ /_//____/  
-                                                    /____/                                                
+title_text = r"""
+    ____  _ ________                     __  _       __   ______            __      __  _           
+   / __ \(_) __/ __/__  ________  ____  / /_(_)___ _/ /  / ____/   ______  / /_  __/ /_(_)___  ____ 
+  / / / / / /_/ /_/ _ \/ ___/ _ \/ __ \/ __/ / __ `/ /  / __/ | | / / __ \/ / / / / __/ / __ \/ __ \
+ / /_/ / / __/ __/  __/ /  /  __/ / / / /_/ / /_/ / /  / /___ | |/ / /_/ / / /_/ / /_/ / /_/ / / / /
+/_____/_/_/ /_/  \___/_/   \___/_/ /_/\__/_/\__,_/_/  /_____/ |___/\____/_/\__,_/\__/_/\____/_/ /_/
 """
 
 
 # ====================== Adjustable Variables ==============================
 current_data_set = "forestFires"
-mutation_rate = .1
+mutation_rate = .6
+cross_over_prob = .7
 maxItter = 100
-batch_size = .4
+batch_size = .1
 population_size = 10
 # ===========================================================================
 
@@ -45,8 +45,8 @@ if current_data_set == "forestFires":
     dataset[dataRetriever.getDataClass()] = np.log(dataset[dataRetriever.getDataClass()]+0.1)
 
 dataset = dataset.reset_index(drop=True)
-# dataset[dataRetriever.getContinuousAttributes()] = (dataset[dataRetriever.getContinuousAttributes()]
-#                                                     - dataset[dataRetriever.getContinuousAttributes()].mean())/dataset[dataRetriever.getContinuousAttributes()].std()
+dataset[dataRetriever.getContinuousAttributes()] = (dataset[dataRetriever.getContinuousAttributes()]
+                                                    - dataset[dataRetriever.getContinuousAttributes()].mean())/dataset[dataRetriever.getContinuousAttributes()].std()
 
 test_set = dataset.sample(frac=0.1, random_state=69)
 train_set = dataset.drop(test_set.index)
@@ -69,10 +69,9 @@ testEncoded = ohe.fit(test_set)
 print(title_text)
 
 
-
 best = NeuralNetwork(datasetEncoded, 2, [2, 3], dataRetriever.getPredictionType(), 
                             dataRetriever.getDataClass())
-fitnesses = best.genetic_algorithm(population_size, maxItter, batch_size, mutation_rate, 10, cost_func[current_data_set])
+fitnesses = best.differential_evolution(population_size, maxItter, batch_size, mutation_rate, cross_over_prob, cost_func[current_data_set])
 
 
 # print("Best")
@@ -115,7 +114,7 @@ if dataRetriever.getPredictionType() == "classification":
 
 else:
     # ===================== Regression =================
-    fig, axs = plt.subplots(4)
+    fig, axs = plt.subplots(3)
     output = output.reshape(output.shape[0])
     # output = ((output - output.mean())/output.std())
     # actual = (actual - actual.mean())/actual.std()
@@ -134,5 +133,5 @@ else:
     r2 = 1-((res**2).sum()/(((actual-actual.mean())**2).sum()))
     print(f"R2: {r2}")
     axs[2].hist(res)
-    axs[3].plot(fitnesses)
+    # axs[3].plot(fitnesses)
     plt.show()
