@@ -6,31 +6,35 @@ from MLAlgorithms.GeneticAlgorithms.differential_mutation import differential_bi
 
 from tqdm import tqdm
 import numpy as np
+# import matplotlib
+# print(matplotlib.rcsetup.interactive_bk)
+# matplotlib.use('Qt4Agg')
 import matplotlib.pyplot as plt
 import random as rand
 
 cost_func = {"breastCancer": "bin_crosss", 
 "glass": "bin_cross", 
-"soybeanSmall": "bin_crosss", 
-"abalone": "hubers", 
-"forestFires": "amas",}
+"soybeanSmall": "bin_cross", 
+"abalone": "log_cosh", 
+"forestFires": "log_cosh",
+"computerHardware":"huber"}
 
 title_text = """ 
    ______                    __   _          ___     __                     _  __   __                    
-  / ____/___   ____   ___   / /_ (_)_____   /   |   / /____ _ ____   _____ (_)/ /_ / /_   ____ ___   _____
- / / __ / _ \ / __ \ / _ \ / __// // ___/  / /| |  / // __ `// __ \ / ___// // __// __ \ / __ `__ \ / ___/
-/ /_/ //  __// / / //  __// /_ / // /__   / ___ | / // /_/ // /_/ // /   / // /_ / / / // / / / / /(__  ) 
-\____/ \___//_/ /_/ \___/ \__//_/ \___/  /_/  |_|/_/ \__, / \____//_/   /_/ \__//_/ /_//_/ /_/ /_//____/  
+  / ____/___   ____   ___   / /_ (_)_____   /   /   / /____ _ ____   _____ (_)/ /_ / /_   ____ ___   _____
+ / / __ / _ \ / __ \ / _ \ / __// // ___/  / /| /  / // __ `// __ \ / ___// // __// __ \ / __ `__ \ / ___/
+/ /_/ //  __// / / //  __// /_ / // /__   / ___ / / // /_/ // /_/ // /   / // /_ / / / // / / / / /(__  ) 
+\____/ \___//_/ /_/ \___/ \__//_/ \___/  /_/  |_//_/ \__, / \____//_/   /_/ \__//_/ /_//_/ /_/ /_//____/  
                                                     /____/                                                
 """
 
 
 # ====================== Adjustable Variables ==============================
-current_data_set = "forestFires"
-mutation_rate = .1
+current_data_set = "abalone"
+mutation_rate = .7
 maxItter = 100
-batch_size = .4
-population_size = 10
+batch_size = .6
+population_size = 110
 # ===========================================================================
 
 
@@ -42,11 +46,14 @@ dataset = dataRetriever.getDataSet().dropna()
 
 # This line is used to normalize the data for Forest Fires
 if current_data_set == "forestFires":
-    dataset[dataRetriever.getDataClass()] = np.log(dataset[dataRetriever.getDataClass()]+0.1)
+    # zeros = dataset[dataset[dataRetriever.getDataClass()] < 1].index
+    # print(len(zeros)/len(dataset))
+    # dataset = dataset.drop(zeros)
+    dataset[dataRetriever.getDataClass()] = np.log(dataset[dataRetriever.getDataClass()]+0.000001)
 
 dataset = dataset.reset_index(drop=True)
-# dataset[dataRetriever.getContinuousAttributes()] = (dataset[dataRetriever.getContinuousAttributes()]
-#                                                     - dataset[dataRetriever.getContinuousAttributes()].mean())/dataset[dataRetriever.getContinuousAttributes()].std()
+dataset[dataRetriever.getContinuousAttributes()] = (dataset[dataRetriever.getContinuousAttributes()]
+                                                    - dataset[dataRetriever.getContinuousAttributes()].min())/(dataset[dataRetriever.getContinuousAttributes()].max()-dataset[dataRetriever.getContinuousAttributes()].min())
 
 test_set = dataset.sample(frac=0.1, random_state=69)
 train_set = dataset.drop(test_set.index)
@@ -70,7 +77,7 @@ print(title_text)
 
 
 
-best = NeuralNetwork(datasetEncoded, 2, [2, 3], dataRetriever.getPredictionType(), 
+best = NeuralNetwork(datasetEncoded, 0, [], dataRetriever.getPredictionType(), 
                             dataRetriever.getDataClass())
 fitnesses = best.genetic_algorithm(population_size, maxItter, batch_size, mutation_rate, 10, cost_func[current_data_set])
 
@@ -123,10 +130,17 @@ else:
 
 
     # plt.hist(rmse)
-    axs[0].hist(actual, label="Actual", alpha=0.5)
-    axs[0].set_xlim([-2.5,5.5])
-    axs[1].hist(output, label="Predicted", alpha=0.5)
-    axs[1].set_xlim([-2.5,5.5])
+    axs[0].set_title('Actual')
+    axs[0].hist(actual, label="Actual")
+    ylim = axs[0].get_ylim()
+    axs[0].plot([actual.mean(),actual.mean()],ylim)
+    axs[0].plot([np.median(actual),np.median(actual)],ylim)
+
+    axs[0].set_xlim([0,1])
+
+    axs[1].set_title('Predicted')
+    axs[1].hist(output, label="Predicted")
+    axs[1].set_xlim([0,1])
     
     # axs[1].hist(rmse)
     # axs[0].legend()
@@ -134,5 +148,13 @@ else:
     r2 = 1-((res**2).sum()/(((actual-actual.mean())**2).sum()))
     print(f"R2: {r2}")
     axs[2].hist(res)
-    axs[3].plot(fitnesses)
-    plt.show()
+    axs[2].set_title('Residuals')
+
+    axs[3].set_title('Fitness')
+    # axs[3].plot(fitnesses[:,0]-fitnesses[:,1], c='blue')
+    # axs[3].plot(fitnesses[:,0]+fitnesses[:,1], c='blue')
+    axs[3].plot(fitnesses[:,0], c='blue', label='mean')
+    axs[3].plot(fitnesses[:,1], c='green',label='median')
+    # axs[3].set_ylim([0,75])
+    fig.tight_layout()
+    plt.savefig("PlotDump/Plot1.png")

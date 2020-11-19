@@ -311,7 +311,7 @@ class NeuralNetwork:
         best_fitness = 1e6
         best_fit_matrix = self.weight_matrix[:]
 
-        fitnesses = np.zeros(maxItter)
+        fitnesses = np.zeros((maxItter,2))
 
         # Main for loop for iterating through the generations
         for i in tqdm(range(maxItter)):
@@ -334,9 +334,19 @@ class NeuralNetwork:
                 if parent_fitness[j] < best_fitness:
                     best_fitness = parent_fitness[j]
                     best_fit_matrix = parent[:]
-            fitnesses[i] = best_fitness
+            fitnesses[i,0] = parent_fitness.mean()
+            fitnesses[i,1] = np.median(parent_fitness)
             # Find the top performing 50%
-            chads = np.argsort(parent_fitness)[:len(population)//2]
+            chads = np.argsort(parent_fitness)
+            # selection_prob = np.ones_like(chads, dtype=np.float)
+            # selection_prob[:len(chads)//2]+=2
+            
+            selection_prob = np.arange(len(chads), dtype=np.float)[::-1]
+            # selection_prob *= selection_prob
+            selection_prob[:len(chads)//2]+=10
+            # selection_prob += np.random.uniform(0,5, len(selection_prob))
+            selection_prob /= selection_prob.sum()
+            chads = np.random.choice(chads, len(chads)//2, p=selection_prob, replace=False)
             parent_shape = population[0].shape
 
             # Generate children
@@ -374,7 +384,7 @@ class NeuralNetwork:
 
                 child2_mutated_genes = np.random.choice([0,1], child2.shape, p=[1-mutation_rate,mutation_rate])
                 child2_mutation_amount = np.random.uniform(0.9,1.1,child2.shape)
-                child2[child2_mutated_genes==1] *= child1_mutation_amount[child2_mutated_genes==1]
+                child2[child2_mutated_genes==1] *= child2_mutation_amount[child2_mutated_genes==1]
 
                 # Add the children to the next generation
                 next_generation.append(np.reshape(child1, parent_shape))
