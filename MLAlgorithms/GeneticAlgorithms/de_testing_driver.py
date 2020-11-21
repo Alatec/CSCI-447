@@ -9,8 +9,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random as rand
 
-cost_func = {"breastCancer": "bin_crosss", 
-"glass": "bin_cross", 
+cost_func = {"breastCancer": "bin_cross", 
+"glass": "log_cosh", 
 "soybeanSmall": "bin_crosss", 
 "abalone": "hubers", 
 "forestFires": "log_cosh",}
@@ -25,12 +25,13 @@ title_text = r"""
 
 
 # ====================== Adjustable Variables ==============================
-current_data_set = "forestFires"
-mutation_rate = .6
+current_data_set = "glass"
+mutation_rate = .3
 cross_over_prob = .7
-maxItter = 100
+maxItter = 1000
 batch_size = .1
-population_size = 10
+population_size = 100
+nodes_per_layer = [5]
 # ===========================================================================
 
 
@@ -69,7 +70,7 @@ testEncoded = ohe.fit(test_set)
 print(title_text)
 
 
-best = NeuralNetwork(datasetEncoded, 2, [2, 3], dataRetriever.getPredictionType(), 
+best = NeuralNetwork(datasetEncoded, len(nodes_per_layer), nodes_per_layer, dataRetriever.getPredictionType(), 
                             dataRetriever.getDataClass())
 fitnesses = best.differential_evolution(population_size, maxItter, batch_size, mutation_rate, cross_over_prob, cost_func[current_data_set])
 
@@ -111,6 +112,19 @@ if dataRetriever.getPredictionType() == "classification":
     #     print(final)
     #     print(np.array(actual))
     #     print(acc)
+
+        # plt.plot(fitnesses[:,0], c='blue', label='max')
+    # plt.plot(fitnesses[:,0], c='green', label='max')
+    plt.plot(fitnesses[:,1], c='blue', label='fitness')
+    # plt.plot(fitnesses[:,2], c='orange', label='std')
+    # plt.plot(fitnesses[:,3], c='red', label='min')
+    # plt.plot(fitnesses[:,1]+1.5*fitnesses[:,2], c='black', label='outlier')
+    # plt.plot(fitnesses[:,1]-1.5*fitnesses[:,2], c='black', label='outlier')
+    # plt.yscale('log')
+    plt.legend()
+    # plt.plot(fitnesses[:,0]-fitnesses[:,1], c='green')
+    plt.title(current_data_set)
+    plt.show()
 
 else:
     # ===================== Regression =================
