@@ -112,4 +112,4 @@ ax[1].hist((actual-actual.mean())/actual.std(), label='Actual', density=True, al
 ax[1].legend()
 
 ax[2].plot(average_fitness)
-plt.show()
+plt.savefig("PlotDump/Plot1.png")
