@@ -118,7 +118,10 @@ class NeuralNetwork:
 
         Some of the logic for back propagation is placed in the feed forward step to make use of dynamic programming
         """
-
+        # weight_shape = self.weight_matrix.shape
+        # temp = self.weight_matrix.flatten()
+        # self.weight_matrix = np.clip(self.weight_matrix, -1.5*temp.std()+temp.mean(), 1.5*temp.std()+temp.mean())
+        
         input_data = batch.to_numpy(dtype=np.longdouble)
         layer_input = input_data # layer_input initally contains a 2D array of every value for each attribute
         total_layers = len(self.layerDict.keys())
@@ -135,7 +138,7 @@ class NeuralNetwork:
 
             # Select the portion of the weight matrix representing the edges between left_layer and the current layer
             weights = self.weight_matrix[min(left_layer_indices):max(left_layer_indices)+1, min(layer_indices):max(layer_indices)+1]
-
+            # weights = np.clip(weights, -1.5*weights.std()+weights.mean(), 1.5*weights.std()+weights.mean())
             # Used to apply the activation function in the next layer 
             # print(f"Layer {layer_num}")
             layer_input = layer_input@weights
@@ -311,7 +314,7 @@ class NeuralNetwork:
         best_fitness = 1e6
         best_fit_matrix = self.weight_matrix[:]
 
-        fitnesses = np.zeros((maxItter,2))
+        fitnesses = np.zeros((maxItter,3))
 
         # Main for loop for iterating through the generations
         for i in tqdm(range(maxItter)):
@@ -327,6 +330,8 @@ class NeuralNetwork:
 
             # Evaluate fitness of Parents
             for j, parent in enumerate(population):
+                
+                
                 self.weight_matrix = parent
                 
                 parent_fitness[j] = self._evolution_fitness(cost_func=cost_func).sum() #TODO
@@ -334,8 +339,9 @@ class NeuralNetwork:
                 if parent_fitness[j] < best_fitness:
                     best_fitness = parent_fitness[j]
                     best_fit_matrix = parent[:]
-            fitnesses[i,0] = parent_fitness.mean()
-            fitnesses[i,1] = np.median(parent_fitness)
+            fitnesses[i,0] = best_fit_matrix.flatten().max()
+            fitnesses[i,1] = parent_fitness.mean()
+            fitnesses[i,2] = best_fit_matrix.flatten().std()
             # Find the top performing 50%
             chads = np.argsort(parent_fitness)
             # selection_prob = np.ones_like(chads, dtype=np.float)
@@ -343,7 +349,7 @@ class NeuralNetwork:
             
             selection_prob = np.arange(len(chads), dtype=np.float)[::-1]
             # selection_prob *= selection_prob
-            selection_prob[:len(chads)//2]+=10
+            selection_prob[:len(chads)//2]+=5
             # selection_prob += np.random.uniform(0,5, len(selection_prob))
             selection_prob /= selection_prob.sum()
             chads = np.random.choice(chads, len(chads)//2, p=selection_prob, replace=False)
@@ -379,11 +385,11 @@ class NeuralNetwork:
 
                 # Mutate the children. 
                 child1_mutated_genes = np.random.choice([0,1], child1.shape, p=[1-mutation_rate,mutation_rate])
-                child1_mutation_amount = np.random.uniform(0.9,1.1,child1.shape)
+                child1_mutation_amount = np.random.uniform(0.7,1.3,child1.shape)
                 child1[child1_mutated_genes==1] *= child1_mutation_amount[child1_mutated_genes==1]
 
                 child2_mutated_genes = np.random.choice([0,1], child2.shape, p=[1-mutation_rate,mutation_rate])
-                child2_mutation_amount = np.random.uniform(0.9,1.1,child2.shape)
+                child2_mutation_amount = np.random.uniform(0.7,1.3,child2.shape)
                 child2[child2_mutated_genes==1] *= child2_mutation_amount[child2_mutated_genes==1]
 
                 # Add the children to the next generation
@@ -414,15 +420,23 @@ class NeuralNetwork:
             child2[cutpoints[-1]:] = parent2[cutpoints[-1]:]
 
             child1_mutated_genes = np.random.choice([0,1], child1.shape, p=[1-mutation_rate,mutation_rate])
-            child1_mutation_amount = np.random.uniform(0.9,1.1,child1.shape)
+            child1_mutation_amount = np.random.uniform(0.7,1.3,child1.shape)
             child1[child1_mutated_genes==1] *= child1_mutation_amount[child1_mutated_genes==1]
 
             child2_mutated_genes = np.random.choice([0,1], child2.shape, p=[1-mutation_rate,mutation_rate])
-            child2_mutation_amount = np.random.uniform(0.9,1.1,child2.shape)
+            child2_mutation_amount = np.random.uniform(0.7,1.3,child2.shape)
             child2[child2_mutated_genes==1] *= child1_mutation_amount[child2_mutated_genes==1]
 
             next_generation.append(np.reshape(child1, parent_shape))
             next_generation.append(np.reshape(child2, parent_shape))
+
+            # for k, kiddo in enumerate(next_generation):
+            #     bad_bois_low = np.quantile(kiddo.flatten(), 0.05)
+            #     bad_bois_high = np.quantile(kiddo.flatten(), 0.95)
+            #     next_generation[k] = next_generation[k].flatten()
+            #     next_generation[k][next_generation[k]>=bad_bois_high] *= 0.95
+            #     next_generation[k][next_generation[k]<=bad_bois_low] *= 0.95
+            #     next_generation[k] = next_generation[k].reshape(self.weight_matrix.shape)
 
             population = next_generation[:]
 
@@ -445,6 +459,7 @@ class NeuralNetwork:
         predicted = self._feed_forward(batch)
         truths = self.unknown_df.loc[batch.index].to_numpy()
         delta = 1
+        p = 1.5
         # self.random_constant += 1
 
         # Binary Cross Entropy Loss
@@ -462,7 +477,16 @@ class NeuralNetwork:
         elif cost_func == 'huber':
             Cost_function = np.where(np.abs(truths-predicted) < delta , 0.5*((truths-predicted)**2), delta*np.abs(truths - predicted) - 0.5*(delta**2))
         elif cost_func == 'log_cosh':
+           
+
             Cost_function = np.log(np.cosh(predicted - truths))
+        elif cost_func == 'tweedie':
+            # predicted = np.abs(predicted)
+            Cost_function = truths * np.sign(predicted) * np.power(np.abs(predicted), 1-p)/(1-p) + np.sign(predicted) * np.power(np.abs(predicted), 2-p)/(2-p)
+        elif cost_func == 'arb_pdf':
+            truth_pdf, _ = np.histogram(truths, density=True)
+
+            Cost_function = -truths*1
         else:
             #Quadratic Loss 
              #*dPredicted w.r.t weights)

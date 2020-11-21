@@ -89,18 +89,18 @@
         "dataPath": "machine.data",
         "attributes": ["venderName", "modelName", "myct", "mmin", "mmax", "cach", "chmin", "chmax", "prp", "erp"],
         "class": "prp",
-        "continuous": ["prp"],
-        "discrete": ["venderName", "modelName", "myct", "mmin", "mmax", "cach", "chmin", "chmax", "erp"],
+        "continuous": ["prp","myct", "mmin", "mmax", "cach", "chmin", "chmax", "erp"],
+        "discrete": ["venderName", "modelName"] ,
         "NAValues": [],
-        "rowsToDrop": ["erp"],
+        "rowsToDrop": [],
         "predictionType": "regression"
     },
     "forestFires":{
         "dataPath": "forestfires.csv",
         "attributes": ["x", "y", "month", "day", "ffmc", "dmc", "dc", "isi", "temp", "rh", "wind", "rain", "area"],
         "class": "area",
-        "continuous": ["ffmc", "dmc", "dc", "isi", "temp", "rh", "wind", "rain", "area"],
-        "discrete": ["x", "y", "month", "day"],
+        "continuous": ["ffmc", "dmc", "dc", "isi", "temp", "rh", "wind", "rain", "area","x", "y"],
+        "discrete": ["month", "day"],
         "NAValues": [],
         "rowsToDrop": [],
         "predictionType": "regression"

@@ -4,8 +4,13 @@ from MLAlgorithms.Utils.OneHotEncoder import OneHotEncoder
 from MLAlgorithms.GeneticAlgorithms.differential_mutation import differential_mutation
 from MLAlgorithms.GeneticAlgorithms.differential_mutation import differential_binomial_crossover
 
+# import ray
+# ray.init()
+
 from tqdm import tqdm
 import numpy as np
+import pandas as pd
+import calendar
 # import matplotlib
 # print(matplotlib.rcsetup.interactive_bk)
 # matplotlib.use('Qt4Agg')
@@ -16,8 +21,8 @@ cost_func = {"breastCancer": "bin_crosss",
 "glass": "bin_cross", 
 "soybeanSmall": "bin_cross", 
 "abalone": "log_cosh", 
-"forestFires": "log_cosh",
-"computerHardware":"huber"}
+"forestFires": "tweedie",
+"computerHardware":"log_cosh"}
 
 title_text = """ 
    ______                    __   _          ___     __                     _  __   __                    
@@ -30,9 +35,9 @@ title_text = """
 
 
 # ====================== Adjustable Variables ==============================
-current_data_set = "abalone"
-mutation_rate = .7
-maxItter = 100
+current_data_set = "soybeanSmall"
+mutation_rate = .5
+maxItter = 1000
 batch_size = .6
 population_size = 110
 # ===========================================================================
@@ -44,16 +49,43 @@ dataRetriever = DataRetriever("../Datasets/metadata.json")
 dataRetriever.retrieveData(current_data_set)
 dataset = dataRetriever.getDataSet().dropna()
 
+discrete_attr = dataRetriever.getDescreteAttributes()
+cont_attributes = dataRetriever.getContinuousAttributes()
 # This line is used to normalize the data for Forest Fires
 if current_data_set == "forestFires":
     # zeros = dataset[dataset[dataRetriever.getDataClass()] < 1].index
     # print(len(zeros)/len(dataset))
     # dataset = dataset.drop(zeros)
+    discrete_attr.remove('month')
+    discrete_attr.remove('day')
+    # print(dataset[['month','day']])
+    dataset['month'] = (pd.to_datetime(dataset.month, format='%b').dt.month) - 1
+    dataset["day"] = dataset['day'].apply(lambda x: list(calendar.day_abbr).index(x.capitalize()))
+    dataset["month_sin"] = np.sin(dataset['month'])
+    dataset["month_cos"] = np.sin(dataset['month'])
+
+    dataset["day_sin"] = np.sin(dataset['day'])
+    dataset["day_cos"] = np.sin(dataset['day'])
+    dataset = dataset.drop('day',axis=1)
+    dataset = dataset.drop('month',axis=1)
+    cont_attributes.append('month_sin')
+    cont_attributes.append('month_cos')
+    cont_attributes.append('day_sin')
+    cont_attributes.append('day_cos')
+    # print(dataset[['month','day']])
+    
     dataset[dataRetriever.getDataClass()] = np.log(dataset[dataRetriever.getDataClass()]+0.000001)
+elif current_data_set == "computerHardware":
+    discrete_attr.remove('venderName')
+    discrete_attr.remove('modelName')
+    dataset = dataset.drop('venderName',axis=1)
+    dataset = dataset.drop('modelName',axis=1)
+
 
 dataset = dataset.reset_index(drop=True)
-dataset[dataRetriever.getContinuousAttributes()] = (dataset[dataRetriever.getContinuousAttributes()]
-                                                    - dataset[dataRetriever.getContinuousAttributes()].min())/(dataset[dataRetriever.getContinuousAttributes()].max()-dataset[dataRetriever.getContinuousAttributes()].min())
+
+dataset[cont_attributes] = (dataset[cont_attributes]
+                                                    - dataset[cont_attributes].min())/(dataset[cont_attributes].max()-dataset[cont_attributes].min())
 
 test_set = dataset.sample(frac=0.1, random_state=69)
 train_set = dataset.drop(test_set.index)
@@ -61,7 +93,7 @@ test_set = test_set.reset_index(drop=True)
 train_set = train_set.reset_index(drop=True)
 
 ohe = OneHotEncoder()
-discrete_attr = dataRetriever.getDescreteAttributes()
+
 
 if dataRetriever.getDataClass() in discrete_attr:
     discrete_attr.remove(dataRetriever.getDataClass())
@@ -69,6 +101,8 @@ if dataRetriever.getDataClass() in discrete_attr:
 datasetEncoded = ohe.train_fit(
     train_set, dataRetriever.getDescreteAttributes())
 testEncoded = ohe.fit(test_set)
+print(datasetEncoded.columns)
+print(datasetEncoded.shape)
 
 
 
@@ -119,6 +153,14 @@ if dataRetriever.getPredictionType() == "classification":
     #     print(final)
     #     print(np.array(actual))
     #     print(acc)
+    # plt.plot(fitnesses[:,0], c='blue', label='max')
+    plt.plot(fitnesses[:,1], c='green', label='fitness')
+    # plt.plot(fitnesses[:,1]+1.5*fitnesses[:,2], c='black', label='outlier')
+    # plt.plot(fitnesses[:,1]-1.5*fitnesses[:,2], c='black', label='outlier')
+    # plt.yscale('log')
+    plt.legend()
+    # plt.plot(fitnesses[:,0]-fitnesses[:,1], c='green')
+    plt.savefig("PlotDump/Plot1.png")
 
 else:
     # ===================== Regression =================
@@ -136,11 +178,11 @@ else:
     axs[0].plot([actual.mean(),actual.mean()],ylim)
     axs[0].plot([np.median(actual),np.median(actual)],ylim)
 
-    axs[0].set_xlim([0,1])
+    # axs[0].set_xlim([0,1])
 
     axs[1].set_title('Predicted')
     axs[1].hist(output, label="Predicted")
-    axs[1].set_xlim([0,1])
+    # axs[1].set_xlim([0,1])
     
     # axs[1].hist(rmse)
     # axs[0].legend()
@@ -155,6 +197,7 @@ else:
     # axs[3].plot(fitnesses[:,0]+fitnesses[:,1], c='blue')
     axs[3].plot(fitnesses[:,0], c='blue', label='mean')
     axs[3].plot(fitnesses[:,1], c='green',label='median')
-    # axs[3].set_ylim([0,75])
+    # axs[3].set_ylim([0,np.mean(fitnesses[:,1])])
+    # axs[3].set_yscale('log')
     fig.tight_layout()
     plt.savefig("PlotDump/Plot1.png")
