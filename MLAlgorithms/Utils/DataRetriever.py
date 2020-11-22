@@ -2,11 +2,11 @@ import json, os, pandas as pd
 
 
 class DataRetriever():
-    def __init__(self, path):
+    def __init__(self, path="../Datasets/metadata.json"):
         self.currentData = None
         self.data = None
-        self.dataSetPath = os.path.split(path)[0]
-        self.metaDataPath = path
+        self.metaDataPath = os.path.abspath(path)
+        self.dataSetPath = os.path.dirname(self.metaDataPath) 
         self.menu = []
         self.dataSet = None
         self.dataClass = None
@@ -69,7 +69,7 @@ class DataRetriever():
         continuousAttributes = jsonData['continuous']
         discreteAttributes = jsonData['discrete']
 
-        dataSet = pd.read_csv(self.dataSetPath + "/" + dataPath, names=header, na_values=naValues, )
+        dataSet = pd.read_csv(dataPath, names=header, na_values=naValues, )
 
         # if jsonData["rowsToDrop"] in list(dataSet.columns):
         #     dataSet = dataSet.drop(jsonData["rowsToDrop"], axis=1)

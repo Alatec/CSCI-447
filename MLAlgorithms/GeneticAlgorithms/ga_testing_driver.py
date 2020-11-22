@@ -18,13 +18,13 @@ import matplotlib.pyplot as plt
 import random as rand
 
 cost_func = {"breastCancer": "bin_crosss", 
-"glass": "bin_cross", 
-"soybeanSmall": "bin_cross", 
+"glass": "log_cosh", 
+"soybeanSmall": "log_cosh", 
 "abalone": "log_cosh", 
-"forestFires": "tweedie",
+"forestFires": "asd",
 "computerHardware":"log_cosh"}
 
-title_text = """ 
+title_text = r""" 
    ______                    __   _          ___     __                     _  __   __                    
   / ____/___   ____   ___   / /_ (_)_____   /   /   / /____ _ ____   _____ (_)/ /_ / /_   ____ ___   _____
  / / __ / _ \ / __ \ / _ \ / __// // ___/  / /| /  / // __ `// __ \ / ___// // __// __ \ / __ `__ \ / ___/
@@ -53,9 +53,9 @@ discrete_attr = dataRetriever.getDescreteAttributes()
 cont_attributes = dataRetriever.getContinuousAttributes()
 # This line is used to normalize the data for Forest Fires
 if current_data_set == "forestFires":
-    # zeros = dataset[dataset[dataRetriever.getDataClass()] < 1].index
-    # print(len(zeros)/len(dataset))
-    # dataset = dataset.drop(zeros)
+    zeros = dataset[dataset[dataRetriever.getDataClass()] < 1].index
+    print(len(zeros)/len(dataset))
+    dataset = dataset.drop(zeros)
     discrete_attr.remove('month')
     discrete_attr.remove('day')
     # print(dataset[['month','day']])
@@ -111,7 +111,7 @@ print(title_text)
 
 
 
-best = NeuralNetwork(datasetEncoded, 0, [], dataRetriever.getPredictionType(), 
+best = NeuralNetwork(datasetEncoded, 1, [25], dataRetriever.getPredictionType(), 
                             dataRetriever.getDataClass())
 fitnesses = best.genetic_algorithm(population_size, maxItter, batch_size, mutation_rate, 10, cost_func[current_data_set])
 
@@ -153,14 +153,14 @@ if dataRetriever.getPredictionType() == "classification":
     #     print(final)
     #     print(np.array(actual))
     #     print(acc)
-    # plt.plot(fitnesses[:,0], c='blue', label='max')
-    plt.plot(fitnesses[:,1], c='green', label='fitness')
+    plt.plot(fitnesses[:,0], c='blue', label='max')
+    # plt.plot(fitnesses[:,1], c='green', label='fitness')
     # plt.plot(fitnesses[:,1]+1.5*fitnesses[:,2], c='black', label='outlier')
     # plt.plot(fitnesses[:,1]-1.5*fitnesses[:,2], c='black', label='outlier')
     # plt.yscale('log')
     plt.legend()
     # plt.plot(fitnesses[:,0]-fitnesses[:,1], c='green')
-    plt.savefig("PlotDump/Plot1.png")
+    plt.savefig("PlotDump/Plot2.png")
 
 else:
     # ===================== Regression =================
@@ -178,11 +178,11 @@ else:
     axs[0].plot([actual.mean(),actual.mean()],ylim)
     axs[0].plot([np.median(actual),np.median(actual)],ylim)
 
-    # axs[0].set_xlim([0,1])
+    axs[0].set_xlim([0,1])
 
     axs[1].set_title('Predicted')
     axs[1].hist(output, label="Predicted")
-    # axs[1].set_xlim([0,1])
+    axs[1].set_xlim([0,1])
     
     # axs[1].hist(rmse)
     # axs[0].legend()

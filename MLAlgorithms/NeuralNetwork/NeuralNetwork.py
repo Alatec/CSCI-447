@@ -339,9 +339,9 @@ class NeuralNetwork:
                 if parent_fitness[j] < best_fitness:
                     best_fitness = parent_fitness[j]
                     best_fit_matrix = parent[:]
-            fitnesses[i,0] = best_fit_matrix.flatten().max()
-            fitnesses[i,1] = parent_fitness.mean()
-            fitnesses[i,2] = best_fit_matrix.flatten().std()
+            fitnesses[i,0] = np.abs(best_fit_matrix.flatten()).max()
+            fitnesses[i,1] = np.abs(best_fit_matrix.flatten()).min()
+            fitnesses[i,2] = parent_fitness.mean()
             # Find the top performing 50%
             chads = np.argsort(parent_fitness)
             # selection_prob = np.ones_like(chads, dtype=np.float)
@@ -385,11 +385,11 @@ class NeuralNetwork:
 
                 # Mutate the children. 
                 child1_mutated_genes = np.random.choice([0,1], child1.shape, p=[1-mutation_rate,mutation_rate])
-                child1_mutation_amount = np.random.uniform(0.7,1.3,child1.shape)
+                child1_mutation_amount = np.random.uniform(0.9,1.1,child1.shape)
                 child1[child1_mutated_genes==1] *= child1_mutation_amount[child1_mutated_genes==1]
 
                 child2_mutated_genes = np.random.choice([0,1], child2.shape, p=[1-mutation_rate,mutation_rate])
-                child2_mutation_amount = np.random.uniform(0.7,1.3,child2.shape)
+                child2_mutation_amount = np.random.uniform(0.9,1.1,child2.shape)
                 child2[child2_mutated_genes==1] *= child2_mutation_amount[child2_mutated_genes==1]
 
                 # Add the children to the next generation
@@ -420,11 +420,11 @@ class NeuralNetwork:
             child2[cutpoints[-1]:] = parent2[cutpoints[-1]:]
 
             child1_mutated_genes = np.random.choice([0,1], child1.shape, p=[1-mutation_rate,mutation_rate])
-            child1_mutation_amount = np.random.uniform(0.7,1.3,child1.shape)
+            child1_mutation_amount = np.random.uniform(0.9,1.1,child1.shape)
             child1[child1_mutated_genes==1] *= child1_mutation_amount[child1_mutated_genes==1]
 
             child2_mutated_genes = np.random.choice([0,1], child2.shape, p=[1-mutation_rate,mutation_rate])
-            child2_mutation_amount = np.random.uniform(0.7,1.3,child2.shape)
+            child2_mutation_amount = np.random.uniform(0.9,1.1,child2.shape)
             child2[child2_mutated_genes==1] *= child1_mutation_amount[child2_mutated_genes==1]
 
             next_generation.append(np.reshape(child1, parent_shape))
@@ -459,7 +459,7 @@ class NeuralNetwork:
         predicted = self._feed_forward(batch)
         truths = self.unknown_df.loc[batch.index].to_numpy()
         delta = 1
-        p = 1.5
+        p = 1.75
         # self.random_constant += 1
 
         # Binary Cross Entropy Loss
@@ -469,6 +469,12 @@ class NeuralNetwork:
             output[truths==1] = -np.log(predicted[truths==1]+0.001)
             output[truths==0] = -np.log(1.001-predicted[truths==0])
             Cost_function = output
+        
+        elif cost_func == 'multi_cross':
+            # print("Truths")
+            # print(truths.argmax(axis=1))
+            truths = truths.argmax(axis=1)
+            Cost_function = -np.log(predicted[:,truths])/truths.shape[0]
         
         elif cost_func == 'MAE':
             
