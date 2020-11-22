@@ -222,7 +222,7 @@ class NeuralNetwork:
             #     dCost_function *= predicted
         
         # return dCost_function -> used for testing
-        print(f"Cost function:\n{dCost_function}")
+        # print(f"Cost function:\n{dCost_function}")
 
         update_matrix = np.zeros_like(self.weight_matrix)
 
@@ -470,12 +470,20 @@ class NeuralNetwork:
             output[truths==0] = -np.log(1.001-predicted[truths==0])
             Cost_function = output
         
+<<<<<<< HEAD
         elif cost_func == 'multi_cross':
             # print("Truths")
             # print(truths.argmax(axis=1))
             truths = truths.argmax(axis=1)
             Cost_function = -np.log(predicted[:,truths])/truths.shape[0]
         
+=======
+        # elif cost_func == 'multi_cross':
+        #     truths = truths.argmax()
+        #     print(truths)
+        #     Cost_function = -np.log(predicted[:,truths])/truths.shape[0]
+
+>>>>>>> 14c753dba8bb66c3e2f7e64310fb5cb6a8b257d8
         elif cost_func == 'MAE':
             
              #*dPredicted w.r.t weights)
@@ -503,14 +511,17 @@ class NeuralNetwork:
 
     def differential_evolution(self, population_size, maxItter, batch_size, mutation_rate, cross_over_prob, cost_func = 'bin_cross'):
         # Create population of random weights
-        population = [np.random.uniform(-0.1, 0.1, self.weight_matrix.shape) for i in range(population_size)]
+        population = np.array([np.random.uniform(-0.1, 0.1, self.weight_matrix.shape) for i in range(population_size)])
         i = 0
         prev_result = 0
         seed_counter = 0
+        fitnesses = np.zeros((maxItter,4))
         for i in tqdm(range(maxItter)):
             current_result = 0
 
             for j in range(len(population)):
+                # mutation_rate = np.clip(mutation_rate * rand.uniform(.5, 1.5), 0, 2)
+                self.random_constant += 1
                 random_individual_index = rand.sample([x for x in range(population_size) if x != j], 3)
                 # Check fitness
                 self.weight_matrix = population[j]
@@ -534,9 +545,14 @@ class NeuralNetwork:
                 if final_child_fitness < final_parent_fitness:
                     population[j] = child_matrix
 
+
                 final_fitness = final_child_fitness if final_child_fitness < final_parent_fitness else final_parent_fitness
                 current_result += final_fitness
 
+            fitnesses[i,0] = population.flatten().max()
+            fitnesses[i,1] = population.mean()
+            fitnesses[i,2] = population.flatten().std()
+            fitnesses[i,3] = population.flatten().min()
 
             if ((abs(current_result - prev_result) / abs(current_result + prev_result)) > .0000001):
                 prev_result = current_result
@@ -556,6 +572,7 @@ class NeuralNetwork:
                 best = individual[:]
                 best_fitness = individual_fitness
         
+        return fitnesses
 
 
     def _create_network(self, input_data, number_of_hidden_layers, nodes_per_hidden_layer, prediction_type):
