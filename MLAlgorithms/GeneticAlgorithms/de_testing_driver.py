@@ -31,7 +31,7 @@ cross_over_prob = .7
 maxItter = 1000
 batch_size = .1
 population_size = 100
-nodes_per_layer = [5]
+nodes_per_layer = [5,9]
 # ===========================================================================
 
 
