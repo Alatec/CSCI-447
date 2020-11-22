@@ -6,14 +6,17 @@ from MLAlgorithms.GeneticAlgorithms.differential_mutation import differential_bi
 
 from tqdm import tqdm
 import numpy as np
+import pandas as pd
+import calendar
 import matplotlib.pyplot as plt
 import random as rand
 
 cost_func = {"breastCancer": "bin_cross", 
 "glass": "log_cosh", 
-"soybeanSmall": "bin_crosss", 
+"soybeanSmall": "log_cosh", 
 "abalone": "hubers", 
-"forestFires": "log_cosh",}
+"forestFires": "log_cosh",
+"computerHardware": "log_cosh"}
 
 title_text = r"""
     ____  _ ________                     __  _       __   ______            __      __  _           
@@ -31,7 +34,7 @@ cross_over_prob = .7
 maxItter = 1000
 batch_size = .1
 population_size = 100
-nodes_per_layer = [5,9]
+nodes_per_layer = [5, 9]
 # ===========================================================================
 
 
@@ -41,9 +44,38 @@ dataRetriever = DataRetriever("../Datasets/metadata.json")
 dataRetriever.retrieveData(current_data_set)
 dataset = dataRetriever.getDataSet().dropna()
 
+discrete_attr = dataRetriever.getDescreteAttributes()
+cont_attributes = dataRetriever.getContinuousAttributes()
+
 # This line is used to normalize the data for Forest Fires
 if current_data_set == "forestFires":
-    dataset[dataRetriever.getDataClass()] = np.log(dataset[dataRetriever.getDataClass()]+0.1)
+    # zeros = dataset[dataset[dataRetriever.getDataClass()] < 1].index
+    # print(len(zeros)/len(dataset))
+    # dataset = dataset.drop(zeros)
+    discrete_attr.remove('month')
+    discrete_attr.remove('day')
+    # print(dataset[['month','day']])
+    dataset['month'] = (pd.to_datetime(dataset.month, format='%b').dt.month) - 1
+    dataset["day"] = dataset['day'].apply(lambda x: list(calendar.day_abbr).index(x.capitalize()))
+    dataset["month_sin"] = np.sin(dataset['month'])
+    dataset["month_cos"] = np.sin(dataset['month'])
+
+    dataset["day_sin"] = np.sin(dataset['day'])
+    dataset["day_cos"] = np.sin(dataset['day'])
+    dataset = dataset.drop('day',axis=1)
+    dataset = dataset.drop('month',axis=1)
+    cont_attributes.append('month_sin')
+    cont_attributes.append('month_cos')
+    cont_attributes.append('day_sin')
+    cont_attributes.append('day_cos')
+    # print(dataset[['month','day']])
+    
+    dataset[dataRetriever.getDataClass()] = np.log(dataset[dataRetriever.getDataClass()]+0.000001)
+elif current_data_set == "computerHardware":
+    discrete_attr.remove('venderName')
+    discrete_attr.remove('modelName')
+    dataset = dataset.drop('venderName',axis=1)
+    dataset = dataset.drop('modelName',axis=1)
 
 dataset = dataset.reset_index(drop=True)
 dataset[dataRetriever.getContinuousAttributes()] = (dataset[dataRetriever.getContinuousAttributes()]

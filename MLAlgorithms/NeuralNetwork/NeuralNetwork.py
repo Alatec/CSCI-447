@@ -222,7 +222,7 @@ class NeuralNetwork:
             #     dCost_function *= predicted
         
         # return dCost_function -> used for testing
-        print(f"Cost function:\n{dCost_function}")
+        # print(f"Cost function:\n{dCost_function}")
 
         update_matrix = np.zeros_like(self.weight_matrix)
 

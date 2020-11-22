@@ -18,16 +18,26 @@ def differential_binomial_crossover(target_vector, trial_vector, cross_over_prob
         print("The length of the target vector and trial vector must be equal")
         exit(-1)
 
-    result_vector = np.zeros(target_vector.shape)
+    flat_target = target_vector.flatten()
+    flat_trial = trial_vector.flatten()
 
-    for i in range(len(target_vector)):
-        for j in range(len(target_vector)):
+    muts = np.random.choice([0, 1], flat_target.shape, p=[1-cross_over_prob, cross_over_prob])
+    flat_target[muts == 1] = flat_trial[muts == 1]
+    
 
-            rand_int = rand.randint(0, 1)
-            if rand_int <= cross_over_prob:
-                result_vector[i][j] = target_vector[i][j]
-            else:
-                result_vector[i][j] = trial_vector[i][j]
+
+    result_vector = np.reshape(flat_target, target_vector.shape)
+
+
+    # result_vector = np.zeros(target_vector.shape)
+    # for i in range(len(target_vector)):
+    #     for j in range(len(target_vector)):
+
+    #         rand_int = rand.randint(0, 1)
+    #         if rand_int <= cross_over_prob:
+    #             result_vector[i][j] = target_vector[i][j]
+    #         else:
+    #             result_vector[i][j] = trial_vector[i][j]
 
 
     return result_vector
@@ -49,7 +59,11 @@ if __name__ == "__main__":
 
     print("The trial vector is ", trial_vector)
 
+    matrix1 = np.array([[0, 2, 4], [6, 8, 10]])
+    matrix2 = np.array([[1, 3, 5], [7, 9, 11]])
+    
+
     result_vector = differential_binomial_crossover(
-        target_vector, trial_vector, cross_over_prob)
+        matrix1, matrix2, cross_over_prob)
 
     print("The result vector is ", result_vector)
