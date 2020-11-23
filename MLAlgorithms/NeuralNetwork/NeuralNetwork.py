@@ -470,20 +470,11 @@ class NeuralNetwork:
             output[truths==0] = -np.log(1.001-predicted[truths==0])
             Cost_function = output
         
-<<<<<<< HEAD
-        elif cost_func == 'multi_cross':
-            # print("Truths")
-            # print(truths.argmax(axis=1))
-            truths = truths.argmax(axis=1)
-            Cost_function = -np.log(predicted[:,truths])/truths.shape[0]
-        
-=======
         # elif cost_func == 'multi_cross':
         #     truths = truths.argmax()
         #     print(truths)
         #     Cost_function = -np.log(predicted[:,truths])/truths.shape[0]
 
->>>>>>> 14c753dba8bb66c3e2f7e64310fb5cb6a8b257d8
         elif cost_func == 'MAE':
             
              #*dPredicted w.r.t weights)
@@ -515,10 +506,11 @@ class NeuralNetwork:
         i = 0
         prev_result = 0
         seed_counter = 0
-        fitnesses = np.zeros((maxItter,4))
+        fitnesses = np.zeros((maxItter,3))
         for i in tqdm(range(maxItter)):
             current_result = 0
 
+            sum_fit = 0
             for j in range(len(population)):
                 # mutation_rate = np.clip(mutation_rate * rand.uniform(.5, 1.5), 0, 2)
                 self.random_constant += 1
@@ -542,6 +534,7 @@ class NeuralNetwork:
 
                 final_parent_fitness = parent_fitness.sum().sum()
                 final_child_fitness = child_fitness.sum().sum()
+                sum_fit += final_parent_fitness
                 if final_child_fitness < final_parent_fitness:
                     population[j] = child_matrix
 
@@ -549,10 +542,10 @@ class NeuralNetwork:
                 final_fitness = final_child_fitness if final_child_fitness < final_parent_fitness else final_parent_fitness
                 current_result += final_fitness
 
-            fitnesses[i,0] = population.flatten().max()
-            fitnesses[i,1] = population.mean()
-            fitnesses[i,2] = population.flatten().std()
-            fitnesses[i,3] = population.flatten().min()
+            fitnesses[i,0] = np.abs(population.flatten().max())
+            fitnesses[i,1] = np.abs(population.min())
+            fitnesses[i,2] = sum_fit/population_size
+
 
             if ((abs(current_result - prev_result) / abs(current_result + prev_result)) > .0000001):
                 prev_result = current_result

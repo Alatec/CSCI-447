@@ -45,7 +45,6 @@ mutation_rate = .5
 maxIter = 1000
 batch_size = .6
 population_size = 110
-
 network_architecture = []
 # ===========================================================================
 
