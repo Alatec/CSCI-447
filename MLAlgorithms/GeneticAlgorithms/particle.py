@@ -23,6 +23,8 @@ class Particle:
 
     def evalutate(self, predicted, truths, cost_func='multi_cross'):
         fitness = 1e6
+        delta = 1
+        p = 1.75
          # Binary Cross Entropy Loss
         if cost_func == 'bin_cross':
             output = np.zeros_like(predicted)
@@ -36,6 +38,19 @@ class Particle:
             log_likelihood = -np.log(predicted[:,truths])
             loss = np.sum(log_likelihood) / predicted.shape[0]
             return loss
+        
+        elif cost_func == "MAE":
+            return np.abs(truths-predicted).sum()
+        
+        elif cost_func == 'huber':
+            return np.where(np.abs(truths-predicted) < delta , 0.5*((truths-predicted)**2), delta*np.abs(truths - predicted) - 0.5*(delta**2)).sum().sum()
+        elif cost_func == 'log_cosh':
+           
+            return np.log(np.cosh(predicted - truths)).sum()
+
+        elif cost_func == 'tweedie':
+            # predicted = np.abs(predicted)
+            return (truths * np.sign(predicted) * np.power(np.abs(predicted), 1-p)/(1-p) + np.sign(predicted) * np.power(np.abs(predicted), 2-p)/(2-p)).sum().sum()
             
          
 

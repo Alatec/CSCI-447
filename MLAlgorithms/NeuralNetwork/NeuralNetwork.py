@@ -267,37 +267,37 @@ class NeuralNetwork:
         print("Calculating Fitness")
         best_fit = 1e6
         global_best = np.zeros_like(self.weight_matrix)
-        fitness_matrix = np.zeros((max_iter,4))
-        average_fitness = np.zeros(max_iter)
+        fitness_matrix = np.zeros((max_iter,3))
         new_best_count = 0
         for i in tqdm(range(max_iter)):
             average = 0
             batch = self.train_data.sample(frac=batch_size, random_state=(69+self.random_constant))
             self.random_constant += 1
-            truths = self.unknown_col[batch.index].to_numpy()
+           
+            truths = self.unknown_df.loc[batch.index].to_numpy()
             for part in particles:
                 self.weight_matrix = part.position
                 predicted = self._feed_forward(batch, testing=True)
                 fitness = part.evalutate(predicted, truths, cost_func)
                 average += fitness
-                if part.index == 1: fitness_matrix[i,0] = fitness#part.pbest_fitness
-                if part.index == 34: fitness_matrix[i,1] = fitness#part.pbest_fitness
-                if part.index == 68: fitness_matrix[i,2] = fitness#part.pbest_fitness
+            
 
                 if fitness < best_fit:
                     best_fit = fitness
                     global_best = part.position[:]
                     new_best_count += 1
                 
-                fitness_matrix[i,3] = best_fit
-                average_fitness[i] = average/particle_count
+            fitness_matrix[i,0] = np.abs(global_best.flatten()).max()
+            fitness_matrix[i,1] = np.abs(global_best.flatten()).min()
+            fitness_matrix[i,2] = average/particle_count
+                
             
             for part in particles:
                 part.accelerate(global_best)
         
         self.weight_matrix = global_best
         print(f"New Best Count: {new_best_count}")
-        return fitness_matrix, average_fitness
+        return fitness_matrix
 
 
 
@@ -470,20 +470,12 @@ class NeuralNetwork:
             output[truths==0] = -np.log(1.001-predicted[truths==0])
             Cost_function = output
         
-<<<<<<< HEAD
         elif cost_func == 'multi_cross':
             # print("Truths")
             # print(truths.argmax(axis=1))
             truths = truths.argmax(axis=1)
             Cost_function = -np.log(predicted[:,truths])/truths.shape[0]
         
-=======
-        # elif cost_func == 'multi_cross':
-        #     truths = truths.argmax()
-        #     print(truths)
-        #     Cost_function = -np.log(predicted[:,truths])/truths.shape[0]
-
->>>>>>> 14c753dba8bb66c3e2f7e64310fb5cb6a8b257d8
         elif cost_func == 'MAE':
             
              #*dPredicted w.r.t weights)
@@ -516,7 +508,7 @@ class NeuralNetwork:
         prev_result = 0
         seed_counter = 0
         fitnesses = np.zeros((maxItter,4))
-        for i in tqdm(range(maxItter)):
+        for i in range(maxItter):
             current_result = 0
 
             for j in range(len(population)):

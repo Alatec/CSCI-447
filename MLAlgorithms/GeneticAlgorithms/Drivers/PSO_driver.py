@@ -22,37 +22,36 @@ import random as rand
 import json
 
 cost_func = {"breastCancer": "bin_crosss", 
-"glass": "bin_cross", 
+"glass": "log_cosh", 
 "soybeanSmall": "bin_cross", 
 "abalone": "log_cosh", 
 "forestFires": "asd",
 "computerHardware":"log_cosh"}
 
-title_text = r""" 
-   ______                    __   _          ___     __                     _  __   __                    
-  / ____/___   ____   ___   / /_ (_)_____   /   /   / /____ _ ____   _____ (_)/ /_ / /_   ____ ___   _____
- / / __ / _ \ / __ \ / _ \ / __// // ___/  / /| /  / // __ `// __ \ / ___// // __// __ \ / __ `__ \ / ___/
-/ /_/ //  __// / / //  __// /_ / // /__   / ___ / / // /_/ // /_/ // /   / // /_ / / / // / / / / /(__  ) 
-\____/ \___//_/ /_/ \___/ \__//_/ \___/  /_/  |_//_/ \__, / \____//_/   /_/ \__//_/ /_//_/ /_/ /_//____/  
-                                                    /____/                                                
+title_text = r"""
+    ____             __  _      __        _____                                 ____        __  _           _             __  _           
+   / __ \____ ______/ /_(_)____/ /__     / ___/      ______ __________ ___     / __ \____  / /_(_)___ ___  (_)___  ____ _/ /_(_)___  ____ 
+  / /_/ / __ `/ ___/ __/ / ___/ / _ \    \__ \ | /| / / __ `/ ___/ __ `__ \   / / / / __ \/ __/ / __ `__ \/ /_  / / __ `/ __/ / __ \/ __ \
+ / ____/ /_/ / /  / /_/ / /__/ /  __/   ___/ / |/ |/ / /_/ / /  / / / / / /  / /_/ / /_/ / /_/ / / / / / / / / /_/ /_/ / /_/ / /_/ / / / /
+/_/    \__,_/_/   \__/_/\___/_/\___/   /____/|__/|__/\__,_/_/  /_/ /_/ /_/   \____/ .___/\__/_/_/ /_/ /_/_/ /___/\__,_/\__/_/\____/_/ /_/ 
+                                                                                 /_/
 """
 
 output_json = {}
 
 # ====================== Adjustable Variables ==============================
-current_data_set = "abalone"
+current_data_set = "glass"
 mutation_rate = .5
-maxIter = 10
+maxIter = 1000
 batch_size = .6
 population_size = 110
 
-network_architecture = []
+network_architecture = [15]
 # ===========================================================================
 
 output_json["parameters"] = {
     "mutation_rate": mutation_rate,
-    "population_size": population_size,
-    "network_architecture":network_architecture
+    "population_size": population_size
 }
 
 # ================ Data pre-processing =================================================
@@ -132,7 +131,7 @@ def multiprocess_func(test_set, train_set, fold, fitness_file, output_file):
     # Train network and change architecture in respect to data set
     nn = NeuralNetwork(train_set, len(network_architecture), network_architecture, dataRetriever.getPredictionType(), dataRetriever.getDataClass())
     
-    fitnesses = nn.genetic_algorithm(population_size, maxIter, batch_size, mutation_rate, 10, cost_func[current_data_set])
+    fitnesses = nn._particle_swarm_optimize(population_size, max_iter=maxIter, cost_func=cost_func[current_data_set])
     final = nn.test(test_set.drop(dataRetriever.getDataClass(), axis=1))
     output = nn._feed_forward(test_set.drop(dataRetriever.getDataClass(), axis=1), testing=True)
     actual = test_set[dataRetriever.getDataClass()]
@@ -146,10 +145,10 @@ def multiprocess_func(test_set, train_set, fold, fitness_file, output_file):
     # output_json[f"Fold {fold}"]["fitness"] = fitness_file
     
 
-    # output_file = f"../DataDump/GA/{current_data_set}_fold{fold}_output.csv"
+    # output_file = f"../DataDump/{current_data_set}_fold{fold}_output.csv"
+    output_pd = pd.DataFrame({'Truth':actual.to_list(), 'Predicted':final})
     
-    
-    # output_pd.to_csv(output_file, index=False)
+    output_pd.to_csv(output_file, index=False)
     # output_json[f"Fold {fold}"]["results"] = output_file
     
     
@@ -158,8 +157,6 @@ def multiprocess_func(test_set, train_set, fold, fitness_file, output_file):
     print("Fold Performance:")
     if dataRetriever.getPredictionType() == "classification":
     # ## ===================== Classification =================
-        output_pd = pd.DataFrame({'Truth':actual.to_list(), 'Predicted':final})
-        output_pd.to_csv(output_file, index=False)
         correct = 0
         for i, row in enumerate(final):
             if row == actual.iloc[i]: correct += 1
@@ -171,23 +168,21 @@ def multiprocess_func(test_set, train_set, fold, fitness_file, output_file):
         return acc
     else:
         output = output.reshape(output.shape[0])
-        output_pd = pd.DataFrame({'Truth':actual.to_list(), 'Predicted':output})
-        output_pd.to_csv(output_file, index=False)
         
         res = actual-output
         r2 = 1-((res**2).sum()/(((actual-actual.mean())**2).sum()))
         # metrics.append(r2)
         print(f"R2: {r2}")
-        return float(r2)
+        return r2
 
 
 for test_set, train_set in KFolds(dataset, 10):
     fold += 1
-    fitness_file = f"../DataDump/GA/{current_data_set}_layer{len(network_architecture)}_fold{fold}_fitness.csv"
-    output_file = f"../DataDump/GA/{current_data_set}_layer{len(network_architecture)}_fold{fold}_output.csv"
-    # output_json[f"Fold {fold}"] = {}
-    # output_json[f"Fold {fold}"]["fitness"] = fitness_file
-    # output_json[f"Fold {fold}"]["results"] = output_file
+    fitness_file = f"../DataDump/PSO/{current_data_set}_layer{len(network_architecture)}_fold{fold}_fitness.csv"
+    output_file = f"../DataDump/PSO/{current_data_set}_layer{len(network_architecture)}_fold{fold}_output.csv"
+    output_json[f"Fold {fold}"] = {}
+    output_json[f"Fold {fold}"]["fitness"] = fitness_file
+    output_json[f"Fold {fold}"]["results"] = output_file
 
     metrics.append(multiprocess_func.remote(test_set, train_set, fold, fitness_file, output_file))
 
@@ -196,7 +191,6 @@ metrics = ray.get(metrics)
 print(metrics)
 print("Average Performance: ", np.asarray(metrics).mean())
 output_json["Metrics"] = metrics
-output_json["Average"] = np.asarray(metrics, dtype=np.float64).mean()
 
-with open(f"../DataDump/GA_{current_data_set}_layer{len(network_architecture)}.json", 'w') as f:
+with open(f"../DataDump/PSO_{current_data_set}_layer{len(network_architecture)}.json", 'w') as f:
     json.dump(output_json,f, indent=4)
