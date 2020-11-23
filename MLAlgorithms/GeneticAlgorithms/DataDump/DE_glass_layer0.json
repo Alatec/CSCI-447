@@ -1,0 +1,61 @@
+{
+    "parameters": {
+        "mutation_rate": 0.3,
+        "cross_over_prob": 0.7,
+        "population_size": 100,
+        "cost_function": "log_cosh",
+        "maxIter": 10
+    },
+    "Fold 1": {
+        "fitness": "../DataDump/DE/glass_layer0_fold1_fitness.csv",
+        "results": "../DataDump/DE/glass_layer0_fold1_output.csv"
+    },
+    "Fold 2": {
+        "fitness": "../DataDump/DE/glass_layer0_fold2_fitness.csv",
+        "results": "../DataDump/DE/glass_layer0_fold2_output.csv"
+    },
+    "Fold 3": {
+        "fitness": "../DataDump/DE/glass_layer0_fold3_fitness.csv",
+        "results": "../DataDump/DE/glass_layer0_fold3_output.csv"
+    },
+    "Fold 4": {
+        "fitness": "../DataDump/DE/glass_layer0_fold4_fitness.csv",
+        "results": "../DataDump/DE/glass_layer0_fold4_output.csv"
+    },
+    "Fold 5": {
+        "fitness": "../DataDump/DE/glass_layer0_fold5_fitness.csv",
+        "results": "../DataDump/DE/glass_layer0_fold5_output.csv"
+    },
+    "Fold 6": {
+        "fitness": "../DataDump/DE/glass_layer0_fold6_fitness.csv",
+        "results": "../DataDump/DE/glass_layer0_fold6_output.csv"
+    },
+    "Fold 7": {
+        "fitness": "../DataDump/DE/glass_layer0_fold7_fitness.csv",
+        "results": "../DataDump/DE/glass_layer0_fold7_output.csv"
+    },
+    "Fold 8": {
+        "fitness": "../DataDump/DE/glass_layer0_fold8_fitness.csv",
+        "results": "../DataDump/DE/glass_layer0_fold8_output.csv"
+    },
+    "Fold 9": {
+        "fitness": "../DataDump/DE/glass_layer0_fold9_fitness.csv",
+        "results": "../DataDump/DE/glass_layer0_fold9_output.csv"
+    },
+    "Fold 10": {
+        "fitness": "../DataDump/DE/glass_layer0_fold10_fitness.csv",
+        "results": "../DataDump/DE/glass_layer0_fold10_output.csv"
+    },
+    "Metrics": [
+        0.38095238095238093,
+        0.38095238095238093,
+        0.2857142857142857,
+        0.2857142857142857,
+        0.23809523809523808,
+        0.47619047619047616,
+        0.5238095238095238,
+        0.2857142857142857,
+        0.42857142857142855,
+        0.12
+    ]
+}
