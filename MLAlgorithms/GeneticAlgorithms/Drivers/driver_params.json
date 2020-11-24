@@ -1,0 +1,16 @@
+{
+    "breastCancer": {
+        "DE":[
+            {"network_architecture":[15]},
+            {"network_architecture":[4,7]}
+        ],
+        "GA":[
+            
+            {"network_architecture":[6,16]}
+        ],
+        "PSO":[
+            
+            {"network_architecture":[6,16]}
+        ]
+    }
+}

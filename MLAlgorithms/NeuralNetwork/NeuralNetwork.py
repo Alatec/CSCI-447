@@ -281,7 +281,7 @@ class NeuralNetwork:
                 fitness = part.evalutate(predicted, truths, cost_func)
                 average += fitness
             
-
+                # GBest calculation
                 if fitness < best_fit:
                     best_fit = fitness
                     global_best = part.position[:]
@@ -291,7 +291,7 @@ class NeuralNetwork:
             fitness_matrix[i,1] = np.abs(global_best.flatten()).min()
             fitness_matrix[i,2] = average/particle_count
                 
-            
+            pass
             for part in particles:
                 part.accelerate(global_best)
         
@@ -339,22 +339,26 @@ class NeuralNetwork:
                 if parent_fitness[j] < best_fitness:
                     best_fitness = parent_fitness[j]
                     best_fit_matrix = parent[:]
+
             fitnesses[i,0] = np.abs(best_fit_matrix.flatten()).max()
             fitnesses[i,1] = np.abs(best_fit_matrix.flatten()).min()
             fitnesses[i,2] = parent_fitness.mean()
-            # Find the top performing 50%
+            
+
+            # SELECTION
+            # Sort parents by fitness
             chads = np.argsort(parent_fitness)
-            # selection_prob = np.ones_like(chads, dtype=np.float)
-            # selection_prob[:len(chads)//2]+=2
+            
             
             selection_prob = np.arange(len(chads), dtype=np.float)[::-1]
-            # selection_prob *= selection_prob
+            
             selection_prob[:len(chads)//2]+=5
-            # selection_prob += np.random.uniform(0,5, len(selection_prob))
+            
             selection_prob /= selection_prob.sum()
             chads = np.random.choice(chads, len(chads)//2, p=selection_prob, replace=False)
             parent_shape = population[0].shape
 
+            # CROSSOVER
             # Generate children
             for j, chad in enumerate(chads[:-1]):
                 parent1 = population[chad].flatten()
@@ -396,6 +400,7 @@ class NeuralNetwork:
                 next_generation.append(np.reshape(child1, parent_shape))
                 next_generation.append(np.reshape(child2, parent_shape))
             
+            #CROSSOVER
             #Edge Case for final set of parents
             parent1 = population[chads[-1]].flatten()
             parent2 = population[chads[0]].flatten()
@@ -419,6 +424,7 @@ class NeuralNetwork:
             child1[cutpoints[-1]:] = parent1[cutpoints[-1]:]
             child2[cutpoints[-1]:] = parent2[cutpoints[-1]:]
 
+            # MUTATION
             child1_mutated_genes = np.random.choice([0,1], child1.shape, p=[1-mutation_rate,mutation_rate])
             child1_mutation_amount = np.random.uniform(0.9,1.1,child1.shape)
             child1[child1_mutated_genes==1] *= child1_mutation_amount[child1_mutated_genes==1]

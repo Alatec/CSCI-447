@@ -19,6 +19,7 @@ class Particle:
         self.velocity = np.clip(self.velocity, -self.vel_max, self.vel_max)
 
         self.position += self.velocity
+        pass
 
 
     def evalutate(self, predicted, truths, cost_func='multi_cross'):
