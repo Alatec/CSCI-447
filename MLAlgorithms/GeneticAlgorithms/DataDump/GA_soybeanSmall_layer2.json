@@ -1,0 +1,26 @@
+{
+    "parameters": {
+        "mutation_rate": 0.5,
+        "population_size": 110,
+        "network_architecture": [
+            4,
+            6
+        ],
+        "cost_func": "log_cosh",
+        "maxIter": 1000,
+        "batch_size": 0.6
+    },
+    "Metrics": [
+        0.25,
+        0.5,
+        0.25,
+        0.5,
+        0.0,
+        0.5,
+        0.75,
+        0.5,
+        0.5,
+        0.45454545454545453
+    ],
+    "Average": 0.4204545454545454
+}
