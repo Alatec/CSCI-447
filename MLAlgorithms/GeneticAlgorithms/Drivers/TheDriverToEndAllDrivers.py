@@ -1,12 +1,12 @@
 import json
 import GA_driver
-# import DE_driver
+import DE_driver
 import PSO_driver
-# import ray
+import ray
 # For typing purposes
 # from ray.actor import ActorHandle
 from tqdm import tqdm
-# ray.init(num_cpus=11)
+ray.init(num_cpus=10)
 
 from asyncio import Event
 from typing import Tuple
@@ -114,16 +114,16 @@ jobs = []
 
 for dataset, parameters in driver_params.items():
     for algorithm, hypers in parameters.items():
-        # if algorithm == "DE":
-        #     for hyp in hypers:
-        #         print(dataset, hyp)
-        #         DE_driver.run_driver(dataset, **hyp)
+        if algorithm == "DE":
+            for hyp in hypers:
+                print(dataset, hyp)
+                DE_driver.run_driver(dataset, **hyp)
 
-        # if algorithm == "GA":
-        #     for hyp in hypers:
-        #         print(dataset, hyp)
-        #         GA_driver.run_driver(dataset, **hyp)
-        if algorithm == "PSO":
+        elif algorithm == "GA":
+            for hyp in hypers:
+                print(dataset, hyp)
+                GA_driver.run_driver(dataset, **hyp)
+        elif algorithm == "PSO":
             for hyp in hypers:
                 print(dataset, hyp)
                 PSO_driver.run_driver(dataset, **hyp)

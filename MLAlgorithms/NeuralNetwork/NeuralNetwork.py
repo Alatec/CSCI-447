@@ -59,7 +59,9 @@ class NeuralNetwork:
             self.ohe = OneHotEncoder()
             self.unknown_df = self.ohe.train_fit(self.unknown_df, ["unknown"])
             if self.unknown_df.shape[1] == 1:
-                self.unknown_col = self.unknown_df["unknown"]
+                self.unknown_col[self.unknown_col==2] = 0
+                self.unknown_col[self.unknown_col==4] = 1
+                self.unknown_df["unknown"] = self.unknown_col
         
             
         # On object creation, create a graph to resemble the Neural Network
@@ -79,8 +81,8 @@ class NeuralNetwork:
                 output = output.reshape(output.shape[0])
                 if thresh == "median": thresh = np.median(output)
                 elif thresh == "mean": thresh = np.mean(output)
-                ret_array[output<thresh] = self.ohe.encodedDict["unknown"][0][0]
-                ret_array[output>=thresh] = self.ohe.encodedDict["unknown"][0][1]
+                ret_array[output<thresh] = 2 #self.ohe.encodedDict["unknown"][0][0]
+                ret_array[output>=thresh] = 4 #self.ohe.encodedDict["unknown"][0][1]
                 return ret_array
             else:
                 output_cols = output.argmax(axis=1)
@@ -476,12 +478,6 @@ class NeuralNetwork:
             output[truths==0] = -np.log(1.001-predicted[truths==0])
             Cost_function = output
         
-        elif cost_func == 'multi_cross':
-            # print("Truths")
-            # print(truths.argmax(axis=1))
-            truths = truths.argmax(axis=1)
-            Cost_function = -np.log(predicted[:,truths])/truths.shape[0]
-        
         elif cost_func == 'MAE':
             
              #*dPredicted w.r.t weights)
@@ -507,14 +503,14 @@ class NeuralNetwork:
 
         return Cost_function
 
-    def differential_evolution(self, population_size, maxItter, batch_size, mutation_rate, cross_over_prob, cost_func = 'bin_cross'):
+    def differential_evolution(self, population_size, maxIter, batch_size, mutation_rate, cross_over_prob, cost_func = 'bin_cross'):
         # Create population of random weights
         population = np.array([np.random.uniform(-0.1, 0.1, self.weight_matrix.shape) for i in range(population_size)])
         i = 0
         prev_result = 0
         seed_counter = 0
-        fitnesses = np.zeros((maxItter,4))
-        for i in range(maxItter):
+        fitnesses = np.zeros((maxIter,3))
+        for i in tqdm(range(maxIter)):
             current_result = 0
 
             for j in range(len(population)):
@@ -539,6 +535,8 @@ class NeuralNetwork:
                 child_fitness = self._evolution_fitness(cost_func=cost_func)
 
                 final_parent_fitness = parent_fitness.sum().sum()
+                fitnesses[i,2] += final_parent_fitness
+
                 final_child_fitness = child_fitness.sum().sum()
                 if final_child_fitness < final_parent_fitness:
                     population[j] = child_matrix
@@ -547,10 +545,9 @@ class NeuralNetwork:
                 final_fitness = final_child_fitness if final_child_fitness < final_parent_fitness else final_parent_fitness
                 current_result += final_fitness
 
-            fitnesses[i,0] = population.flatten().max()
-            fitnesses[i,1] = population.mean()
-            fitnesses[i,2] = population.flatten().std()
-            fitnesses[i,3] = population.flatten().min()
+            fitnesses[i,0] = 17
+            fitnesses[i,1] = 17
+            fitnesses[i,2] /= len(population)
 
             if ((abs(current_result - prev_result) / abs(current_result + prev_result)) > .0000001):
                 prev_result = current_result
@@ -560,11 +557,11 @@ class NeuralNetwork:
         
         best = population[0]
         self.weight_matrix = best
-        best_fitness = self._evolution_fitness().sum()
+        best_fitness = self._evolution_fitness(cost_func=cost_func).sum()
         for individual in population:
 
             self.weight_matrix = individual
-            individual_fitness = self._evolution_fitness().sum()
+            individual_fitness = self._evolution_fitness(cost_func=cost_func).sum()
 
             if individual_fitness < best_fitness:
                 best = individual[:]

@@ -20,9 +20,9 @@ import matplotlib.pyplot as plt
 import random as rand
 import json
 
-# import ray
+import ray
 
-
+@ray.remote
 def multiprocess_func(test_set, train_set, fold, fitness_file, output_file, dataRetriever, cost_func, current_data_set, mutation_rate, maxIter, batch_size, population_size, network_architecture, pb_actor=None):
     
     print("=========================")
@@ -143,9 +143,9 @@ def run_driver(current_data_set, mutation_rate=0.5, maxIter=1000, batch_size=0.6
     cont_attributes = dataRetriever.getContinuousAttributes()
     # This line is used to normalize the data for Forest Fires
     if current_data_set == "forestFires":
-        zeros = dataset[dataset[dataRetriever.getDataClass()] < 1].index
-        print(len(zeros)/len(dataset))
-        dataset = dataset.drop(zeros)
+        # zeros = dataset[dataset[dataRetriever.getDataClass()] < 1].index
+        # print(len(zeros)/len(dataset))
+        # dataset = dataset.drop(zeros)
         discrete_attr.remove('month')
         discrete_attr.remove('day')
         # print(dataset[['month','day']])
@@ -192,14 +192,15 @@ def run_driver(current_data_set, mutation_rate=0.5, maxIter=1000, batch_size=0.6
         # output_json[f"Fold {fold}"]["fitness"] = fitness_file
         # output_json[f"Fold {fold}"]["results"] = output_file
 
-        metrics.append(multiprocess_func(test_set, train_set, fold, fitness_file, output_file, dataRetriever, cost_func[current_data_set], current_data_set, mutation_rate, maxIter, batch_size, population_size, network_architecture, pb_actor=None))
+        metrics.append(multiprocess_func.remote(test_set, train_set, fold, fitness_file, output_file, dataRetriever, cost_func[current_data_set], current_data_set, mutation_rate, maxIter, batch_size, population_size, network_architecture, pb_actor=None))
 
 
-    # metrics = ray.get(metrics)
+    metrics = ray.get(metrics)
     print(metrics)
     print("Average Performance: ", np.asarray(metrics).mean())
     output_json["Metrics"] = metrics
     output_json["Average"] = np.asarray(metrics, dtype=np.float64).mean()
+    output_json["Std"] = np.asarray(metrics, dtype=np.float64).std()
 
     with open(f"../DataDump/GA_{current_data_set}_layer{len(network_architecture)}.json", 'w') as f:
         json.dump(output_json,f, indent=4)
