@@ -53,16 +53,10 @@ class Particle:
             # predicted = np.abs(predicted)
             return (truths * np.sign(predicted) * np.power(np.abs(predicted), 1-p)/(1-p) + np.sign(predicted) * np.power(np.abs(predicted), 2-p)/(2-p)).sum().sum()
             
-         
-
         else:
             #Quadratic Loss 
             output = ((predicted-truths)**2).flatten()
             fitness = np.mean(output)
-            #*dPredicted w.r.t weights
-            
-            # if self.predictionType == "classification":
-            #     dCost_function *= predicted
 
         if fitness < self.pbest_fitness:
             self.pbest_vector = self.position[:]

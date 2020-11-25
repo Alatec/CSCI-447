@@ -13,9 +13,6 @@ from tqdm import tqdm
 import numpy as np
 import pandas as pd
 import calendar
-# import matplotlib
-# print(matplotlib.rcsetup.interactive_bk)
-# matplotlib.use('Qt4Agg')
 import matplotlib.pyplot as plt
 import random as rand
 import json
@@ -51,23 +48,8 @@ def multiprocess_func(test_set, train_set, fold, fitness_file, output_file, data
     output = nn._feed_forward(test_set.drop(dataRetriever.getDataClass(), axis=1), testing=True)
     actual = test_set[dataRetriever.getDataClass()]
 
-    # output_json[f"Fold {fold}"] = {}
-
-    # fitness_file = f"../DataDump/{current_data_set}_fold{fold}_fitness.csv"
     fitness_pd = pd.DataFrame(fitnesses,columns=["Max_Weight", "Min_Weight", "Mean_Fitness"])
     fitness_pd.to_csv(fitness_file, index=False)
-
-    # output_json[f"Fold {fold}"]["fitness"] = fitness_file
-    
-
-    # output_file = f"../DataDump/GA/{current_data_set}_fold{fold}_output.csv"
-    
-    
-    # output_pd.to_csv(output_file, index=False)
-    # output_json[f"Fold {fold}"]["results"] = output_file
-    
-    
-    
 
     print("Fold Performance:")
     if dataRetriever.getPredictionType() == "classification":
@@ -80,7 +62,6 @@ def multiprocess_func(test_set, train_set, fold, fitness_file, output_file, data
 
         acc = correct/len(test_set)
 
-        # metrics.append(acc)
         print(f"Accuracy: {acc}")
         return acc
     else:
@@ -90,7 +71,6 @@ def multiprocess_func(test_set, train_set, fold, fitness_file, output_file, data
         
         res = actual-output
         r2 = 1-((res**2).sum()/(((actual-actual.mean())**2).sum()))
-        # metrics.append(r2)
         print(f"R2: {r2}")
         return float(r2)
 
@@ -143,12 +123,8 @@ def run_driver(current_data_set, mutation_rate=0.5, maxIter=1000, batch_size=0.6
     cont_attributes = dataRetriever.getContinuousAttributes()
     # This line is used to normalize the data for Forest Fires
     if current_data_set == "forestFires":
-        # zeros = dataset[dataset[dataRetriever.getDataClass()] < 1].index
-        # print(len(zeros)/len(dataset))
-        # dataset = dataset.drop(zeros)
         discrete_attr.remove('month')
         discrete_attr.remove('day')
-        # print(dataset[['month','day']])
         dataset['month'] = (pd.to_datetime(dataset.month, format='%b').dt.month) - 1
         dataset["day"] = dataset['day'].apply(lambda x: list(calendar.day_abbr).index(x.capitalize()))
         dataset["month_sin"] = np.sin(dataset['month'])
@@ -162,7 +138,6 @@ def run_driver(current_data_set, mutation_rate=0.5, maxIter=1000, batch_size=0.6
         cont_attributes.append('month_cos')
         cont_attributes.append('day_sin')
         cont_attributes.append('day_cos')
-        # print(dataset[['month','day']])
         
         dataset[dataRetriever.getDataClass()] = np.log(dataset[dataRetriever.getDataClass()]+0.000001)
     elif current_data_set == "computerHardware":
@@ -171,9 +146,7 @@ def run_driver(current_data_set, mutation_rate=0.5, maxIter=1000, batch_size=0.6
         dataset = dataset.drop('venderName',axis=1)
         dataset = dataset.drop('modelName',axis=1)
 
-
     dataset = dataset.reset_index(drop=True)
-
 
     if dataRetriever.getDataClass() in discrete_attr:
         discrete_attr.remove(dataRetriever.getDataClass())
@@ -188,12 +161,8 @@ def run_driver(current_data_set, mutation_rate=0.5, maxIter=1000, batch_size=0.6
         fold += 1
         fitness_file = f"../DataDump/GA/{current_data_set}_layer{len(network_architecture)}_fold{fold}_fitness.csv"
         output_file = f"../DataDump/GA/{current_data_set}_layer{len(network_architecture)}_fold{fold}_output.csv"
-        # output_json[f"Fold {fold}"] = {}
-        # output_json[f"Fold {fold}"]["fitness"] = fitness_file
-        # output_json[f"Fold {fold}"]["results"] = output_file
 
         metrics.append(multiprocess_func.remote(test_set, train_set, fold, fitness_file, output_file, dataRetriever, cost_func[current_data_set], current_data_set, mutation_rate, maxIter, batch_size, population_size, network_architecture, pb_actor=None))
-
 
     metrics = ray.get(metrics)
     print(metrics)

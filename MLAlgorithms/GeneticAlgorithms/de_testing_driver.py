@@ -49,12 +49,8 @@ cont_attributes = dataRetriever.getContinuousAttributes()
 
 # This line is used to normalize the data for Forest Fires
 if current_data_set == "forestFires":
-    # zeros = dataset[dataset[dataRetriever.getDataClass()] < 1].index
-    # print(len(zeros)/len(dataset))
-    # dataset = dataset.drop(zeros)
     discrete_attr.remove('month')
     discrete_attr.remove('day')
-    # print(dataset[['month','day']])
     dataset['month'] = (pd.to_datetime(dataset.month, format='%b').dt.month) - 1
     dataset["day"] = dataset['day'].apply(lambda x: list(calendar.day_abbr).index(x.capitalize()))
     dataset["month_sin"] = np.sin(dataset['month'])
@@ -68,7 +64,6 @@ if current_data_set == "forestFires":
     cont_attributes.append('month_cos')
     cont_attributes.append('day_sin')
     cont_attributes.append('day_cos')
-    # print(dataset[['month','day']])
     
     dataset[dataRetriever.getDataClass()] = np.log(dataset[dataRetriever.getDataClass()]+0.000001)
 elif current_data_set == "computerHardware":
@@ -98,16 +93,15 @@ testEncoded = ohe.fit(test_set)
 
 
 
-# ======================= Train Neural Network ================
+# ======================= Create Best Individual ================
 print(title_text)
-
 
 best = NeuralNetwork(datasetEncoded, len(nodes_per_layer), nodes_per_layer, dataRetriever.getPredictionType(), 
                             dataRetriever.getDataClass())
 fitnesses = best.differential_evolution(population_size, maxItter, batch_size, mutation_rate, cross_over_prob, cost_func[current_data_set])
 
 
-# print("Best")
+# ======================= Test Best Individual ================
 final = best.test(testEncoded.drop(dataRetriever.getDataClass(), axis=1))
 output = best._feed_forward(testEncoded.drop(dataRetriever.getDataClass(), axis=1), testing=True)
 actual = testEncoded[dataRetriever.getDataClass()]
@@ -124,37 +118,8 @@ if dataRetriever.getPredictionType() == "classification":
     print(np.array(actual))
     print(acc)
 
-    # print()
-    # print("Everyone")
-    # for j in range(len(population)):
-    #     be = population[j]
-    #     final = be.test(testEncoded.drop(dataRetriever.getDataClass(), axis=1))
-    #     output = be._feed_forward(testEncoded.drop(dataRetriever.getDataClass(), axis=1), testing=True)
-
-    #     actual = testEncoded[dataRetriever.getDataClass()]
-
-
-    #     ## ===================== Classification =================
-    #     correct = 0
-    #     for i, row in enumerate(final):
-    #         if row == actual.iloc[i]: correct += 1
-
-    #     acc = correct/len(test_set)
-
-    #     print(final)
-    #     print(np.array(actual))
-    #     print(acc)
-
-        # plt.plot(fitnesses[:,0], c='blue', label='max')
-    # plt.plot(fitnesses[:,0], c='green', label='max')
     plt.plot(fitnesses[:,1], c='blue', label='fitness')
-    # plt.plot(fitnesses[:,2], c='orange', label='std')
-    # plt.plot(fitnesses[:,3], c='red', label='min')
-    # plt.plot(fitnesses[:,1]+1.5*fitnesses[:,2], c='black', label='outlier')
-    # plt.plot(fitnesses[:,1]-1.5*fitnesses[:,2], c='black', label='outlier')
-    # plt.yscale('log')
     plt.legend()
-    # plt.plot(fitnesses[:,0]-fitnesses[:,1], c='green')
     plt.title(current_data_set)
     plt.show()
 
@@ -162,22 +127,15 @@ else:
     # ===================== Regression =================
     fig, axs = plt.subplots(3)
     output = output.reshape(output.shape[0])
-    # output = ((output - output.mean())/output.std())
-    # actual = (actual - actual.mean())/actual.std()
     rmse =(actual-output)
 
-
-    # plt.hist(rmse)
     axs[0].hist(actual, label="Actual", alpha=0.5)
     axs[0].set_xlim([-2.5,5.5])
     axs[1].hist(output, label="Predicted", alpha=0.5)
     axs[1].set_xlim([-2.5,5.5])
     
-    # axs[1].hist(rmse)
-    # axs[0].legend()
     res = actual-output
     r2 = 1-((res**2).sum()/(((actual-actual.mean())**2).sum()))
     print(f"R2: {r2}")
     axs[2].hist(res)
-    # axs[3].plot(fitnesses)
     plt.show()

@@ -4,16 +4,11 @@ from MLAlgorithms.Utils.OneHotEncoder import OneHotEncoder
 from MLAlgorithms.GeneticAlgorithms.differential_mutation import differential_mutation
 from MLAlgorithms.GeneticAlgorithms.differential_mutation import differential_binomial_crossover
 
-# import ray
-# ray.init()
-
 from tqdm import tqdm
 import numpy as np
 import pandas as pd
 import calendar
-# import matplotlib
-# print(matplotlib.rcsetup.interactive_bk)
-# matplotlib.use('Qt4Agg')
+
 import matplotlib.pyplot as plt
 import random as rand
 
@@ -58,7 +53,7 @@ if current_data_set == "forestFires":
     dataset = dataset.drop(zeros)
     discrete_attr.remove('month')
     discrete_attr.remove('day')
-    # print(dataset[['month','day']])
+
     dataset['month'] = (pd.to_datetime(dataset.month, format='%b').dt.month) - 1
     dataset["day"] = dataset['day'].apply(lambda x: list(calendar.day_abbr).index(x.capitalize()))
     dataset["month_sin"] = np.sin(dataset['month'])
@@ -72,7 +67,7 @@ if current_data_set == "forestFires":
     cont_attributes.append('month_cos')
     cont_attributes.append('day_sin')
     cont_attributes.append('day_cos')
-    # print(dataset[['month','day']])
+
     
     dataset[dataRetriever.getDataClass()] = np.log(dataset[dataRetriever.getDataClass()]+0.000001)
 elif current_data_set == "computerHardware":
@@ -94,29 +89,22 @@ train_set = train_set.reset_index(drop=True)
 
 ohe = OneHotEncoder()
 
-
 if dataRetriever.getDataClass() in discrete_attr:
     discrete_attr.remove(dataRetriever.getDataClass())
 
 datasetEncoded = ohe.train_fit(
     train_set, dataRetriever.getDescreteAttributes())
 testEncoded = ohe.fit(test_set)
-print(datasetEncoded.columns)
-print(datasetEncoded.shape)
 
-
-
-# ======================= Train Neural Network ================
+# ======================= Create Best Individual ================
 print(title_text)
-
-
 
 best = NeuralNetwork(datasetEncoded, 1, [25], dataRetriever.getPredictionType(), 
                             dataRetriever.getDataClass())
 fitnesses = best.genetic_algorithm(population_size, maxItter, batch_size, mutation_rate, 10, cost_func[current_data_set])
 
 
-# print("Best")
+# ======================= Test Best Individual ================
 final = best.test(testEncoded.drop(dataRetriever.getDataClass(), axis=1))
 output = best._feed_forward(testEncoded.drop(dataRetriever.getDataClass(), axis=1), testing=True)
 actual = testEncoded[dataRetriever.getDataClass()]
@@ -133,45 +121,16 @@ if dataRetriever.getPredictionType() == "classification":
     print(np.array(actual))
     print(acc)
 
-    # print()
-    # print("Everyone")
-    # for j in range(len(population)):
-    #     be = population[j]
-    #     final = be.test(testEncoded.drop(dataRetriever.getDataClass(), axis=1))
-    #     output = be._feed_forward(testEncoded.drop(dataRetriever.getDataClass(), axis=1), testing=True)
-
-    #     actual = testEncoded[dataRetriever.getDataClass()]
-
-
-    #     ## ===================== Classification =================
-    #     correct = 0
-    #     for i, row in enumerate(final):
-    #         if row == actual.iloc[i]: correct += 1
-
-    #     acc = correct/len(test_set)
-
-    #     print(final)
-    #     print(np.array(actual))
-    #     print(acc)
     plt.plot(fitnesses[:,0], c='blue', label='max')
-    # plt.plot(fitnesses[:,1], c='green', label='fitness')
-    # plt.plot(fitnesses[:,1]+1.5*fitnesses[:,2], c='black', label='outlier')
-    # plt.plot(fitnesses[:,1]-1.5*fitnesses[:,2], c='black', label='outlier')
-    # plt.yscale('log')
     plt.legend()
-    # plt.plot(fitnesses[:,0]-fitnesses[:,1], c='green')
     plt.savefig("PlotDump/Plot2.png")
 
 else:
     # ===================== Regression =================
     fig, axs = plt.subplots(4)
     output = output.reshape(output.shape[0])
-    # output = ((output - output.mean())/output.std())
-    # actual = (actual - actual.mean())/actual.std()
     rmse =(actual-output)
 
-
-    # plt.hist(rmse)
     axs[0].set_title('Actual')
     axs[0].hist(actual, label="Actual")
     ylim = axs[0].get_ylim()
@@ -184,8 +143,6 @@ else:
     axs[1].hist(output, label="Predicted")
     axs[1].set_xlim([0,1])
     
-    # axs[1].hist(rmse)
-    # axs[0].legend()
     res = actual-output
     r2 = 1-((res**2).sum()/(((actual-actual.mean())**2).sum()))
     print(f"R2: {r2}")
@@ -193,11 +150,7 @@ else:
     axs[2].set_title('Residuals')
 
     axs[3].set_title('Fitness')
-    # axs[3].plot(fitnesses[:,0]-fitnesses[:,1], c='blue')
-    # axs[3].plot(fitnesses[:,0]+fitnesses[:,1], c='blue')
     axs[3].plot(fitnesses[:,0], c='blue', label='mean')
     axs[3].plot(fitnesses[:,1], c='green',label='median')
-    # axs[3].set_ylim([0,np.mean(fitnesses[:,1])])
-    # axs[3].set_yscale('log')
     fig.tight_layout()
     plt.savefig("PlotDump/Plot1.png")

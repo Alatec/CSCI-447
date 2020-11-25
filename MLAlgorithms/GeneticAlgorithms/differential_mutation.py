@@ -24,21 +24,7 @@ def differential_binomial_crossover(target_vector, trial_vector, cross_over_prob
     muts = np.random.choice([0, 1], flat_target.shape, p=[1-cross_over_prob, cross_over_prob])
     flat_target[muts == 1] = flat_trial[muts == 1]
     
-
-
     result_vector = np.reshape(flat_target, target_vector.shape)
-
-
-    # result_vector = np.zeros(target_vector.shape)
-    # for i in range(len(target_vector)):
-    #     for j in range(len(target_vector)):
-
-    #         rand_int = rand.randint(0, 1)
-    #         if rand_int <= cross_over_prob:
-    #             result_vector[i][j] = target_vector[i][j]
-    #         else:
-    #             result_vector[i][j] = trial_vector[i][j]
-
 
     return result_vector
 

@@ -122,7 +122,6 @@ class NeuralNetwork:
         """
         # weight_shape = self.weight_matrix.shape
         # temp = self.weight_matrix.flatten()
-        # self.weight_matrix = np.clip(self.weight_matrix, -1.5*temp.std()+temp.mean(), 1.5*temp.std()+temp.mean())
         
         input_data = batch.to_numpy(dtype=np.longdouble)
         layer_input = input_data # layer_input initally contains a 2D array of every value for each attribute
@@ -140,11 +139,8 @@ class NeuralNetwork:
 
             # Select the portion of the weight matrix representing the edges between left_layer and the current layer
             weights = self.weight_matrix[min(left_layer_indices):max(left_layer_indices)+1, min(layer_indices):max(layer_indices)+1]
-            # weights = np.clip(weights, -1.5*weights.std()+weights.mean(), 1.5*weights.std()+weights.mean())
             # Used to apply the activation function in the next layer 
-            # print(f"Layer {layer_num}")
             layer_input = layer_input@weights
-            # print(f"Weights: \n{weights}")
             
             
             # Iterate through each node in current layer
@@ -167,7 +163,6 @@ class NeuralNetwork:
                     # Update the selected portion of the derivative_matrix 
                     self.derivative_matrix[:, min(left_layer_indices):max(left_layer_indices)+1, node.index] = derivatives
                     # ==================================================================================================================================
-            # print(f"\n\nLayer {layer_num} output: \n{layer_input}\n\n")
 
         # If classification, apply softmax
         if self.predictionType == "classification" and self.unknown_df.shape[1] > 1:
@@ -194,7 +189,6 @@ class NeuralNetwork:
         batch = self.train_data.sample(n=batch_size, random_state=(69+self.random_constant))
         self.random_constant += 1
 
-        
         # These are all the different loss functions we use
 
         # Binary Cross Entropy Loss
@@ -220,12 +214,6 @@ class NeuralNetwork:
             #*dPredicted w.r.t weights
             
 
-            # if self.predictionType == "classification":
-            #     dCost_function *= predicted
-        
-        # return dCost_function -> used for testing
-        # print(f"Cost function:\n{dCost_function}")
-
         update_matrix = np.zeros_like(self.weight_matrix)
 
         total_layers = len(self.layerDict.keys())
@@ -250,18 +238,12 @@ class NeuralNetwork:
             #Update right_layer_cost
             right_layer_cost = np.matmul(right_layer_cost, update_matrix[min(left_layer_indices):max(left_layer_indices)+1, min(layer_indices):max(layer_indices)+1].T)
         
-        # self.update_matrix = (update_matrix-update_matrix-update_matrix.min())/(update_matrix.max()-update_matrix.min()) # This line is for video purposes only
-        # update_matrix = (update_matrix-update_matrix-update_matrix.min())/(update_matrix.max()-update_matrix.min())
-        
         self.weight_matrix = ((0.9*learning_rate)*update_matrix + (0.1*learning_rate)*self.prev_update) + self.weight_matrix
         
 
         
         self.prev_update = copy.deepcopy(update_matrix)
         
-        
-
-
     def _particle_swarm_optimize(self, particle_count, max_iter=1000, batch_size=0.1, cost_func="321654"):
         print("Initializing Particles:")
         particles = [Particle(self.weight_matrix, index=i) for i in range(particle_count)]
@@ -271,12 +253,15 @@ class NeuralNetwork:
         global_best = np.zeros_like(self.weight_matrix)
         fitness_matrix = np.zeros((max_iter,3))
         new_best_count = 0
+
+        # Iterate through each individual
         for i in tqdm(range(max_iter)):
             average = 0
             batch = self.train_data.sample(frac=batch_size, random_state=(69+self.random_constant))
             self.random_constant += 1
-           
             truths = self.unknown_df.loc[batch.index].to_numpy()
+
+            # Update particle's position
             for part in particles:
                 self.weight_matrix = part.position
                 predicted = self._feed_forward(batch, testing=True)
@@ -293,10 +278,11 @@ class NeuralNetwork:
             fitness_matrix[i,1] = np.abs(global_best.flatten()).min()
             fitness_matrix[i,2] = average/particle_count
                 
-            pass
+            # Apply velocity for each particle based on global best
             for part in particles:
                 part.accelerate(global_best)
         
+        # Return best
         self.weight_matrix = global_best
         print(f"New Best Count: {new_best_count}")
         return fitness_matrix
@@ -438,25 +424,7 @@ class NeuralNetwork:
             next_generation.append(np.reshape(child1, parent_shape))
             next_generation.append(np.reshape(child2, parent_shape))
 
-            # for k, kiddo in enumerate(next_generation):
-            #     bad_bois_low = np.quantile(kiddo.flatten(), 0.05)
-            #     bad_bois_high = np.quantile(kiddo.flatten(), 0.95)
-            #     next_generation[k] = next_generation[k].flatten()
-            #     next_generation[k][next_generation[k]>=bad_bois_high] *= 0.95
-            #     next_generation[k][next_generation[k]<=bad_bois_low] *= 0.95
-            #     next_generation[k] = next_generation[k].reshape(self.weight_matrix.shape)
-
             population = next_generation[:]
-
-                
-
-
-
-            # if ((abs(current_result - prev_result) / (abs(current_result + prev_result) + .000001)) > .0000001):
-            #     prev_result = current_result
-            # else: 
-            #     break
-
 
         self.weight_matrix = best_fit_matrix
         return fitnesses
@@ -514,7 +482,6 @@ class NeuralNetwork:
             current_result = 0
 
             for j in range(len(population)):
-                # mutation_rate = np.clip(mutation_rate * rand.uniform(.5, 1.5), 0, 2)
                 self.random_constant += 1
                 random_individual_index = rand.sample([x for x in range(population_size) if x != j], 3)
                 # Check fitness

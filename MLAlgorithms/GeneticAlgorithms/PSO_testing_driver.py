@@ -75,24 +75,9 @@ fitness_matrix, average_fitness = nn._particle_swarm_optimize(70, max_iter=500)
 
 predictions = nn._feed_forward(test_set.drop(dataRetriever.getDataClass(), axis=1), testing=True)
 
-# # ca = ClassifierAnalyzer(test_set[dataRetriever.getDataClass()], predictions)
-# correct = 0
 actual = test_set[dataRetriever.getDataClass()]
-# thresh = np.mean(predictions)
-# for i, row in enumerate(predictions):
-#     guess = 4
-#     if row >= thresh: guess = 2
-#     if guess == actual.iloc[i]: correct += 1
-# metrics.append(correct/len(actual))
-
-    
-
 metrics = np.asarray(metrics)
-# prior = 1/dataset[dataRetriever.getDataClass()].nunique()
-# sampling_sd = np.sqrt((prior*(1-prior))/(10))
 
-
-# p_score = 1-norm.cdf(np.median(metrics),loc=prior,scale=sampling_sd)
 fig, ax = plt.subplots(3)
 ax[0].plot(fitness_matrix[:,0], label="1")
 ax[0].plot(fitness_matrix[:,1], label="34")
@@ -106,10 +91,9 @@ print(predictions)
 print("Actual Output: ")
 print(actual.to_numpy())
 predictions = predictions.flatten()
-# ax[1].hist(predictions)
 ax[1].hist((predictions-predictions.mean())/predictions.std(), alpha=0.5, label='Predicted', density=True)
 ax[1].hist((actual-actual.mean())/actual.std(), label='Actual', density=True, alpha=0.5)
 ax[1].legend()
 
 ax[2].plot(average_fitness)
-plt.savefig("PlotDump/Plot1.png")
+
